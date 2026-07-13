@@ -84,6 +84,9 @@ Before writing any code in this file, re-read this note once. That's it.
 -->
 <html lang="en">
 <head>
+<linkifest.json
+<meta name="theme-color" content="#7b0000">
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JSJC Smart Booking App</title>
@@ -95,6 +98,11 @@ Before writing any code in this file, re-read this note once. That's it.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+  <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js');
+}
+</script>
 body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-height:100vh;height:100vh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(ellipse at 20% 60%,rgba(123,26,26,.15),transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(37,99,235,.1),transparent 50%);}
 .device{width:375px;height:812px;max-height:100vh;background:#f5f5f7;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7);display:flex;flex-direction:column;}
 @media(max-width:420px){
