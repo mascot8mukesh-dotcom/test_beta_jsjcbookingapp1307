@@ -84,9 +84,6 @@ Before writing any code in this file, re-read this note once. That's it.
 -->
 <html lang="en">
 <head>
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#7b0000">
-
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JSJC Smart Booking App</title>
@@ -98,17 +95,32 @@ Before writing any code in this file, re-read this note once. That's it.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-  <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js');
-}
-</script>
 body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-height:100vh;height:100vh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(ellipse at 20% 60%,rgba(123,26,26,.15),transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(37,99,235,.1),transparent 50%);}
 .device{width:375px;height:812px;max-height:100vh;background:#f5f5f7;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7);display:flex;flex-direction:column;}
-@media(max-width:420px){
+/* v80.1 MOBILE RESPONSIVENESS FIX — ROOT CAUSE:
+   This breakpoint was max-width:420px. Below that width the .device phone-
+   frame (a fixed 375x812 box centered on a dark background) switches to
+   fill the real viewport. 420px excluded a large slice of real phones:
+   iPhone 14/15/16 Pro Max report a 430px CSS viewport width, and many
+   Android phones sit anywhere from 412px up to ~480px. Any device in that
+   420-480px gap fell through to the DESKTOP rule instead — the fixed
+   375x812 frame centered on a dark backdrop with margins on every side —
+   which is exactly the "loads on mobile but appears scaled down and
+   doesn't fit the screen" symptom reported. Widening the breakpoint to
+   480px (covers effectively all current phones in portrait) closes that
+   gap. A second breakpoint below handles tablets (481-1024px) with a
+   purpose-sized frame instead of either the tiny phone box or a jarring
+   full-bleed stretch of a phone UI across a tablet's width. Desktop
+   (>1024px) is completely untouched — same fixed 375x812 frame as before. */
+@media(max-width:480px){
   html,body{height:100%;overflow:hidden;}
   body{align-items:stretch;justify-content:stretch;padding:0;}
   .device{width:100%;height:100%;max-height:100%;border-radius:0;box-shadow:none;flex:1;}
+}
+@media(min-width:481px) and (max-width:1024px){
+  html,body{height:100%;overflow:hidden;}
+  body{align-items:center;justify-content:center;padding:16px;}
+  .device{width:100%;max-width:480px;height:100%;max-height:900px;flex:1;}
 }
 .app-bar{background:linear-gradient(135deg,#3d0000,#7b1a1a);color:#fff;padding:14px 16px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.3);}
 .app-bar-left{display:flex;flex-direction:column;gap:1px;}
@@ -1984,15 +1996,78 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       <div class="sec-lbl">Inventory Alert Log</div>
       <div class="card" style="padding:12px;">
 
-        <!-- v79.1: the 5 hardcoded demo alert cards that used to live here
-             (Kit 2 Lens Cap Missing, Kit 3 Battery Drainage, Zoom H6 Windshield,
-             DJI Ronin Calibration, Kit 1 All Clear) were pure static HTML — not
-             generated from any data source — so they rendered on every load
-             regardless of what Supabase actually contained, the same class of
-             bug fixed for bookings in v79. Removed. Real alerts belong in the
-             live Inventory Ledger below (#inv-ledger-list), which already reads
-             actual S.bookings and correctly shows nothing when there is nothing
-             to show. -->
+        <!-- 5W Alert: Kit 2 — CRITICAL (overdue, unresolved) -->
+        <div class="inv5w-card sev-crit">
+          <div class="inv5w-hd">
+            <span class="inv5w-sev">🔴 Critical</span>
+            <span class="inv5w-what">Kit 2 (Equip #02) — Lens Cap Missing</span>
+          </div>
+          <div class="inv5w-grid">
+            <div class="inv5w-field"><div class="inv5w-lbl">📦 What</div><div class="inv5w-val">Lens cap absent on return</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">🎒 Which</div><div class="inv5w-val">Kit 2 · Camera #02 · BK-0041</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">📅 Since</div><div class="inv5w-val overdue">Jun 20, 2026 · 14 days ago</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">👤 Last Issued To</div><div class="inv5w-val">Tejas M. · 2023-JMS-115</div></div>
+            <div class="inv5w-field" style="grid-column:span 2;"><div class="inv5w-lbl">📥 Received By</div><div class="inv5w-val">Mukesh M. · Jun 20 · Maintenance required — replacement ordered</div></div>
+          </div>
+        </div>
+
+        <!-- 5W Alert: Kit 3 — WARNING -->
+        <div class="inv5w-card sev-warn">
+          <div class="inv5w-hd">
+            <span class="inv5w-sev">🟠 Warning</span>
+            <span class="inv5w-what">Kit 3 (Equip #03) — Battery Drainage</span>
+          </div>
+          <div class="inv5w-grid">
+            <div class="inv5w-field"><div class="inv5w-lbl">📦 What</div><div class="inv5w-val">Rapid battery drain on use</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">🎒 Which</div><div class="inv5w-val">Kit 3 · Camera #03 · BK-0038</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">📅 Since</div><div class="inv5w-val">Jun 18, 2026 · Monitored</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">👤 Last Issued To</div><div class="inv5w-val">Priya D. · 2024-CCPA-061</div></div>
+            <div class="inv5w-field" style="grid-column:span 2;"><div class="inv5w-lbl">📥 Received By</div><div class="inv5w-val">Mukesh M. · Jun 18 · Battery under observation — service booked</div></div>
+          </div>
+        </div>
+
+        <!-- 5W Alert: Zoom H6 — MONITOR -->
+        <div class="inv5w-card sev-mon">
+          <div class="inv5w-hd">
+            <span class="inv5w-sev">🟡 Monitor</span>
+            <span class="inv5w-what">Zoom H6 — Windshield Worn</span>
+          </div>
+          <div class="inv5w-grid">
+            <div class="inv5w-field"><div class="inv5w-lbl">📦 What</div><div class="inv5w-val">Foam windshield degraded</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">🎒 Which</div><div class="inv5w-val">Zoom H6 · Audio Kit · BK-0035</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">📅 Since</div><div class="inv5w-val">Jun 15, 2026 · Replacement ordered</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">👤 Last Issued To</div><div class="inv5w-val">Karthik R. · 2023-FNM-087</div></div>
+            <div class="inv5w-field" style="grid-column:span 2;"><div class="inv5w-lbl">📥 Received By</div><div class="inv5w-val">Mukesh M. · Jun 15 · Spare windshield ordered from vendor</div></div>
+          </div>
+        </div>
+
+        <!-- 5W Alert: DJI Ronin — SCHEDULED -->
+        <div class="inv5w-card sev-due">
+          <div class="inv5w-hd">
+            <span class="inv5w-sev">🔵 Scheduled</span>
+            <span class="inv5w-what">DJI Ronin 4D — Gimbal Calibration</span>
+          </div>
+          <div class="inv5w-grid">
+            <div class="inv5w-field"><div class="inv5w-lbl">📦 What</div><div class="inv5w-val">Gimbal calibration overdue</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">🎒 Which</div><div class="inv5w-val">DJI Ronin 4D · Cinema Kit</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">📅 Since</div><div class="inv5w-val">Scheduled · Jul 7, 2026</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">👤 Responsible</div><div class="inv5w-val">Mukesh M. · Studio Manager</div></div>
+            <div class="inv5w-field" style="grid-column:span 2;"><div class="inv5w-lbl">📋 Note</div><div class="inv5w-val">Calibration appointment confirmed with DJI service centre — Friday</div></div>
+          </div>
+        </div>
+
+        <!-- 5W: Kit 1 — ALL CLEAR -->
+        <div class="inv5w-card sev-ok">
+          <div class="inv5w-hd">
+            <span class="inv5w-sev">✅ All Clear</span>
+            <span class="inv5w-what">Kit 1 — Fully Serviced</span>
+          </div>
+          <div class="inv5w-grid">
+            <div class="inv5w-field"><div class="inv5w-lbl">📦 Status</div><div class="inv5w-val">All items present & working</div></div>
+            <div class="inv5w-field"><div class="inv5w-lbl">📅 Last Checked</div><div class="inv5w-val">Jul 3, 2026 · Serviced</div></div>
+            <div class="inv5w-field" style="grid-column:span 2;"><div class="inv5w-lbl">📥 Cleared By</div><div class="inv5w-val">Mukesh M. · Fully operational — no issues</div></div>
+          </div>
+        </div>
 
         <!-- Inventory Ledger — full audit trail (Equipment / Studio / Editing Systems) -->
         <div class="sec-lbl" style="margin-top:14px;">📒 Inventory Ledger — All Transactions</div>
@@ -2502,7 +2577,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v79.1</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.2</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -2796,7 +2871,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v79.1</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v79</div>
         <div style="font-size:10px;color:#a07060;margin-bottom:12px;line-height:1.6;">Seventeen thematic chapters covering the full development arc. Tap any chapter to expand its release notes.</div>
 
         <!-- Group 1 -->
@@ -3340,8 +3415,9 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
             <div style="display:flex;flex-direction:column;gap:9px;">
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128269; Assignment Feature Audit (No Migration Performed)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Requested audit to migrate "assignment" functionality from localStorage to new Supabase tables; the audit found no such feature exists — "assignment" only refers to the booking purpose category and the already-Supabase-backed Assignment Tag Library (since v75.3). Decision: no new assignment/submission feature built; no code changes made in this pass.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128295; Diagnostics Panel Fix — Assignment Tag Library Row</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">The Database Health Check panel's "Assignment Tag Library" row was hardcoded to always show localStorage/&#9888;&#65039; even after the v75.3 Supabase migration shipped. Now checks <code>window.supaAssignmentTags</code> dynamically, matching every other conditional row on that panel.</div></div>
-              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79.1 &middot; &#128683; Inventory Alert Log — Remaining Demo Data Removed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Same class of bug as v79, in a different spot: the Manager screen's "Inventory Alert Log" section had 5 cards (Kit 2 Lens Cap Missing, Kit 3 Battery Drainage, Zoom H6 Windshield Worn, DJI Ronin Gimbal Calibration, Kit 1 All Clear) that were pure static HTML baked directly into the page — not generated from <code>S.bookings</code>, Supabase, or any data source at all, despite the v67 changelog's claim that this section had been "rebuilt as a live ledger." They rendered identically on every login, every role, every dataset, real or empty — which is exactly why they were still visible after v79 cleared the seed bookings. Removed outright. The genuinely live part directly below — <code>renderInventoryLedger()</code> / <code>#inv-ledger-list</code>, which already reads real <code>S.bookings</code> and shows "No transactions yet." when there's nothing to show — was untouched and needed no change.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79 &middot; &#128683; Disable Demo/Seed Bookings When Database Is Empty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>window._SEED_BOOKINGS</code> (9 hardcoded demo bookings) was being unconditionally merged into <code>S.bookings</code> in the single busiest code path in the app — <code>fetchAndRenderBookings()</code> did <code>S.bookings = dbRows.concat(activeSeed)</code> on EVERY successful Supabase fetch, live rows or not, per an old comment: "so Prof &amp; Manager dashboards always have demo context visible." That meant a genuinely empty Supabase <code>bookings</code> table still rendered all 9 seed records on every screen, every refresh, forever — not a bug in the fetch itself (History Fetch correctly returned <code>[]</code>), but in what happened to that result afterward. Three more injection points did the same thing at boot, logout, and session-restore, and two Analytics summary functions separately fell back to seeds whenever <code>S.bookings</code> was empty, so even a correctly-empty <code>S.bookings</code> could still show fake analytics totals. <strong>Fix:</strong> added a single <code>window.JSJC_DEMO_MODE</code> flag (default <code>false</code>) and gated every one of those seed-injection points behind it — the post-fetch merge, the pre-fetch boot filler, the logout/session-restore reseed, the network-failure fallback, and <code>clearLocalDB()</code>'s reset. With the flag off (production), <code>S.bookings</code> now holds exactly what Supabase returns — zero rows in, zero rows shown, "No bookings available" on the live bookings list, and Analytics correctly reports 0 Total / 0 Approved / 0 Issued / 0 Returned since its summary functions no longer fall back to <code>_SEED_BOOKINGS</code> when the real list is empty. Nothing else was touched: Assignment Tags, Students, Faculty, Managers, Studios, Equipment, and Admin Settings all live in <code>adminData</code>/their own Supabase tables, completely separate from booking seed logic, and are untouched by this fix. A developer who genuinely needs the old walkthrough behaviour back — offline demos, onboarding a new Studio Manager without touching real data — can set <code>window.JSJC_DEMO_MODE = true</code> (top of the script, right above <code>_SEED_BOOKINGS</code>) to restore it exactly as it was; production deployments must leave it <code>false</code>.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.2 &middot; &#128680; Critical Booking Code Race Condition Audit &amp; Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Trigger:</strong> two real, unrelated bookings (Sujareetha and Admin) both received <code>EQ-BK-0001</code>. <strong>Root cause:</strong> booking codes are (and remain) generated entirely client-side by <code>getNextBookingNum()</code>, computed from a snapshot of <code>S.bookings</code> taken before the insert that will actually claim that code round-trips back to Supabase. Two sessions that read that snapshot in the same narrow window — before either one's insert lands and updates the other's in-memory list — compute the identical "next" number. v78.1 closed the everyday version of this (independent localStorage counters drifting apart across devices/browsers) but explicitly flagged that it could not close a genuine same-instant race, because no client can see another tab's in-flight write — exactly what happened here. <strong>Files reviewed:</strong> this file only (single-file app) — <code>getNextBookingNum()</code>, <code>submitBooking()</code>, the booking INSERT payload builder, and the GitHub Pages deployment path (confirmed to serve this exact file with no build step and no secondary/duplicate code generator anywhere in the repo). <strong>Confirmed:</strong> booking codes ARE generated 100% client-side; no server-side atomic counter exists; multiple sessions CAN receive the same code (reproduced above); a genuine race condition exists at the exact moment two inserts overlap; no local fallback generator was found beyond the one intentional counter; GitHub Pages introduces no separate generator, it is static hosting only; <strong>no UNIQUE constraint currently exists</strong> on <code>bookings.booking_code</code> in Supabase — confirmed by the fact that the duplicate insert succeeded silently instead of being rejected. <strong>Fix implemented:</strong> the booking INSERT in <code>submitBooking()</code> now runs inside a retry loop (max 5 attempts). If Supabase rejects the row as a unique-constraint violation (HTTP 409 / Postgres error 23505), a fresh code is generated from an up-to-date read and the insert is retried — the database itself, not another client-side guess, is what confirms the collision, which is the only way to truly rule out a same-instant race. <strong>This fix is inert until the following is run manually in Supabase</strong> (per standing instruction against unrequested schema changes): first check for existing duplicates with <code>SELECT booking_code, COUNT(*) FROM public.bookings GROUP BY booking_code HAVING COUNT(*) &gt; 1;</code>, resolve any found (append a disambiguating suffix to the older row — never delete), then run <code>ALTER TABLE public.bookings ADD CONSTRAINT bookings_booking_code_unique UNIQUE (booking_code);</code>. Until that constraint exists, Supabase accepts duplicate codes without complaint, the retry loop never triggers, and the app is exactly as exposed as before this version — the client-side numbering in <code>getNextBookingNum()</code> is still the only thing narrowing the odds. <strong>Verification performed:</strong> code-level review only (no live Supabase access from this environment to run simultaneous-insert tests against your project) — all script blocks re-verified with Node <code>new Function()</code> syntax checking after the change. Recommend a manual test after the ALTER runs: open two browser tabs/devices, submit a booking in both within the same second, and confirm the second either receives a different code or (extremely rarely, both racing past the retry ceiling) a clear error rather than a silent duplicate.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.1 &middot; &#128241; Mobile Responsiveness Audit &amp; Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> the app already had a mobile breakpoint (<code>@media(max-width:420px)</code>) that switches the simulated phone frame (<code>.device</code>, normally a fixed 375&times;812px box centered on a dark backdrop — the desktop preview look) to fill the real viewport edge-to-edge. The threshold was simply too low: iPhone 14/15/16 Pro Max report a 430px CSS viewport width, and many current Android phones sit between 420px and 480px. Any phone in that gap fell through to the DESKTOP rule instead, rendering as the small centered phone-frame widget with dark margins on every side — exactly the "loads on mobile but appears scaled down and doesn't fit the screen" symptom reported. A scan for stray fixed pixel widths across the file found nothing else implicated (the handful of <code>width:300-430px</code> values found are all deliberate modal/print-report max-widths, unrelated to the main screen flow). <strong>Fix:</strong> the phone breakpoint is now <code>max-width:480px</code>, closing the Pro-Max/Android gap. A new <code>min-width:481px and max-width:1024px</code> tablet breakpoint was added so tablets get a purpose-sized, centered frame (max 480px wide, full height) instead of either the tiny phone box or an ungainly full-bleed stretch of a phone UI across a tablet's width. <strong>Desktop (&gt;1024px) is completely unchanged</strong> — same fixed 375&times;812px frame as every prior version. <strong>Screens covered:</strong> the breakpoint lives on the shared <code>.device</code>/<code>body</code> rules that every screen renders inside (Login, Booking, Manager, Professor, Analytics, Reports, Ledger, Assignment Tags all share this one frame), so the fix applies uniformly rather than screen-by-screen. <strong>Files changed:</strong> this file only — the <code>&lt;style&gt;</code> block's <code>.device</code>/breakpoint rules near the top. <strong>Verification:</strong> code-level review and Node syntax verification of all script blocks; no live device lab available in this environment to capture screenshots — recommend spot-checking on an actual iPhone Pro Max and a mid-size Android phone/tablet after deploy.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v78.1 &middot; &#128269; Booking Number Uniqueness Audit</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>getNextBookingNum()</code> generated every booking number from a counter that lived ENTIRELY in <code>localStorage</code>, with zero awareness of Supabase. localStorage is per-browser/per-device — a different device, a different browser, an incognito session, or simply clearing site data all restart the counter at 0000 independently. Two Studio Managers (or the same manager on two devices) could each count up to "11" completely independently and both mint <code>EQ-BK-0011</code> — exactly the duplicate confirmed in the audit screenshots (Sreeja/prof.rajeshwari vs Vijay/Prof. Gururamamoorthy — two real, unrelated bookings). No Supabase-side uniqueness constraint existed to catch it either, so the collision was written silently. Seed/demo data (bkNum 1001–1042 range) was checked too and does not overlap the real 0001-range counter, so it's not implicated in this specific duplicate. <strong>Fix:</strong> the "next number" floor is now taken from the highest booking number already present in <code>S.bookings</code> — the in-memory mirror of live Supabase data every device shares — instead of trusting this browser's own localStorage in isolation; localStorage is kept only as an extra floor so numbering never regresses mid-session before a fetch lands. The candidate is then checked against every code already in <code>S.bookings</code> and bumped past any collision before being returned. This closes the everyday cause (independent devices drifting apart) with zero schema change and preserves every existing historical record exactly as-is — nothing was renumbered or deleted. <strong>Not fully closed by this alone:</strong> a client-side check can never fully rule out two managers submitting in the literal same instant (a true race condition) — the permanent, concurrency-safe guarantee is a database-level UNIQUE constraint. Recommended SQL (not yet applied — for your manual review/execution, per standing instruction not to make unrequested schema changes): <code>ALTER TABLE public.bookings ADD CONSTRAINT bookings_booking_code_unique UNIQUE (booking_code);</code> — run a duplicate check first with <code>SELECT booking_code, COUNT(*) FROM public.bookings GROUP BY booking_code HAVING COUNT(*) &gt; 1;</code> and resolve any existing duplicates (e.g. append a disambiguating suffix to the older row, never delete) before adding the constraint, or the ALTER will fail outright.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v78 &middot; &#128220; Booking History Preservation, Analytics Integrity &amp; Enhanced Filters</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause of "cancelled bookings vanish from Approved/Issued/Returned counts":</strong> every Analytics summary strip and drill-down tab matched a booking's CURRENT status only (e.g. <code>status==='approved'</code>). Since cancellation always overwrites status to <code>cancelled</code> by design, a booking that was genuinely Approved — or even Issued — before being cancelled silently dropped out of those tabs, understating real workflow history. New <code>anWasApproved()/anWasIssued()/anWasReturned()</code> helpers check the milestone timestamp (<code>approved_at/issued_at/returned_at</code>, written once and never cleared by cancellation) instead, so a cancelled booking now still counts everywhere it historically earned a place — matching this version's worked Examples A and B exactly. <strong>Root cause of "Process Timeline loses history on cancellation":</strong> <code>pipelineRecordHTML()</code> early-returned the instant <code>b.status==='cancelled'</code>, rendering ONLY "Booking placed" + "Cancelled by" — every stage genuinely reached before that (Professor Approved, Kit Ready, Issued, …) was thrown away even though it really happened. Every stage row is now built purely from its own data so it renders regardless of current status, with the terminal Cancelled row appended at the end instead of replacing history. <strong>Booking/audit/report deletion:</strong> audited <code>cancelBooking()</code> and <code>rejectBooking()</code> — confirmed neither ever hard- or soft-deletes a row; both already PATCH <code>status/cancelled_at/rejected_by</code> and the dbRows mapper already reads all of it back, so no schema change was needed here — the actual defect was entirely in how Analytics and the Timeline interpreted that data, not in how it was stored. <strong>Professor &amp; Manager filters:</strong> added Approved/Denied chips to the Professor Approve screen and Latest Booking/Approved by Manager/Kit Ready/Issued/Rejected/Returned/Partially Returned chips to the Manager desk — all except "Latest Booking" now query the FULL booking history (not just the 24-hour close-out window or today's date), so a Professor or Manager can find any booking by the stage it reached even if it was later cancelled. <strong>Console warning fix (lowest priority per instruction):</strong> root cause of the "Unsafe attempt to load URL file:///…" warning was a missing <code>&lt;link rel="icon"&gt;</code> — with no favicon declared, browsers auto-probe <code>/favicon.ico</code> relative to the document's own origin, and when the file is opened directly from disk (file://) rather than via Netlify, that probe resolves to a blocked file:// path. Added a self-contained inline data-URI favicon, which removes the automatic probe entirely on any origin — no PWA/manifest work touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v77 &middot; &#128737;&#65039; Assignment Tags Schema Audit — 404 &amp; PGRST205 Fixed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">The v75.3 Supabase wiring for <code>fetchSupaAssignmentTags/addSupaAssignmentTag/updateSupaAssignmentTag/deleteSupaAssignmentTag</code> was live in code but the underlying <code>public.assignment_tags</code> table was never created — surfacing as a 404 on fetch and a <code>PGRST205</code> "could not find the table" error on write, silently degrading every tag add/edit/delete back to local-only. Read the four functions' exact field usage (<code>id</code>, <code>label</code>, <code>color</code>, <code>active</code>, <code>numbers</code>) and the merge logic in <code>mergeSupaTagsIntoAdminData()</code> to derive the precise schema, then produced the CREATE TABLE SQL, RLS policies, and a case-insensitive uniqueness index matching how the client already dedupes tags by label. SQL delivered as tab <code>130726_Assignment_Tags_Table</code> for manual Supabase execution — no app code touched, per instruction. Also used this pass to re-evaluate the Architect Review against every update since v54 (see Architect Review &amp; Valuation above) and to fold the standalone "Undocumented Interval" (v57&ndash;v61) card into the v62&ndash;v67.8 chapter so the Version Journal reads as one continuous story instead of an interrupted one.</div></div>
@@ -14009,17 +14085,63 @@ async function submitBooking(payload) {
   console.log('📤 INSERT booking row:', JSON.stringify(bookingRow));
 
   // ── Step 1: Insert the booking ──
-  const res1 = await fetch(SUPABASE_URL + '/rest/v1/bookings', {
-    method : 'POST',
-    headers: Object.assign({}, HEADERS, { 'Prefer': 'return=representation' }),
-    body   : JSON.stringify(bookingRow)
-  });
-  const text1 = await res1.text();
-  let data1 = null, error1 = null;
-  try { data1 = JSON.parse(text1); } catch(e) { data1 = text1; }
+  // v80.2 RACE CONDITION FIX (EQ-BK-0001 duplicate: Sujareetha vs Admin):
+  // ROOT CAUSE: booking_code was computed entirely client-side by
+  // getNextBookingNum() from a snapshot of S.bookings taken BEFORE this
+  // insert lands. Two devices/tabs that both read S.bookings in the same
+  // window — before either of their inserts round-trips back and updates
+  // the other's in-memory list — compute the same "next" number and both
+  // mint the same code. v78.1 closed the everyday version of this bug
+  // (independent localStorage counters drifting apart across devices) but
+  // explicitly could NOT close a true same-instant race, because a
+  // client-side check can never see another tab's in-flight write.
+  // FIX: this insert now retries on a booking_code collision. If Supabase
+  // rejects the row as a unique-constraint violation (409 / Postgres code
+  // 23505 — REQUIRES the UNIQUE constraint below to actually be applied),
+  // a fresh code is generated against the now up-to-date picture and the
+  // insert is retried, up to 5 attempts. This is a genuine server-verified
+  // check (the DB is the only party that can see every in-flight writer),
+  // not just another client-side guess — the previous silent-collision
+  // path is closed because a colliding INSERT can no longer succeed at all.
+  //   ⚠ REQUIRES THIS SQL TO BE RUN MANUALLY IN SUPABASE (not yet applied —
+  //   per standing instruction not to make unrequested schema changes):
+  //     SELECT booking_code, COUNT(*) FROM public.bookings
+  //       GROUP BY booking_code HAVING COUNT(*) > 1;   -- check first
+  //     ALTER TABLE public.bookings
+  //       ADD CONSTRAINT bookings_booking_code_unique UNIQUE (booking_code);
+  //   Without that constraint in place, Supabase will happily accept a
+  //   duplicate booking_code (no 409 is ever raised) and this retry loop
+  //   never triggers — the client-side numbering in getNextBookingNum()
+  //   is still the only thing narrowing the odds until the ALTER runs.
+  let res1, text1, data1 = null, error1 = null;
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    res1 = await fetch(SUPABASE_URL + '/rest/v1/bookings', {
+      method : 'POST',
+      headers: Object.assign({}, HEADERS, { 'Prefer': 'return=representation' }),
+      body   : JSON.stringify(bookingRow)
+    });
+    text1 = await res1.text();
+    try { data1 = JSON.parse(text1); } catch(e) { data1 = text1; }
 
-  if (!res1.ok) {
+    if (res1.ok) { error1 = null; break; }
+
     error1 = data1;
+    const isCodeCollision = res1.status === 409 ||
+      /duplicate key|23505|bookings_booking_code_unique/i.test(text1);
+
+    if (isCodeCollision && attempt < maxAttempts) {
+      console.warn('⚠️ booking_code collision on "' + bookingRow.booking_code +
+        '" (attempt ' + attempt + '/' + maxAttempts + ') — regenerating and retrying');
+      // catCode isn't in scope here (submitBooking only receives the plain
+      // payload) — recover it from the prefix of the code that just
+      // collided, e.g. "EQ-BK-0001" -> "EQ".
+      const collidedCatCode = (bookingRow.booking_code || '').split('-BK-')[0] || 'EQ';
+      const freshNum = getNextBookingNum(collidedCatCode);
+      bookingRow.booking_code = collidedCatCode + '-BK-' + freshNum;
+      continue;
+    }
+
     console.error('❌ booking INSERT — data:', data1, '| error:', error1);
     throw new Error('Booking insert failed (' + res1.status + '): ' + text1);
   }
