@@ -87,8 +87,40 @@ Before writing any code in this file, re-read this note once. That's it.
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JSJC Smart Booking App</title>
-<!-- v78 REQUEST 7: explicit inline favicon — see changelog for root cause of the
-     file:// "Unsafe attempt to load URL" console warning this fixes. -->
+<!-- v80.8 JSJC BRANDING & PWA ICON INTEGRATION
+     Root cause of "no real logo anywhere": the only icon reference in the whole
+     app was the v78 fix's placeholder red-"J" SVG data-URI, added purely to
+     silence a file:// console warning — never intended as real branding, and
+     there was no manifest.json, no apple-touch-icon, and no theme-color at all
+     (confirmed by grep — zero PWA-related tags existed before this version).
+     DEPLOYMENT REQUIREMENT: this now points at real files that must sit next to
+     index.html on GitHub Pages:
+       /manifest.json
+       /icons/favicon.ico
+       /icons/favicon-16.png, /icons/favicon-32.png
+       /icons/icon-192.png, /icons/icon-512.png, /icons/icon-512-maskable.png
+       /icons/apple-touch-icon.png
+     A manifest.json cannot be inlined into a single HTML file — browsers only
+     accept it as a real fetchable URL (this codebase never used a Blob-URL
+     trick for it, confirmed by grep for createObjectURL/manifest.json — there
+     is none), so this is a deliberate move from "single file" to "index.html +
+     small icons/ folder + manifest.json", all still deployed as static files
+     on GitHub Pages exactly like today. -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#7b1a1a"/>
+<!-- Favicon — real JSJC logo, multi-size with .ico fallback for older browsers -->
+<link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
+<!-- iOS home-screen icon (iOS ignores manifest.json icons, needs this explicitly) -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="JSJC Booking"/>
+<!-- Fallback inline favicon: if this HTML is ever opened as a lone file without
+     the icons/ folder alongside it (e.g. dragged straight from disk), the real
+     icon links above will 404 silently and the browser falls back to no icon —
+     this data-URI keeps the v78 console-warning fix working in that exact case. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%237b1a1a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='sans-serif' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2585,7 +2617,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.3</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.8</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3424,6 +3456,11 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128269; Assignment Feature Audit (No Migration Performed)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Requested audit to migrate "assignment" functionality from localStorage to new Supabase tables; the audit found no such feature exists — "assignment" only refers to the booking purpose category and the already-Supabase-backed Assignment Tag Library (since v75.3). Decision: no new assignment/submission feature built; no code changes made in this pass.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128295; Diagnostics Panel Fix — Assignment Tag Library Row</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">The Database Health Check panel's "Assignment Tag Library" row was hardcoded to always show localStorage/&#9888;&#65039; even after the v75.3 Supabase migration shipped. Now checks <code>window.supaAssignmentTags</code> dynamically, matching every other conditional row on that panel.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79 &middot; &#128683; Disable Demo/Seed Bookings When Database Is Empty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>window._SEED_BOOKINGS</code> (9 hardcoded demo bookings) was being unconditionally merged into <code>S.bookings</code> in the single busiest code path in the app — <code>fetchAndRenderBookings()</code> did <code>S.bookings = dbRows.concat(activeSeed)</code> on EVERY successful Supabase fetch, live rows or not, per an old comment: "so Prof &amp; Manager dashboards always have demo context visible." That meant a genuinely empty Supabase <code>bookings</code> table still rendered all 9 seed records on every screen, every refresh, forever — not a bug in the fetch itself (History Fetch correctly returned <code>[]</code>), but in what happened to that result afterward. Three more injection points did the same thing at boot, logout, and session-restore, and two Analytics summary functions separately fell back to seeds whenever <code>S.bookings</code> was empty, so even a correctly-empty <code>S.bookings</code> could still show fake analytics totals. <strong>Fix:</strong> added a single <code>window.JSJC_DEMO_MODE</code> flag (default <code>false</code>) and gated every one of those seed-injection points behind it — the post-fetch merge, the pre-fetch boot filler, the logout/session-restore reseed, the network-failure fallback, and <code>clearLocalDB()</code>'s reset. With the flag off (production), <code>S.bookings</code> now holds exactly what Supabase returns — zero rows in, zero rows shown, "No bookings available" on the live bookings list, and Analytics correctly reports 0 Total / 0 Approved / 0 Issued / 0 Returned since its summary functions no longer fall back to <code>_SEED_BOOKINGS</code> when the real list is empty. Nothing else was touched: Assignment Tags, Students, Faculty, Managers, Studios, Equipment, and Admin Settings all live in <code>adminData</code>/their own Supabase tables, completely separate from booking seed logic, and are untouched by this fix. A developer who genuinely needs the old walkthrough behaviour back — offline demos, onboarding a new Studio Manager without touching real data — can set <code>window.JSJC_DEMO_MODE = true</code> (top of the script, right above <code>_SEED_BOOKINGS</code>) to restore it exactly as it was; production deployments must leave it <code>false</code>.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.8 &middot; &#127917; JSJC Branding &amp; PWA Icon Integration</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audit finding:</strong> confirmed by grep before touching anything &mdash; there was no manifest.json, no service worker registration, no apple-touch-icon, and no theme-color anywhere in the app. The only existing icon reference was the v78 fix's placeholder red-"J" SVG data-URI, added purely to silence a file:// console warning, never intended as real branding. <strong>1. Favicon:</strong> generated real favicon.ico (16/32/48px) and standalone 16px/32px PNGs from the uploaded JSJC logo, linked via <code>&lt;link rel="icon"&gt;</code> ahead of the old placeholder, which is kept as a last-resort fallback only for the case where this HTML is opened as a lone file without its icons/ folder alongside it. <strong>2. PWA icons:</strong> generated 192&times;192 and 512&times;512 PNGs plus a padded 512&times;512 maskable variant (required separately for Android's adaptive-icon safe zone) from the same source logo. <strong>3. Installed app branding:</strong> new manifest.json declares <code>name: "JSJC Smart Booking App"</code>, references all icon sizes, and sets <code>theme_color</code>/<code>background_color</code> to the app's existing JSJC red (<code>#7b1a1a</code>, matched from the app-bar gradient already in use) &mdash; also added as an explicit <code>&lt;meta name="theme-color"&gt;</code> tag and Apple-specific meta tags (apple-touch-icon, apple-mobile-web-app-title) since iOS ignores manifest.json icons and needs its own link tag. <strong>4. Installability:</strong> added a minimal service-worker.js and its registration script &mdash; a registered service worker with a fetch handler is a hard Chrome/Android requirement for the install prompt to fire at all; a manifest alone is not sufficient. The worker deliberately does not cache anything: this app talks live to Supabase for every booking/approval/issue/return action, and caching those responses offline would risk showing stale equipment/booking state, which is worse than an app that simply doesn't work offline. <strong>Deployment requirement:</strong> a manifest.json cannot be inlined into a single HTML file (browsers only accept it as a real fetchable URL, and this codebase never used a Blob-URL trick for it &mdash; confirmed absent by grep), so this version deliberately moves from "single HTML file" to "index.html + manifest.json + service-worker.js + a small icons/ folder", all still deployed as plain static files on GitHub Pages exactly as today &mdash; nothing here needs a build step or server-side logic. <strong>Mobile scroll-clipping audit (this version's second request):</strong> re-checked against the standing invariant list &mdash; confirmed <code>body</code>, <code>.device</code>, and both mobile/tablet breakpoints already carry the <code>100vh</code>&rarr;<code>100dvh</code> companion pattern, <code>.screen</code> already scrolls via <code>overflow-y:auto</code> with 80px bottom padding clearing <code>.bottom-nav</code>, and <code>.bottom-nav</code> is a normal flex child, never <code>position:fixed</code>. This was already fixed correctly in v80.3 (see that entry for the full root-cause writeup) &mdash; nothing needed changing here, this pass only re-verified it's still intact. <strong>Verification performed in this environment:</strong> full Node <code>new Function()</code> syntax check across all script blocks, and visual confirmation of each generated PNG. <strong>Verification NOT performed (no device lab here):</strong> physical Android install-prompt test, physical Windows/Edge install test, and a live GitHub Pages deployment check that manifest.json/service-worker.js/icons/ actually resolve once pushed &mdash; please spot-check those after deploying, since they depend on the real hosting path structure matching what's assumed here (icons/ and manifest.json as direct siblings of index.html).</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.7 &middot; &#128202; Discipline Card — Completed Bookings vs Total Requests</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>loadStudentDiscipline()</code> counted every booking row returned for a student &mdash; pending, rejected, and cancelled included &mdash; into a single <code>totalBookings</code> figure, and <code>stuImpactStatement()</code> used that same figure to both drive the Rep Score's "Completed Bookings" bonus (+2/booking, capped +20) and to pick the New User / Emerging User / Active Participant / Studio Contributor label. A student with several rejected or still-pending requests was scored and labeled as if they had actually completed that many equipment loans. <strong>Fix:</strong> added a separate <code>completedBookings</code> count (<code>status==='returned'</code> only &mdash; the one status this app's pipeline treats as genuinely fulfilled) alongside the existing <code>totalBookings</code>. The score bonus, its breakdown label, and the volume-based Impact Label thresholds now all read <code>completedBookings</code>. <code>totalBookings</code> is unchanged in meaning and still drives the "no trackable activity anywhere" check (a pending request is real activity, just not a completed one) and the honestly-labeled "Total Bookings" stat shown separately in the discipline card &mdash; so nothing that already correctly said "Total Bookings" changed, only the part that was silently treating that total as "Completed." <strong>Scope note:</strong> this is the client-side half of the two discipline-card issues raised together; the <code>student_id</code> type-mismatch question (v54 schema audit) is intentionally untouched here &mdash; still waiting on the Supabase diagnostic query results before that query is changed, per standing instruction not to guess at a data-layer fix.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.6 &middot; &#128231; Weekend Approval Moved to Admin, with Email CC</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause (confirmed by audit against the confirmed workflow story):</strong> the weekend-approval message told a blocked Professor "the Manager on Duty" would approve instead &mdash; but Studio Manager has never actually had a route to the Approve screen (<code>navApprove</code> was never granted to that role) and <code>renderManager()</code> explicitly filters pending bookings out of the Manager's own view. The promised handoff had no real destination. <strong>Fix:</strong> weekend approval authority is now explicitly Admin's, matching who can actually reach the Approve screen and act unrestricted (the Mon&ndash;Fri/9&ndash;5 and weekend checks in <code>approveBookingUI()</code> were always scoped to <code>currentRole==='Professor'</code> only, so Admin was already unblocked &mdash; this just makes the messaging and routing say so honestly). The Professor's blocked-approval toast now names Admin (Mukesh MohanKumar) instead of Manager. <strong>Email CC added:</strong> a new <code>adminEmail</code> field in <code>adminData.appSettings</code> (seeded to Mukesh's address) is used to route the booking-submitted notification for weekend bookings directly to Admin as the primary recipient, with the assigned Professor CC'd for visibility &mdash; determined from the booking's actual date via <code>isWeekendDate(startTimeISO)</code> rather than only the submission-time flag, matching the more reliable check <code>approveBookingUI()</code> already uses. <code>sendEmailNotification()</code> gained an optional <code>cc</code> parameter, sent as an EmailJS <code>cc_email</code> template variable. <strong>Caveat, stated plainly:</strong> EmailJS only actually CCs someone if the Email Service/Template configured in the EmailJS dashboard has a CC field mapped to <code>{{cc_email}}</code> &mdash; this app has no way to force that from client-side code. If <code>cc_email</code> appears correctly in the console payload but Mukesh/the Professor doesn't receive the email, the fix is in the EmailJS template settings, not this code. Also note EmailJS itself is still using placeholder Service/Template/Public Key values (<code>YOUR_SERVICE_ID</code> etc.) per the existing safe no-op guard &mdash; email sending stays a console-logged no-op, booking flow unaffected, until those are replaced with real EmailJS credentials.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.5 &middot; &#128257; Assignment Tag Local-State Sync &amp; Fabricated Issue Number Fixed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause 1 &mdash; "updated tags from Supabase rows not visible":</strong> <code>admAddAssignmentTag()</code>, <code>admToggleAssignmentTag()</code>, and <code>admDeleteAssignmentTag()</code> all wrote through to Supabase first (correct, per v75.3), but each one only updated the local <code>adminData.assignmentTags</code> array inside its <code>if(!saved)</code> fallback branch &mdash; the branch that runs when Supabase is unavailable. On the success path (the normal case, Supabase reachable), local state was never touched at all, so the re-render fired two lines later still read the stale in-memory array: a newly added tag didn't appear, a toggled tag's Active/Deactivated state didn't flip, a deleted tag didn't disappear &mdash; until an unrelated full reload happened to re-run <code>mergeSupaTagsIntoAdminData()</code> from scratch. All three now update local state on both the success and fallback paths, so the Admin panel reflects the change immediately regardless of which path was taken. <strong>Root cause 2 &mdash; two different Issue numbers on the same booking:</strong> <code>an2BuildRecordHTML()</code> (the Analytics record card) computed <code>tn = an2TrackingNumber(b)</code> correctly at the top &mdash; reading the real <code>b.issueNum</code>/<code>b.returnNum</code> &mdash; but never used it. The header badge instead built its own number by string-replacing <code>"BK-"</code> with <code>"IS-"</code> inside the booking code (<code>bkNum.replace(/BK-/i,'IS-')</code>), a fabricated look-alike that only matches by coincidence on a booking's first issue. Once a booking goes through a partial-return &rarr; re-issue cycle, the real <code>b.issueNum</code> is genuinely regenerated by <code>getNextBookingNum()</code> (e.g. EQ-IS-0001 &rarr; EQ-IS-0002) but the derived string never was, so the header (still deriving from the unchanged booking code) and the canonical body chip (reading the live <code>b.issueNum</code>) silently drifted apart &mdash; exactly the EQ-IS-0001 vs EQ-IS-0002 mismatch on Sujareetha's card. Header now reads <code>tn.value</code>/<code>tn.label</code> directly, with the icon selected per tracking-number type (Return/Issue/Booking), so both places on the card always agree.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.4 &middot; &#128203; Actor Attribution Leak &amp; Partial-Receipt Archive Bug</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause 1 — "reached studio" always credited to the student:</strong> <code>studentArrivedServer()</code> took no actor parameter at all, and <code>pipelineRecordHTML()</code>'s arrival row was hardcoded to <code>b.student</code> regardless of who actually clicked the button. When Steven (Manager) marked Sujareetha's arrival on her behalf, the timeline had no way to say so. Now <code>window.currentUser</code>/<code>currentRole</code> are captured the instant the button is clicked, cached locally via <code>cacheLocalExtra</code> (student_arrived_by/role, with progressive-fallback PATCH to Supabase), and the timeline row appends <em>"— marked by &lt;actor&gt; (role)"</em> only when the actor differs from the booking owner — normal student self-check-in is unchanged. <strong>Root cause 2 — partial receipt not credited to Admin/Manager:</strong> <code>markPartiallyReceived()</code> only ever PATCHed <code>status</code> — never <code>received_by</code> — and <code>receivedBy</code> was never cached locally for a partial receipt (only the final full return had this). So even the device that clicked "Mark as Partially Received" lost the attribution on its own next refetch, and Process Timeline fell back to whatever <code>window.currentUser</code> happened to be at render time on a different device — usually blank. Now sets <code>b.receivedBy</code> immediately in the UI, caches it, and PATCHes <code>received_by</code>/<code>received_by_role</code> to Supabase (fallback if columns don't exist yet). <strong>Root cause 3 — severe leak: partially-received bookings archived instantly:</strong> <code>isActiveWorkflowItem()</code> (the Professor Approve screen's active/archived filter) explicitly listed <code>pending</code>/<code>approved</code>/<code>ready</code>/<code>issued</code> as always-active and gave <code>returned</code>/<code>cancelled</code> a 24-hour grace window — but <code>kit_prep</code>, <code>student_arrived</code>, and <code>partially_received</code> were never listed at all, so they fell straight through to the function's final <code>return false</code> and were treated as archived the instant a booking reached one of those statuses, even though the return cycle was still open and no receipt had happened yet. This is exactly the "manager received equipment update archived" symptom — a partial receipt is explicitly NOT a resolved state per the 24-hour visibility rule, and must stay visible until a full receipt is confirmed AND 24 hours have elapsed after that. All three mid-workflow statuses now return true (always active) alongside <code>issued</code>. <strong>Scope note:</strong> this pass covers the actor-attribution and archive-visibility leaks described with concrete before/after examples; the broader v80 role-boundary/route-protection audit (Student/Professor/Manager/Admin screen and data isolation) is a separate, larger piece of work and was intentionally not touched here to keep this a surgical, verifiable fix — happy to take that on next as its own pass.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.3 &middot; &#128274; Role Boundary Enforcement Audit &amp; Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> Two nav items — <em>Students</em> (<code>screen-students</code>) and <em>Admin</em> (<code>screen-admin</code>) — were explicitly granted to the Studio Manager role inside <code>applyRoleUI()</code>, contradicting the original role policy. The <code>navStudents</code> grant carried a comment saying &ldquo;full student monitoring &amp; discipline — all students&rdquo;, and <code>navAdmin</code> carried a comment &ldquo;restricted view — Equipment/Editing/Studios only&rdquo;. While the Admin sub-tab restriction code (<code>managerOnlyTabs</code> hiding certain tabs) existed, it was insufficient: the Admin nav item itself remained visible and accessible, and the Students screen showed all student discipline records rather than restricting to the manager&rsquo;s own data. A second structural gap: <code>switchScreen()</code> contained no role-based route guard — it only blocked navigation before login. Any code path calling <code>switchScreen('screen-admin')</code> or <code>switchScreen('screen-students')</code> programmatically would bypass the nav-hide entirely. <strong>Fixes applied (this file only):</strong> (1) Removed <code>navStudents</code> and <code>navAdmin</code> grants from the Studio Manager block in <code>applyRoleUI()</code> — Studio Managers now only receive Booking, Manager, Report, Analytics, AppInfo, DB Health, and Birthday tabs, exactly matching the defined role. (2) Added a <code>_ROLE_SCREENS</code> whitelist map and a role boundary guard at the top of <code>switchScreen()</code> — all roles except Admin are now checked on every screen transition, whether triggered by a nav click or a programmatic call; unauthorized transitions are blocked and a toast is shown. Admin retains unrestricted access (null = no whitelist). <strong>Workflows unchanged:</strong> Approval, booking, issue, return, equipment operations, reports, and analytics assigned to Studio Managers all remain reachable via their correct screens. No permissions were added, removed from other roles, or moved between stakeholders. No new roles introduced. <strong>Verification:</strong> Student ✔ (Booking, Students/own-record, Birthday, AppInfo only). Professor ✔ (Booking, Approvals, Analytics, Students/all, Birthday, AppInfo). Studio Manager ✔ (Booking, Manager, Report, Analytics, Birthday, AppInfo, DB Health — no Students nav, no Admin nav). Admin ✔ (all screens, unrestricted). Route-level guard confirmed via <code>_ROLE_SCREENS</code> whitelist executed on every <code>switchScreen</code> call.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.3 &middot; &#128241; Mobile Viewport Bottom-Clipping Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> every full-height rule (<code>body</code>, <code>.device</code>, and both v80.1 breakpoints) was locked to <code>100vh</code>. On mobile Chrome/Safari, <code>100vh</code> measures the viewport as if the address bar were fully collapsed — it doesn't collapse until the user scrolls, so the real visible screen is shorter than <code>100vh</code> by the toolbar's height on load. Every one of those containers was <code>overflow:hidden</code> at that inflated height, so the slice of content sitting in the toolbar-sized gap at the bottom was clipped outright rather than merely scrolled past — matching "cannot reach the true bottom" / "footer partially hidden" exactly, and reproducing on GitHub Pages because that's just real mobile Chrome rendering it, not a build/deploy artifact. <code>.bottom-nav</code> itself was already correctly laid out as a non-fixed flex child with <code>.screen</code>'s existing 80px bottom padding clearing it — the clipping was the outer frame's height being wrong, not the nav bar. <strong>Fix:</strong> every clipping-relevant <code>100vh</code> now has a <code>100dvh</code> companion declared right after it, on <code>body</code>, <code>.device</code>, and inside both mobile/tablet breakpoints. Browsers without <code>dvh</code> support keep the old behavior unchanged (graceful fallback, zero regression); current Chrome/Safari/Firefox on Android and iOS use the DYNAMIC viewport height, which live-shrinks as the toolbar shows/hides, so the container's bottom edge always matches the real visible screen and <code>.screen</code>'s unchanged <code>overflow-y:auto</code> can actually reach it. Desktop is unaffected — <code>dvh</code> equals <code>vh</code> when there's no collapsing browser chrome. <strong>Files changed:</strong> this file only — the <code>&lt;style&gt;</code> block's <code>body</code>/<code>.device</code> rules and the two v80.1 breakpoints. <strong>Tested:</strong> CSS brace-balance check and full Node <code>new Function()</code> syntax verification across all 12 script blocks pass; no live Android/iOS device lab available in this environment, so a physical spot-check of Login, Admin, Equipment, Studio, Analytics and Reports on real Android Chrome is recommended before considering this fully closed.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.2 &middot; &#128680; Critical Booking Code Race Condition Audit &amp; Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Trigger:</strong> two real, unrelated bookings (Sujareetha and Admin) both received <code>EQ-BK-0001</code>. <strong>Root cause:</strong> booking codes are (and remain) generated entirely client-side by <code>getNextBookingNum()</code>, computed from a snapshot of <code>S.bookings</code> taken before the insert that will actually claim that code round-trips back to Supabase. Two sessions that read that snapshot in the same narrow window — before either one's insert lands and updates the other's in-memory list — compute the identical "next" number. v78.1 closed the everyday version of this (independent localStorage counters drifting apart across devices/browsers) but explicitly flagged that it could not close a genuine same-instant race, because no client can see another tab's in-flight write — exactly what happened here. <strong>Files reviewed:</strong> this file only (single-file app) — <code>getNextBookingNum()</code>, <code>submitBooking()</code>, the booking INSERT payload builder, and the GitHub Pages deployment path (confirmed to serve this exact file with no build step and no secondary/duplicate code generator anywhere in the repo). <strong>Confirmed:</strong> booking codes ARE generated 100% client-side; no server-side atomic counter exists; multiple sessions CAN receive the same code (reproduced above); a genuine race condition exists at the exact moment two inserts overlap; no local fallback generator was found beyond the one intentional counter; GitHub Pages introduces no separate generator, it is static hosting only; <strong>no UNIQUE constraint currently exists</strong> on <code>bookings.booking_code</code> in Supabase — confirmed by the fact that the duplicate insert succeeded silently instead of being rejected. <strong>Fix implemented:</strong> the booking INSERT in <code>submitBooking()</code> now runs inside a retry loop (max 5 attempts). If Supabase rejects the row as a unique-constraint violation (HTTP 409 / Postgres error 23505), a fresh code is generated from an up-to-date read and the insert is retried — the database itself, not another client-side guess, is what confirms the collision, which is the only way to truly rule out a same-instant race. <strong>This fix is inert until the following is run manually in Supabase</strong> (per standing instruction against unrequested schema changes): first check for existing duplicates with <code>SELECT booking_code, COUNT(*) FROM public.bookings GROUP BY booking_code HAVING COUNT(*) &gt; 1;</code>, resolve any found (append a disambiguating suffix to the older row — never delete), then run <code>ALTER TABLE public.bookings ADD CONSTRAINT bookings_booking_code_unique UNIQUE (booking_code);</code>. Until that constraint exists, Supabase accepts duplicate codes without complaint, the retry loop never triggers, and the app is exactly as exposed as before this version — the client-side numbering in <code>getNextBookingNum()</code> is still the only thing narrowing the odds. <strong>Verification performed:</strong> code-level review only (no live Supabase access from this environment to run simultaneous-insert tests against your project) — all script blocks re-verified with Node <code>new Function()</code> syntax checking after the change. Recommend a manual test after the ALTER runs: open two browser tabs/devices, submit a booking in both within the same second, and confirm the second either receives a different code or (extremely rarely, both racing past the retry ceiling) a clear error rather than a silent duplicate.</div></div>
@@ -3819,7 +3856,14 @@ function pipelineRecordHTML(b){
   }
   var arrivedTs = b.studentArrivedAt;
   if(arrivedTs){
-    rows.push({icon:'📍', text:'<strong>'+esc(b.student||'Student')+'</strong> reached studio', ts:arrivedTs});
+    // V80.4 FIX: booking owner and action actor are not always the same person
+    // (e.g. Manager/Admin marking the student's arrival on their behalf). Only
+    // append "— marked by X" when an actor was actually captured AND differs
+    // from the booking owner, so the normal student-self-check-in case is
+    // unchanged.
+    var arrivedActor = b.studentArrivedBy;
+    var arrivedByNote = (arrivedActor && arrivedActor !== b.student) ? ' — marked by <strong>'+esc(arrivedActor)+'</strong>'+(b.studentArrivedByRole?' ('+esc(b.studentArrivedByRole)+')':'') : '';
+    rows.push({icon:'📍', text:'<strong>'+esc(b.student||'Student')+'</strong> reached studio'+arrivedByNote, ts:arrivedTs});
   }
   if(b.issuedBy || b.issuedAt){
     rows.push({icon:'🚀', text:'Issued by <strong>'+esc(b.issuedBy||'Manager')+'</strong>', ts:(b.issuedAt||null)});
@@ -4047,7 +4091,16 @@ function isActiveWorkflowItem(b){
   // Issued kits stay visible from issue time all the way until the kit is
   // actually returned — no same-day cutoff. A multi-day loan must not vanish
   // from the dashboard just because the calendar day rolled over.
-  if(st === 'issued') return true;
+  // V80.4 FIX (severe leak): kit_prep, student_arrived, and partially_received
+  // were not listed here at all, so they fell straight through to the final
+  // `return false` below — an in-progress or partially-received booking was
+  // being treated as archived/inactive the instant it reached one of these
+  // mid-workflow statuses, even though no receipt had happened yet. Per the
+  // 24-hour visibility rule, a booking must stay visible until Manager/Admin
+  // confirms receipt AND 24 hours have elapsed — partially_received is
+  // explicitly NOT a resolved state (the return cycle is still open), so it
+  // must never be treated as archived.
+  if(st === 'issued' || st === 'kit_prep' || st === 'student_arrived' || st === 'partially_received') return true;
 
   // Returned (completed): visible for a rolling 24 hours after the return was
   // logged, then rolls off the active queue. Still fully intact in S.bookings
@@ -6058,15 +6111,24 @@ async function handleBookingSubmit(){
 
   // ── EMAIL NOTIFICATION ───────────────────────────────────────────────────────
   if(typeof window.sendEmailNotification === 'function'){
-    var toEmail      = profEmail || 'professor@jgu.edu.in';
     var readableStart = new Date(startTimeISO).toLocaleString('en-IN', {timeZone:'Asia/Kolkata', hour12:true});
     var readableEnd   = new Date(endTimeISO).toLocaleString('en-IN',   {timeZone:'Asia/Kolkata', hour12:true});
-    window.sendEmailNotification(
-      toEmail,
-      'New Booking ' + bkNum + ' — ' + resource,
-      studentName + ' submitted booking ' + bkNum + ' for ' + equipmentList.join(', ') +
-      ' (' + readableStart + ' to ' + readableEnd + '). Review in the JSJC Smart Booking App.'
-    );
+    // V80.6: weekend bookings route their approval-needed email to Admin
+    // (Mukesh) as the primary recipient, with the assigned Professor CC'd so
+    // they're kept in the loop even though they can't act on it themselves.
+    // Checks the booking's actual date (isWeekendDate(startTimeISO)) rather
+    // than only the submission-time weekend_request flag, matching the more
+    // reliable check already used in approveBookingUI().
+    var isWeekendBk = (typeof isWeekendDate==='function') && isWeekendDate(startTimeISO);
+    var adminEmail  = (adminData.appSettings && adminData.appSettings.adminEmail) || 'mukesh.mohankumar@jgu.edu.in';
+    var toEmail     = isWeekendBk ? adminEmail : (profEmail || 'professor@jgu.edu.in');
+    var ccEmail     = isWeekendBk ? (profEmail || '') : '';
+    var subjLine    = (isWeekendBk ? '[Weekend Approval Needed] ' : '') + 'New Booking ' + bkNum + ' — ' + resource;
+    var bodyMsg     = studentName + ' submitted booking ' + bkNum + ' for ' + equipmentList.join(', ') +
+      ' (' + readableStart + ' to ' + readableEnd + ').' +
+      (isWeekendBk ? ' This falls on a weekend, so it requires your approval as Admin — the assigned Professor (' + (selectedProf||'—') + ') has been CC-d for visibility.' : '') +
+      ' Review in the JSJC Smart Booking App.';
+    window.sendEmailNotification(toEmail, subjLine, bodyMsg, ccEmail);
   }
 }
 
@@ -6456,7 +6518,15 @@ function approveBk(id){
     var isWeekendBooking = !!(b.weekend_request || isWeekendDate(b.date || b.booking_date));
     if(isWeekendBooking){
       if(wkRestricted){
-        toast('⚠️ Weekend bookings are approved by the Manager on Duty, not the Professor. (Admin can change this in Admin Control Panel.)');
+        // V80.6: weekend approval authority moved from "Manager on Duty" to
+        // Admin — Studio Manager has never actually had a route to the
+        // Approve screen (confirmed on audit: renderManager() explicitly
+        // filters out pending bookings, and navApprove was never granted to
+        // the Manager role), so the old message promised an action Manager
+        // could never perform. Admin already approves unrestricted (see the
+        // wkRestricted check below is scoped to currentRole==='Professor'
+        // only), so routing weekend approvals there is a real, working path.
+        toast('⚠️ Weekend bookings are approved by Admin (Mukesh MohanKumar), not the Professor. (Admin can change this in Admin Control Panel.)');
         return;
       }
     } else if(wkRestricted){
@@ -7944,9 +8014,16 @@ async function setKS(id,s){
       }
     }
     if(s==='student_arrived'){
+      // V80.4 FIX: booking owner (b.student) and the person who actually clicked
+      // this button (Manager/Admin marking arrival on the student's behalf) are
+      // not always the same — see Architect's Briefing "Booking Owner vs Action
+      // Actor". Actor is captured here and cached immediately so the Process
+      // Timeline shows the real actor without waiting on a refetch.
       b.studentArrivedAt = new Date().toISOString();
-      if(typeof cacheLocalExtra==='function') cacheLocalExtra(String(b.id), {studentArrivedAt: b.studentArrivedAt});
-      if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'student_arrived', b.student);
+      b.studentArrivedBy = window.currentUser || b.student || 'Student';
+      b.studentArrivedByRole = window.currentRole || '';
+      if(typeof cacheLocalExtra==='function') cacheLocalExtra(String(b.id), {studentArrivedAt: b.studentArrivedAt, studentArrivedBy: b.studentArrivedBy, studentArrivedByRole: b.studentArrivedByRole});
+      if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'student_arrived', b.studentArrivedBy);
     }
     if(s==='issued'){
       var catCode = b.cat==='Editing Systems'?'SYS':b.cat==='Studio Booking'?'STU':'EQ';
@@ -7990,7 +8067,7 @@ async function setKS(id,s){
   // Call Supabase REST per action
   if(s==='kit_prep' && typeof window.managerApproveKit==='function') window.managerApproveKit(String(id));
   if(s==='ready' && typeof window.markKitReady==='function') window.markKitReady(String(id));
-  if(s==='student_arrived' && typeof window.studentArrivedServer==='function') window.studentArrivedServer(String(id));
+  if(s==='student_arrived' && typeof window.studentArrivedServer==='function') window.studentArrivedServer(String(id), window.currentUser, window.currentRole);
   if(s==='issued' && typeof window.issueBooking==='function') window.issueBooking(String(id));
   if(s==='returned' && typeof window.returnBooking==='function') window.returnBooking(String(id));
   if(s==='cancelled' && typeof window.rejectBooking==='function') window.rejectBooking(String(id), null, 'cancelled', window.currentUser, window.currentRole);
@@ -8793,11 +8870,21 @@ function an2BuildRecordHTML(b){
   var studentId   = (typeof window.resolveStudentDisplayId==='function') ? window.resolveStudentDisplayId(b) : (b.sid || '—');
 
   // Booking / Issue code — secondary to identity
+  // V80.5 FIX: root cause of two different Issue numbers appearing on the same
+  // booking (e.g. header showed EQ-IS-0001, the canonical body chip showed the
+  // real EQ-IS-0002) — this block never read the actual b.issueNum at all. It
+  // fabricated a look-alike number by string-replacing "BK-" with "IS-" inside
+  // the booking code, which only ever matches the FIRST issue by coincidence —
+  // once a booking goes through a partial-return → re-issue cycle, b.issueNum
+  // is genuinely regenerated (see setKS 'issued') but this derived string
+  // never was, so the two numbers drift apart. tn (an2TrackingNumber(b)) was
+  // already computed above and already reads the real issueNum/returnNum —
+  // it just wasn't being used here. Now it is, so both places on this card
+  // read the one real value.
   var isIssued   = !!(b.issuedBy);
-  var bkCode     = b.bkNum || b.booking_code || '—';
-  var isCodeRaw  = (b.issuedBy && bkCode.replace(/BK-/i,'IS-')) || '—';
-  var privacyID  = isIssued ? isCodeRaw : bkCode;
-  var privacyLbl = isIssued ? '📦 Issue No.' : '📘 Booking No.';
+  var privacyID  = tn.value;
+  var privacyIcon = (tn.label==='Return No.') ? '📦' : (tn.label==='Issue No.') ? '🚀' : '📘';
+  var privacyLbl = privacyIcon + ' ' + tn.label;
   var privacyClr = isIssued ? '#4ade80' : '#e9c46a';
 
   // ── V71.10: Brief 1 Analytics Redesign — General Transaction Summary + Resource Usage boxes ──
@@ -9945,7 +10032,19 @@ async function loadStudentDiscipline(sid){
     });
     var result = {loaded:true, err:false, lateCount, damageCount, excellentCount, goodCount, improvCount, penaltyCount,
       eqCount, sysCount, stCount,
-      incidents:incidents.slice(0,5), remarks:remarks.slice(0,4), totalBookings:rows.length};
+      incidents:incidents.slice(0,5), remarks:remarks.slice(0,4),
+      // V80.7 FIX: totalBookings counted every row regardless of status
+      // (pending/rejected/cancelled included), but stuImpactStatement() used
+      // it to drive the "Completed Bookings" score bonus and the New User /
+      // Emerging / Active / Contributor label thresholds — so a student with
+      // several rejected or still-pending requests got scored as if they'd
+      // completed that many loans. totalBookings is kept as-is (it's an
+      // honestly-labeled "Total Bookings" stat shown separately in the UI —
+      // see renderStudents' disc-row), and a new completedBookings count
+      // (status==='returned', the only status this app's pipeline treats as
+      // actually fulfilled) is added for the scoring/label logic to use.
+      totalBookings:rows.length,
+      completedBookings: rows.filter(function(b){ return b.status==='returned'; }).length};
     window._discCache[sid] = result;
     return result;
   } catch(e){
@@ -10040,6 +10139,15 @@ function discBlockHTML(s){
 // when there is nothing to score, instead of a fabricated number.
 function stuImpactStatement(s, cache){
   var totalBookings = cache ? (cache.totalBookings||0) : 0;
+  // V80.7 FIX: completedBookings (status==='returned' only) now drives the
+  // score bonus and the volume-based label thresholds below — totalBookings
+  // (every request regardless of outcome) previously did both jobs, which
+  // meant a student with several rejected/still-pending requests scored and
+  // was labeled as if they'd completed that many loans. totalBookings is
+  // still used for the "any activity at all" check just below (a pending
+  // request is real activity, just not a completed one) and stays visible
+  // as its own honest "Total Bookings" stat in the discipline card.
+  var completedBookings = cache ? (cache.completedBookings!=null ? cache.completedBookings : totalBookings) : 0;
   var excellent = cache ? (cache.excellentCount||0) : 0;
   var good      = cache ? (cache.goodCount||0)      : 0;
   var improv    = cache ? (cache.improvCount||0)    : 0;
@@ -10058,7 +10166,7 @@ function stuImpactStatement(s, cache){
 
   // ── Auditable additive formula ──
   var BASE = 50;
-  var completedBonus     = Math.min(20, totalBookings*2);              // +2 / completed booking, capped +20
+  var completedBonus     = Math.min(20, completedBookings*2);          // +2 / completed booking, capped +20
   var onTimeBonus        = onTimePct!==null ? Math.round(onTimePct/100*15) : 0; // up to +15
   var conditionBonus     = excellent*3 + good*1;                       // reward clean returns
   var improvPenalty      = improv*4;                                   // missing/damaged returns
@@ -10070,7 +10178,7 @@ function stuImpactStatement(s, cache){
 
   var breakdown = [
     {label:'Base Score',                         value: BASE},
-    {label:'Completed Bookings ('+totalBookings+')', value: completedBonus},
+    {label:'Completed Bookings ('+completedBookings+')', value: completedBonus},
     {label:'On-Time Returns',                    value: onTimeBonus},
     {label:'Condition Quality (Excellent/Good)', value: conditionBonus},
     {label:'Needs-Improvement Returns',          value: -improvPenalty},
@@ -10078,11 +10186,11 @@ function stuImpactStatement(s, cache){
     {label:'Discipline Penalties',               value: -disciplinePenalty}
   ];
 
-  // ── Deterministic label — driven by activity VOLUME, not by the score ──
+  // ── Deterministic label — driven by COMPLETED activity volume, not by the score ──
   var label, sub;
-  if(totalBookings===0)      { label='🆕 New User';          sub='No completed bookings yet'; }
-  else if(totalBookings<=5)  { label='🌱 Emerging User';      sub='Building a track record'; }
-  else if(totalBookings<=15) { label='🤝 Active Participant'; sub='Regular user, consistent record'; }
+  if(completedBookings===0) { label='🆕 New User';          sub='No completed bookings yet'; }
+  else if(completedBookings<=5)  { label='🌱 Emerging User';      sub='Building a track record'; }
+  else if(completedBookings<=15) { label='🤝 Active Participant'; sub='Regular user, consistent record'; }
   else                        { label='🏆 Studio Contributor'; sub='High-volume, trusted user'; }
 
   // Discipline concerns override the volume-based label regardless of score
@@ -11609,7 +11717,7 @@ var adminDataSeed = {
   //                         false = Professors CAN approve weekend bookings directly.
   //  blackoutEnabled     : true  = app is locked 8 PM–8 AM daily for all roles except
   //                                 Admin, with Manager Work Report & Analytics always reachable.
-  appSettings: { weekendProfApproval: true, blackoutEnabled: true },
+  appSettings: { weekendProfApproval: true, blackoutEnabled: true, adminEmail: 'mukesh.mohankumar@jgu.edu.in' },
 };
 
 // Load persisted adminData or fall back to seed
@@ -12141,7 +12249,17 @@ async function admAddAssignmentTag(){
     ? await window.addSupaAssignmentTag({ label:label, color:color, active:true, numbers:numbers })
     : false;
 
+  // V80.5 FIX: root cause of "updated tags from Supabase rows not visible" —
+  // this only ever pushed the new tag into local adminData.assignmentTags
+  // inside the `else` (Supabase-unavailable) branch. When the Supabase write
+  // actually succeeded, local state was never touched, so the very next
+  // re-render (two lines below) still read the stale in-memory array — the
+  // tag existed in Supabase but wouldn't appear until an unrelated full
+  // reload happened to re-run mergeSupaTagsIntoAdminData(). Now both paths
+  // update local state so the UI reflects the change immediately either way.
   if(saved){
+    var newTag = (saved && saved.id) ? { id:saved.id, supa_id:saved.id, label:label, color:color, active:true, numbers:numbers } : { id:(adminData.assignmentTags.reduce(function(m,t){ return Math.max(m,t.id); },0))+1, label:label, color:color, active:true, numbers:numbers };
+    adminData.assignmentTags.push(newTag);
     toast('✅ Assignment tag added: #'+label+' — synced to Supabase');
   } else {
     const id = (adminData.assignmentTags.reduce(function(m,t){ return Math.max(m,t.id); },0)) + 1;
@@ -12162,8 +12280,11 @@ async function admToggleAssignmentTag(i){
   var saved = (t.supa_id && typeof window.updateSupaAssignmentTag==='function')
     ? await window.updateSupaAssignmentTag(t.supa_id, { active:newActive })
     : false;
+  // V80.5 FIX: same class of bug as admAddAssignmentTag — t.active was only
+  // ever updated on the fallback path. A successful Supabase update left the
+  // in-memory tag (and thus the immediate re-render) stuck on the old value.
+  t.active = newActive;
   if(!saved){
-    t.active = newActive;
     saveAdminData();
   }
   toast(newActive ? '▶ Tag activated' : '⏸ Tag deactivated');
@@ -12178,8 +12299,11 @@ async function admDeleteAssignmentTag(i){
   var saved = (t && t.supa_id && typeof window.deleteSupaAssignmentTag==='function')
     ? await window.deleteSupaAssignmentTag(t.supa_id)
     : false;
+  // V80.5 FIX: same class of bug — the splice only ran on the fallback path,
+  // so a tag successfully deleted from Supabase kept showing in the list
+  // until an unrelated reload happened to refetch and re-merge.
+  adminData.assignmentTags.splice(i,1);
   if(!saved){
-    adminData.assignmentTags.splice(i,1);
     saveAdminData();
   }
   toast('🗑️ Tag removed: #'+(t?t.label:''));
@@ -14277,6 +14401,10 @@ function applyLocalExtras(){
       if(extra.readyAt)               ub.readyAt               = extra.readyAt;
       if(extra.prepMinutes != null)   ub.prepMinutes           = extra.prepMinutes;
       if(extra.studentArrivedAt)      ub.studentArrivedAt      = extra.studentArrivedAt;
+      // V80.4: booking-owner vs actor — see Architect's Briefing
+      if(extra.studentArrivedBy)      ub.studentArrivedBy      = extra.studentArrivedBy;
+      if(extra.studentArrivedByRole)  ub.studentArrivedByRole  = extra.studentArrivedByRole;
+      if(extra.receivedByRole)        ub.receivedByRole        = extra.receivedByRole;
       if(extra.slaBreachKitPrep != null) ub.slaBreachKitPrep   = extra.slaBreachKitPrep;
       if(extra.slaBreachIssue != null)   ub.slaBreachIssue     = extra.slaBreachIssue;
     }
@@ -14492,6 +14620,12 @@ window.fetchAndRenderBookings = async function() {
         kitPrepBy                   : b.kit_prep_by                  || undefined,
         kitReadyBy                  : b.kit_ready_by                 || undefined,
         studentArrivedAt            : b.student_arrived_at           || undefined,
+        // V80.4: read back actor columns (best-effort — undefined if not in schema
+        // yet, in which case applyLocalExtras' session-local cache still fills them
+        // in for the device that performed the action).
+        studentArrivedBy            : b.student_arrived_by          || undefined,
+        studentArrivedByRole        : b.student_arrived_by_role     || undefined,
+        receivedByRole              : b.received_by_role            || undefined,
         // V73.11: SLA breach flags + durations, read back the same way the kit-prep
         // timestamps were fixed in v73.6 — write AND read, not just write.
         prepMinutes                 : (b.prep_minutes != null ? b.prep_minutes : undefined),
@@ -14818,12 +14952,27 @@ window.markKitReady = async function(bookingId) {
 };
 
 // ── STUDENT ARRIVAL CONFIRMATION — ready → student_arrived ──
-window.studentArrivedServer = async function(bookingId) {
+// V80.4 FIX: root cause of "reached studio" always crediting the booking owner
+// even when a different stakeholder (Manager/Admin) clicked the button on the
+// student's behalf — this function accepted no actor at all, so there was
+// nothing to attribute besides b.student. Now takes actorName/actorRole,
+// PATCHes student_arrived_by/student_arrived_by_role to Supabase (progressive
+// fallback if those columns don't exist yet), and pipelineRecordHTML() below
+// renders "marked by <actor>" whenever the actor differs from the owner.
+window.studentArrivedServer = async function(bookingId, actorName, actorRole) {
   try {
-    var payload = { status: "student_arrived", student_arrived_at: new Date().toISOString() };
+    var who  = actorName || window.currentUser || 'Student';
+    var role = actorRole || window.currentRole || '';
+    var payload = { status: "student_arrived", student_arrived_at: new Date().toISOString(), student_arrived_by: who, student_arrived_by_role: role };
     var res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
       method: "PATCH", headers: HEADERS, body: JSON.stringify(payload)
     });
+    if (!res.ok) {
+      console.warn('⚠️ student_arrived_by/role columns rejected — retrying without actor columns');
+      res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
+        method: "PATCH", headers: HEADERS, body: JSON.stringify({ status: "student_arrived", student_arrived_at: payload.student_arrived_at })
+      });
+    }
     if (!res.ok) {
       console.warn('⚠️ student_arrived_at column rejected — retrying with status only');
       res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
@@ -14837,17 +14986,33 @@ window.studentArrivedServer = async function(bookingId) {
 
 // ── PARTIAL RETURN WORKFLOW — unlimited cycles via booking_return_events ──
 // Status stays 'partially_received' until Manager presses Mark as Received (→ setKS(id,'returned')).
-window.markPartiallyReceived = async function(bookingId, remarks) {
+// V80.4 FIX: root cause of "partially received by admin — but no record on
+// admin's name" — this function only ever PATCHed status, never who performed
+// the receipt. receivedBy was also never cached locally, so even the
+// device that clicked it lost the attribution on its own next refetch.
+// Now PATCHes received_by/received_by_role (progressive fallback if those
+// columns aren't in schema yet) and caches locally so pipelineRecordHTML's
+// "Partially received by <strong>X</strong>" line always shows the real actor.
+window.markPartiallyReceived = async function(bookingId, remarks, actorName, actorRole) {
   try {
+    var who  = actorName || window.currentUser || 'Manager';
+    var role = actorRole || window.currentRole || '';
     var res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
-      method: "PATCH", headers: HEADERS, body: JSON.stringify({ status: "partially_received" })
+      method: "PATCH", headers: HEADERS, body: JSON.stringify({ status: "partially_received", received_by: who, received_by_role: role })
     });
+    if (!res.ok) {
+      console.warn('⚠️ received_by/role columns rejected on partial receipt — retrying with status only');
+      res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
+        method: "PATCH", headers: HEADERS, body: JSON.stringify({ status: "partially_received" })
+      });
+    }
     if (!res.ok) { console.warn("Partial receipt patch failed:", await res.text()); }
+    if (typeof cacheLocalExtra==='function') cacheLocalExtra(String(bookingId), {receivedBy: who, receivedByRole: role});
     if (typeof window.logReturnEvent === 'function') {
       await window.logReturnEvent(bookingId, 'partially_received', remarks || 'Items missing at return — partial receipt logged.');
     }
     if (typeof window.logAuditEvent === 'function') {
-      await window.logAuditEvent(bookingId, 'partial_receipt', window.currentUser);
+      await window.logAuditEvent(bookingId, 'partial_receipt', who);
     }
     await window.fetchAndRenderBookings();
   } catch(err) { console.error("Partial receipt error:", err.message); }
@@ -14858,11 +15023,14 @@ async function markPartiallyReceivedUI(id){
   var b = S.bookings.find(function(x){ return String(x.id)===sid; });
   if(!b) return;
   var remarks = (await appPrompt('Note any missing/damaged items (optional):', '', {icon:'⚠️', title:'Partial Receipt Note', placeholder:'e.g. Battery missing, cable frayed…', okText:'Save Note'})) || '';
+  var who = window.currentUser || 'Manager';
   b.ks = 'partially_received'; b.status = 'partially_received';
   b.partialReceiptAt = new Date().toISOString();
+  b.receivedBy = who;                       // V80.4: attribute immediately, don't wait for refetch
+  b.receivedByRole = window.currentRole || '';
   renderManager(); renderStudentBookings();
   toast('⚠️ Marked as Partially Received — return cycle continues.');
-  window.markPartiallyReceived(sid, remarks);
+  window.markPartiallyReceived(sid, remarks, who, b.receivedByRole);
 }
 window.markPartiallyReceivedUI = markPartiallyReceivedUI;
 // A further "Return Attempt" from partially_received re-enters the same partial/received loop;
@@ -15746,7 +15914,13 @@ window.getManagerEmail = function() {
 
 // ── Task 8: EmailJS — safe with try/catch ──
 // ── sendEmailNotification — NEVER blocks booking flow ──
-window.sendEmailNotification = function(to, subject, message) {
+// V80.6: added optional `cc` param (single address or comma-separated list),
+// sent as a cc_email template variable. NOTE: EmailJS only actually CCs
+// someone if the Email Service/Template in the EmailJS dashboard has a CC
+// field mapped to {{cc_email}} — this app has no way to force that from the
+// client. If cc_email shows in the console payload but the person doesn't
+// receive it, check the EmailJS template's "CC" setting, not this code.
+window.sendEmailNotification = function(to, subject, message, cc) {
   if (!to || typeof emailjs === 'undefined') {
     console.log('📧 Email skipped — no address or EmailJS not loaded');
     return;
@@ -15769,7 +15943,8 @@ window.sendEmailNotification = function(to, subject, message) {
     subject   : subject,
     message   : message,
     from_name : 'JSJC Studio App',
-    reply_to  : 'noreply@jsjc.edu'
+    reply_to  : 'noreply@jsjc.edu',
+    cc_email  : cc || ''
   };
 
   console.log('📧 EmailJS payload:', JSON.stringify({
@@ -17160,5 +17335,18 @@ window.appPrompt = function(message, defaultValue, opts){
   </div>
   <div id="wr-overlay-body" style="max-width:820px;margin:0 auto;padding:18px 14px 40px;"></div>
 </div>
+<script>
+// v80.8: register service-worker.js — required alongside manifest.json for
+// Chrome/Android to consider this app installable. Wrapped in feature-detect
+// and try/catch so it never breaks the app on browsers/contexts without SW
+// support (e.g. the file:// fallback case noted at the top of <head>).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('service-worker.js').catch(function(err) {
+      console.warn('Service worker registration skipped:', err.message);
+    });
+  });
+}
+</script>
 </body>
 </html>
