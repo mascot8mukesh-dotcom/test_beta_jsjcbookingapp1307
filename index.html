@@ -87,40 +87,36 @@ Before writing any code in this file, re-read this note once. That's it.
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JSJC Smart Booking App</title>
-<!-- v80.8 JSJC BRANDING & PWA ICON INTEGRATION
-     Root cause of "no real logo anywhere": the only icon reference in the whole
-     app was the v78 fix's placeholder red-"J" SVG data-URI, added purely to
-     silence a file:// console warning — never intended as real branding, and
-     there was no manifest.json, no apple-touch-icon, and no theme-color at all
-     (confirmed by grep — zero PWA-related tags existed before this version).
-     DEPLOYMENT REQUIREMENT: this now points at real files that must sit next to
-     index.html on GitHub Pages:
-       /manifest.json
-       /icons/favicon.ico
-       /icons/favicon-16.png, /icons/favicon-32.png
-       /icons/icon-192.png, /icons/icon-512.png, /icons/icon-512-maskable.png
-       /icons/apple-touch-icon.png
-     A manifest.json cannot be inlined into a single HTML file — browsers only
-     accept it as a real fetchable URL (this codebase never used a Blob-URL
-     trick for it, confirmed by grep for createObjectURL/manifest.json — there
-     is none), so this is a deliberate move from "single file" to "index.html +
-     small icons/ folder + manifest.json", all still deployed as static files
-     on GitHub Pages exactly like today. -->
+<!-- v80.9 ICON PATH FIX
+     Root cause of the grey "G" default icon: v80.8 was written assuming an
+     icons/ subfolder deployment (icons/favicon.ico etc.), but the repo
+     actually stores favicon.ico, icon-192.png and icon-512.png directly in
+     the ROOT next to index.html — so every icon link 404'd, and both Chrome
+     and the PWA install prompt fell back to their generic default icon (the
+     grey "G" is Chrome's own fallback glyph, not anything this app drew).
+     Paths below now match the ACTUAL root-level deployment. If
+     apple-touch-icon.png and icon-512-maskable.png are not present in the
+     root (only favicon.ico/icon-192.png/icon-512.png were confirmed), those
+     two links will 404 harmlessly — iOS falls back to icon-192.png via
+     manifest.json in that case, and Android just skips the maskable variant
+     and uses icon-512.png as a plain (non-safe-zone-padded) icon instead. -->
 <link rel="manifest" href="manifest.json"/>
 <meta name="theme-color" content="#7b1a1a"/>
-<!-- Favicon — real JSJC logo, multi-size with .ico fallback for older browsers -->
-<link rel="icon" type="image/x-icon" href="icons/favicon.ico"/>
-<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png"/>
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"/>
-<!-- iOS home-screen icon (iOS ignores manifest.json icons, needs this explicitly) -->
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<!-- Favicon — real JSJC logo -->
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<!-- iOS home-screen icon (iOS ignores manifest.json icons, needs this explicitly).
+     Not confirmed present in root — will 404 harmlessly if missing; upload
+     apple-touch-icon.png to root to pick this up, or iOS will fall back to a
+     screenshot-style icon instead of the real logo. -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="JSJC Booking"/>
-<!-- Fallback inline favicon: if this HTML is ever opened as a lone file without
-     the icons/ folder alongside it (e.g. dragged straight from disk), the real
-     icon links above will 404 silently and the browser falls back to no icon —
-     this data-URI keeps the v78 console-warning fix working in that exact case. -->
+<!-- Fallback inline favicon: if this HTML is ever opened as a lone file with
+     no icon files alongside it at all, the real links above 404 silently and
+     this data-URI keeps a JSJC-red icon showing instead of nothing. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%237b1a1a'/%3E%3Ctext x='50' y='68' font-size='58' font-family='sans-serif' font-weight='800' fill='%23ffffff' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2617,7 +2613,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.8</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.9</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3456,6 +3452,7 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128269; Assignment Feature Audit (No Migration Performed)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Requested audit to migrate "assignment" functionality from localStorage to new Supabase tables; the audit found no such feature exists — "assignment" only refers to the booking purpose category and the already-Supabase-backed Assignment Tag Library (since v75.3). Decision: no new assignment/submission feature built; no code changes made in this pass.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128295; Diagnostics Panel Fix — Assignment Tag Library Row</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">The Database Health Check panel's "Assignment Tag Library" row was hardcoded to always show localStorage/&#9888;&#65039; even after the v75.3 Supabase migration shipped. Now checks <code>window.supaAssignmentTags</code> dynamically, matching every other conditional row on that panel.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79 &middot; &#128683; Disable Demo/Seed Bookings When Database Is Empty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>window._SEED_BOOKINGS</code> (9 hardcoded demo bookings) was being unconditionally merged into <code>S.bookings</code> in the single busiest code path in the app — <code>fetchAndRenderBookings()</code> did <code>S.bookings = dbRows.concat(activeSeed)</code> on EVERY successful Supabase fetch, live rows or not, per an old comment: "so Prof &amp; Manager dashboards always have demo context visible." That meant a genuinely empty Supabase <code>bookings</code> table still rendered all 9 seed records on every screen, every refresh, forever — not a bug in the fetch itself (History Fetch correctly returned <code>[]</code>), but in what happened to that result afterward. Three more injection points did the same thing at boot, logout, and session-restore, and two Analytics summary functions separately fell back to seeds whenever <code>S.bookings</code> was empty, so even a correctly-empty <code>S.bookings</code> could still show fake analytics totals. <strong>Fix:</strong> added a single <code>window.JSJC_DEMO_MODE</code> flag (default <code>false</code>) and gated every one of those seed-injection points behind it — the post-fetch merge, the pre-fetch boot filler, the logout/session-restore reseed, the network-failure fallback, and <code>clearLocalDB()</code>'s reset. With the flag off (production), <code>S.bookings</code> now holds exactly what Supabase returns — zero rows in, zero rows shown, "No bookings available" on the live bookings list, and Analytics correctly reports 0 Total / 0 Approved / 0 Issued / 0 Returned since its summary functions no longer fall back to <code>_SEED_BOOKINGS</code> when the real list is empty. Nothing else was touched: Assignment Tags, Students, Faculty, Managers, Studios, Equipment, and Admin Settings all live in <code>adminData</code>/their own Supabase tables, completely separate from booking seed logic, and are untouched by this fix. A developer who genuinely needs the old walkthrough behaviour back — offline demos, onboarding a new Studio Manager without touching real data — can set <code>window.JSJC_DEMO_MODE = true</code> (top of the script, right above <code>_SEED_BOOKINGS</code>) to restore it exactly as it was; production deployments must leave it <code>false</code>.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.9 &middot; &#127991;&#65039; Assignment Tag Merge Made Authoritative, Icon Paths Corrected to Root</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause 1 &mdash; seed tags (AudioStory/NewsPackage/InterviewProject) still showing after Supabase migration to 2 real tags:</strong> the fetch itself was never the problem &mdash; <code>fetchSupaAssignmentTags()</code> genuinely runs at boot inside <code>initSupaModules()</code>'s startup batch and genuinely retrieves the real Supabase rows. The bug was entirely in <code>mergeSupaTagsIntoAdminData()</code>: it merged Supabase rows INTO the existing local array (which starts as the 3 hardcoded seed tags) keyed by label, Supabase-wins-on-conflict. Since the real tags have different labels than the seed ones, nothing ever got removed &mdash; Supabase rows just piled on top of stale seed data permanently, on every load. <strong>Fix:</strong> added a <code>window._assignmentTagsFetchOk</code> flag, set only on a genuinely successful fetch (distinct from a failed one, which now logs the actual HTTP status so a table-missing 404 and an RLS-blocked 401/403 are distinguishable in the console). When the fetch succeeds &mdash; even if Supabase returns fewer rows than the seed, or zero rows &mdash; <code>adminData.assignmentTags</code> is now REPLACED outright with exactly what Supabase returned, making it genuinely authoritative. When the fetch fails, local state is left untouched exactly as before &mdash; the original fail-safe intent from v75.3/v77 is preserved, just no longer permanently contaminated the moment Supabase actually has data. <strong>On RLS specifically:</strong> this pass added status-code logging to the fetch failure path so it's now possible to tell from the console whether a failure is "table not found" (404) vs "RLS policy blocking anon SELECT" (401/403) &mdash; but verifying which one is actually occurring, and fixing an RLS policy, requires access to the live Supabase project this sandbox doesn't have; check the browser console for the new detailed warning next time tags don't sync. <strong>Root cause 2 &mdash; grey "G" default icon:</strong> v80.8 was written assuming an <code>icons/</code> subfolder deployment, but the repo actually stores <code>favicon.ico</code>/<code>icon-192.png</code>/<code>icon-512.png</code> directly in the root next to <code>index.html</code> &mdash; every icon link 404'd, so Chrome (and the PWA install prompt) fell back to its own generic default icon glyph. All icon/manifest links now point at root-relative paths matching the actual deployment, and a corrected <code>manifest.json</code> is provided alongside referencing only the two icon sizes confirmed present in root. <code>apple-touch-icon.png</code> and the maskable 512 variant from v80.8 were not confirmed present in root; those links will 404 harmlessly if genuinely absent (iOS/Android both have sane fallbacks) &mdash; upload them to root too if you want the iOS home-screen icon and Android adaptive-icon safe-zone padding to work exactly as designed.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.8 &middot; &#127917; JSJC Branding &amp; PWA Icon Integration</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audit finding:</strong> confirmed by grep before touching anything &mdash; there was no manifest.json, no service worker registration, no apple-touch-icon, and no theme-color anywhere in the app. The only existing icon reference was the v78 fix's placeholder red-"J" SVG data-URI, added purely to silence a file:// console warning, never intended as real branding. <strong>1. Favicon:</strong> generated real favicon.ico (16/32/48px) and standalone 16px/32px PNGs from the uploaded JSJC logo, linked via <code>&lt;link rel="icon"&gt;</code> ahead of the old placeholder, which is kept as a last-resort fallback only for the case where this HTML is opened as a lone file without its icons/ folder alongside it. <strong>2. PWA icons:</strong> generated 192&times;192 and 512&times;512 PNGs plus a padded 512&times;512 maskable variant (required separately for Android's adaptive-icon safe zone) from the same source logo. <strong>3. Installed app branding:</strong> new manifest.json declares <code>name: "JSJC Smart Booking App"</code>, references all icon sizes, and sets <code>theme_color</code>/<code>background_color</code> to the app's existing JSJC red (<code>#7b1a1a</code>, matched from the app-bar gradient already in use) &mdash; also added as an explicit <code>&lt;meta name="theme-color"&gt;</code> tag and Apple-specific meta tags (apple-touch-icon, apple-mobile-web-app-title) since iOS ignores manifest.json icons and needs its own link tag. <strong>4. Installability:</strong> added a minimal service-worker.js and its registration script &mdash; a registered service worker with a fetch handler is a hard Chrome/Android requirement for the install prompt to fire at all; a manifest alone is not sufficient. The worker deliberately does not cache anything: this app talks live to Supabase for every booking/approval/issue/return action, and caching those responses offline would risk showing stale equipment/booking state, which is worse than an app that simply doesn't work offline. <strong>Deployment requirement:</strong> a manifest.json cannot be inlined into a single HTML file (browsers only accept it as a real fetchable URL, and this codebase never used a Blob-URL trick for it &mdash; confirmed absent by grep), so this version deliberately moves from "single HTML file" to "index.html + manifest.json + service-worker.js + a small icons/ folder", all still deployed as plain static files on GitHub Pages exactly as today &mdash; nothing here needs a build step or server-side logic. <strong>Mobile scroll-clipping audit (this version's second request):</strong> re-checked against the standing invariant list &mdash; confirmed <code>body</code>, <code>.device</code>, and both mobile/tablet breakpoints already carry the <code>100vh</code>&rarr;<code>100dvh</code> companion pattern, <code>.screen</code> already scrolls via <code>overflow-y:auto</code> with 80px bottom padding clearing <code>.bottom-nav</code>, and <code>.bottom-nav</code> is a normal flex child, never <code>position:fixed</code>. This was already fixed correctly in v80.3 (see that entry for the full root-cause writeup) &mdash; nothing needed changing here, this pass only re-verified it's still intact. <strong>Verification performed in this environment:</strong> full Node <code>new Function()</code> syntax check across all script blocks, and visual confirmation of each generated PNG. <strong>Verification NOT performed (no device lab here):</strong> physical Android install-prompt test, physical Windows/Edge install test, and a live GitHub Pages deployment check that manifest.json/service-worker.js/icons/ actually resolve once pushed &mdash; please spot-check those after deploying, since they depend on the real hosting path structure matching what's assumed here (icons/ and manifest.json as direct siblings of index.html).</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.7 &middot; &#128202; Discipline Card — Completed Bookings vs Total Requests</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>loadStudentDiscipline()</code> counted every booking row returned for a student &mdash; pending, rejected, and cancelled included &mdash; into a single <code>totalBookings</code> figure, and <code>stuImpactStatement()</code> used that same figure to both drive the Rep Score's "Completed Bookings" bonus (+2/booking, capped +20) and to pick the New User / Emerging User / Active Participant / Studio Contributor label. A student with several rejected or still-pending requests was scored and labeled as if they had actually completed that many equipment loans. <strong>Fix:</strong> added a separate <code>completedBookings</code> count (<code>status==='returned'</code> only &mdash; the one status this app's pipeline treats as genuinely fulfilled) alongside the existing <code>totalBookings</code>. The score bonus, its breakdown label, and the volume-based Impact Label thresholds now all read <code>completedBookings</code>. <code>totalBookings</code> is unchanged in meaning and still drives the "no trackable activity anywhere" check (a pending request is real activity, just not a completed one) and the honestly-labeled "Total Bookings" stat shown separately in the discipline card &mdash; so nothing that already correctly said "Total Bookings" changed, only the part that was silently treating that total as "Completed." <strong>Scope note:</strong> this is the client-side half of the two discipline-card issues raised together; the <code>student_id</code> type-mismatch question (v54 schema audit) is intentionally untouched here &mdash; still waiting on the Supabase diagnostic query results before that query is changed, per standing instruction not to guess at a data-layer fix.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.6 &middot; &#128231; Weekend Approval Moved to Admin, with Email CC</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause (confirmed by audit against the confirmed workflow story):</strong> the weekend-approval message told a blocked Professor "the Manager on Duty" would approve instead &mdash; but Studio Manager has never actually had a route to the Approve screen (<code>navApprove</code> was never granted to that role) and <code>renderManager()</code> explicitly filters pending bookings out of the Manager's own view. The promised handoff had no real destination. <strong>Fix:</strong> weekend approval authority is now explicitly Admin's, matching who can actually reach the Approve screen and act unrestricted (the Mon&ndash;Fri/9&ndash;5 and weekend checks in <code>approveBookingUI()</code> were always scoped to <code>currentRole==='Professor'</code> only, so Admin was already unblocked &mdash; this just makes the messaging and routing say so honestly). The Professor's blocked-approval toast now names Admin (Mukesh MohanKumar) instead of Manager. <strong>Email CC added:</strong> a new <code>adminEmail</code> field in <code>adminData.appSettings</code> (seeded to Mukesh's address) is used to route the booking-submitted notification for weekend bookings directly to Admin as the primary recipient, with the assigned Professor CC'd for visibility &mdash; determined from the booking's actual date via <code>isWeekendDate(startTimeISO)</code> rather than only the submission-time flag, matching the more reliable check <code>approveBookingUI()</code> already uses. <code>sendEmailNotification()</code> gained an optional <code>cc</code> parameter, sent as an EmailJS <code>cc_email</code> template variable. <strong>Caveat, stated plainly:</strong> EmailJS only actually CCs someone if the Email Service/Template configured in the EmailJS dashboard has a CC field mapped to <code>{{cc_email}}</code> &mdash; this app has no way to force that from client-side code. If <code>cc_email</code> appears correctly in the console payload but Mukesh/the Professor doesn't receive the email, the fix is in the EmailJS template settings, not this code. Also note EmailJS itself is still using placeholder Service/Template/Public Key values (<code>YOUR_SERVICE_ID</code> etc.) per the existing safe no-op guard &mdash; email sending stays a console-logged no-op, booking flow unaffected, until those are replaced with real EmailJS credentials.</div></div>
@@ -14084,10 +14081,25 @@ window.supaAssignmentTags = [];
 window.fetchSupaAssignmentTags = async function() {
   try {
     var res = await fetch(SUPABASE_URL + '/rest/v1/assignment_tags?select=*&order=id.asc', { headers: HEADERS });
-    if (!res.ok) { console.warn('assignment_tags fetch failed (table may not exist yet):', await res.text()); return []; }
+    if (!res.ok) {
+      // V80.9 FIX: this branch fires for BOTH "table doesn't exist" AND "RLS
+      // policy blocking anon SELECT" (401/403) — check the exact status/text
+      // logged here to tell which one you're hitting. Either way, leave the
+      // authoritative flag false so the merge step below doesn't wipe local
+      // seed data based on a failed fetch.
+      console.warn('assignment_tags fetch failed (status ' + res.status + ' — table may not exist yet, or RLS is blocking anon SELECT):', await res.text());
+      window._assignmentTagsFetchOk = false;
+      return [];
+    }
     window.supaAssignmentTags = await res.json() || [];
+    window._assignmentTagsFetchOk = true;   // fetch genuinely succeeded — Supabase is now authoritative, even if it returned 0 rows
+    console.log('✅ assignment_tags fetch OK —', window.supaAssignmentTags.length, 'row(s) from Supabase');
     return window.supaAssignmentTags;
-  } catch(err) { console.warn('assignment_tags fetch error:', err.message); return []; }
+  } catch(err) {
+    console.warn('assignment_tags fetch error:', err.message);
+    window._assignmentTagsFetchOk = false;
+    return [];
+  }
 };
 
 window.addSupaAssignmentTag = async function(obj) {
@@ -16975,9 +16987,21 @@ window.rebuildProfSelectOptions = rebuildProfSelectOptions;
 // empty or doesn't exist yet, so nothing regresses on an unmigrated install.
 function mergeSupaTagsIntoAdminData() {
   try {
+    // V80.9 FIX: root cause of "Supabase has only 2 tags but UI still shows
+    // AudioStory/NewsPackage/InterviewProject" — this function used to always
+    // MERGE Supabase rows into whatever was already in adminData.assignmentTags
+    // (the 3 hardcoded seed tags, on a fresh load) keyed by label. Since the
+    // real Supabase tags have different labels than the seed ones, nothing
+    // ever got removed — Supabase additions just piled on top of stale seed
+    // data forever. Now: if the fetch genuinely succeeded (window._assignmentTagsFetchOk),
+    // Supabase is treated as the single source of truth and REPLACES
+    // adminData.assignmentTags outright — including replacing down to an
+    // empty list if that's what Supabase actually has. If the fetch failed
+    // (table missing / RLS blocking / network error), local state — seed or
+    // whatever was already loaded — is left untouched, exactly as before.
+    if (!window._assignmentTagsFetchOk) return;
     var rows = window.supaAssignmentTags || [];
-    if (!rows.length) return;
-    var merged = rows.map(function(r){
+    var replaced = rows.map(function(r){
       return {
         id       : r.id,
         supa_id  : r.id,
@@ -16987,12 +17011,8 @@ function mergeSupaTagsIntoAdminData() {
         numbers  : Array.isArray(r.numbers) ? r.numbers : []
       };
     }).filter(function(t){ return t.label; });
-    if (!merged.length) return;
-    var byLabel = {};
-    (adminData.assignmentTags||[]).forEach(function(t){ byLabel[t.label.toLowerCase()] = t; });
-    merged.forEach(function(t){ byLabel[t.label.toLowerCase()] = t; }); // Supabase copy wins on conflict
-    adminData.assignmentTags = Object.values(byLabel);
-    console.log('🔄 adminData.assignmentTags synced from Supabase assignment_tags:', merged.length, 'rows');
+    adminData.assignmentTags = replaced;
+    console.log('🔄 adminData.assignmentTags REPLACED from Supabase assignment_tags (authoritative):', replaced.length, 'row(s)');
   } catch(err) {
     console.warn('mergeSupaTagsIntoAdminData error:', err.message);
   }
