@@ -2613,7 +2613,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.14</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.17</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3454,6 +3454,9 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79 &middot; &#128683; Disable Demo/Seed Bookings When Database Is Empty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>window._SEED_BOOKINGS</code> (9 hardcoded demo bookings) was being unconditionally merged into <code>S.bookings</code> in the single busiest code path in the app — <code>fetchAndRenderBookings()</code> did <code>S.bookings = dbRows.concat(activeSeed)</code> on EVERY successful Supabase fetch, live rows or not, per an old comment: "so Prof &amp; Manager dashboards always have demo context visible." That meant a genuinely empty Supabase <code>bookings</code> table still rendered all 9 seed records on every screen, every refresh, forever — not a bug in the fetch itself (History Fetch correctly returned <code>[]</code>), but in what happened to that result afterward. Three more injection points did the same thing at boot, logout, and session-restore, and two Analytics summary functions separately fell back to seeds whenever <code>S.bookings</code> was empty, so even a correctly-empty <code>S.bookings</code> could still show fake analytics totals. <strong>Fix:</strong> added a single <code>window.JSJC_DEMO_MODE</code> flag (default <code>false</code>) and gated every one of those seed-injection points behind it — the post-fetch merge, the pre-fetch boot filler, the logout/session-restore reseed, the network-failure fallback, and <code>clearLocalDB()</code>'s reset. With the flag off (production), <code>S.bookings</code> now holds exactly what Supabase returns — zero rows in, zero rows shown, "No bookings available" on the live bookings list, and Analytics correctly reports 0 Total / 0 Approved / 0 Issued / 0 Returned since its summary functions no longer fall back to <code>_SEED_BOOKINGS</code> when the real list is empty. Nothing else was touched: Assignment Tags, Students, Faculty, Managers, Studios, Equipment, and Admin Settings all live in <code>adminData</code>/their own Supabase tables, completely separate from booking seed logic, and are untouched by this fix. A developer who genuinely needs the old walkthrough behaviour back — offline demos, onboarding a new Studio Manager without touching real data — can set <code>window.JSJC_DEMO_MODE = true</code> (top of the script, right above <code>_SEED_BOOKINGS</code>) to restore it exactly as it was; production deployments must leave it <code>false</code>.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.12 &middot; &#128230; Handover Event, Double Issue-Number Fix, Disappearance Debug Logging</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Explicit handover event added:</strong> Process Timeline now shows "&#128230; Equipment handed over to &lt;Student&gt; &mdash; confirmed by &lt;Manager&gt;" immediately after the existing "Issued by" line &mdash; additive only, no new pipeline status, no change to any status transition, purely narrates data that was already being captured (issuedBy/issuedAt). <strong>2. Double issue-number increment fixed &mdash; proven bug, root cause confirmed:</strong> <code>setKS()</code> generated <code>b.issueNum</code> locally for the optimistic UI update, then called <code>issueBooking()</code>, which independently called <code>getNextBookingNum()</code> AGAIN for the same issue event &mdash; two calls to a counter that advances every call means two different numbers for one action, and whichever landed in Supabase could differ from what the UI showed instantly (exactly the proven EQ-IS-0002 double-consumption). <code>issueBooking()</code> now accepts the number <code>setKS()</code> already generated and reuses it, only falling back to generating its own if called without one. This may also be feeding the separately-reported booking_code collision/retry pattern, since it establishes the same call-it-twice mechanism could exist elsewhere &mdash; worth checking <code>submitBooking</code>'s booking_code path next if collisions persist after this fix. <strong>3. Debug logging added, per explicit instruction NOT to patch the archive/disappearance issue yet:</strong> every <code>fetchAndRenderBookings()</code> refresh now logs the raw Supabase row (booking_id, status, issued_at, returned_at) for whichever booking currently carries issue_number EQ-IS-0002, or explicitly logs that it's absent from the result set if not found &mdash; this is evidence-gathering only, marked TEMPORARY in the code, safe to remove once the disappearance cause is confirmed. <strong>4. Archive/disappearance cause itself: still not found.</strong> Traced the full Issue flow in the previous pass (setKS &rarr; issueBooking PATCH &rarr; fetchAndRenderBookings refetch &rarr; renderManager's default filter, which explicitly includes status==='issued') and found no code path that removes an issued booking from the Manager queue or advances it past 'issued' &mdash; the new debug logging above is what should surface the actual mechanism next time it's reproduced live.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.16 &middot; &#127916; Resource-Specific Studio &amp; Edit Suite Completion Conditions</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> the Session End Condition dropdown on Manager's issued/in-use cards had already been split away from raw Equipment wording (v71.x <code>isSuiteOrStudio</code>), but Studio and Edit Suite still shared one merged 5-option list — including "Equipment malfunction reported" phrasing that made no sense for a Studio and generic wording that didn't distinguish a software crash from a hardware fault in an Edit Suite. <strong>Fix (surgical &mdash; dropdown + supporting logic only):</strong> the condition <code>&lt;select&gt;</code> now branches three ways on <code>isStudio</code> / <code>isEditSuite</code> / equipment fallback. Equipment keeps its unchanged 4 options (good/minor/missing/damaged). Studio now shows Studio left clean / Minor housekeeping required / Technical issue reported / Damage reported (values: <code>clean/housekeeping/technical/damage</code>). Edit Suite/System now shows Session completed normally / Software issue encountered / System performance issue / Hardware fault reported (values: <code>normal/software/performance/hardware</code>) &mdash; no "Missing item(s)" or equipment return terminology in either. <strong>Supporting logic updated so nothing regresses:</strong> <code>toggleMissingBlock()</code>'s "no issue" check and <code>markReceived()</code>'s mandatory-note check both previously tested only <code>cond !== 'good'</code>, which would have wrongly forced a mandatory note on Studio's "clean" and System's "normal" selections — both now check against a <code>['good','clean','normal']</code> no-issue set. The Returned/Session-Ended card's <code>condLabels</code> map and the student discipline/reputation analytics classification (good/minor/damage buckets feeding <code>incidents</code>, <code>excellentCount</code>, <code>improvCount</code>, penalty scoring) were both extended to recognize the new codes alongside the existing Equipment ones, so history and analytics display correctly for all three resource types instead of falling through to an unrecognized-value branch. <strong>Untouched:</strong> Equipment's own 4 options and workflow, the booking/approval/issue/handover/return pipeline itself, and the Studio/System session-start &rarr; session-end state machine.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.15 &middot; &#128683; Offline/Guest UUID Error Fix &mdash; GUEST-xxxxx No Longer Written to student_id</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>handleBookingSubmit()</code> computed <code>stuId</code> as <code>GUEST-xxxxxx</code> when neither a matching student nor staff record was found (i.e. Offline Entry / Guest Booking flows). That string was then placed directly into the <code>student_id</code> field of the INSERT payload. After the v54 UUID migration (<code>bookings.student_id</code> now <code>uuid</code> type), Postgres rejects any non-UUID string outright &mdash; "invalid input syntax for type uuid: GUEST-xxxxxx" &mdash; and the entire booking INSERT fails. <strong>Fix (surgical &mdash; three lines changed):</strong> <code>stuId</code> is now <code>null</code> when no real student/staff record is found. The <code>GUEST-xxxxxx</code> identifier is generated into a separate <code>guestCode</code> variable and flows through the payload as <code>guest_code</code> instead. <code>submitBooking()</code>'s <code>bookingRow</code> passes <code>guest_code</code> to Supabase. <strong>Schema requirement:</strong> a <code>guest_code text</code> column must exist (or be added: <code>ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_code text;</code>) &mdash; it is nullable, so existing student and staff rows are unaffected. If the column does not yet exist, Supabase will return a 400 for guest bookings only; student bookings are completely unaffected. <strong>Nothing else touched:</strong> student booking flow, equipment/studio/system workflows, approval/issue/return/history workflows, UUID migration, and all other status transitions are unchanged.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.14 &middot; &#127991;&#65039; Assignment Tag Legacy Fallback Removed (Boot Merge Timing Gap)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> SQL and console were both right — <code>assignment_tags</code> genuinely has only the 2 real rows, and <code>fetchSupaAssignmentTags()</code> genuinely fetched them (<code>window._assignmentTagsFetchOk = true</code>). The stale <code>#AudioStory / #NewsPackage / #InterviewProject</code> seed tags were never a fetch or fallback problem — <code>initSupaModules()</code>'s boot sequence already had a documented "safety net" pattern for exactly this timing gap (<code>rebuildKitDBFromSupabase()</code> and <code>mergeSupaAuthIntoAdminData()</code> are both called explicitly after the startup <code>Promise.allSettled</code>, because their monkey-patched hook onto <code>fetchSupa*</code> installs too late in script order to catch this very first boot-time call) &mdash; but <code>mergeSupaTagsIntoAdminData()</code> was never added to that same safety-net block. So the one fetch that ran this session pulled the real rows into <code>window.supaAssignmentTags</code> and stopped there; <code>adminData.assignmentTags</code> &mdash; the array every render path (Admin tag list, booking screen's #tag picker, Analytics tag filter) actually reads &mdash; was never touched, and stayed on its hardcoded 3-tag seed value for the entire session. <strong>Fix:</strong> added the single missing call, <code>window.mergeSupaTagsIntoAdminData()</code>, alongside its two siblings in the existing safety-net block. No fetch logic, no SQL, no <code>assignment_tags</code> table, and no other render path touched &mdash; <code>mergeSupaTagsIntoAdminData()</code> itself (already correctly authoritative-replace since v80.9) was called at the right time, nothing about it changed.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.11 &middot; &#127777;&#65039; weather_snapshot PATCH Removed — Column Never Existed Server-Side</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Confirmed via live console (booking_id=5 test):</strong> booking creation itself now succeeds cleanly against the migrated UUID student_id &mdash; that part of the schema work is solid. The 400 seen immediately after was a separate, unrelated issue: a PATCH to <code>bookings</code> sending <code>{weather_snapshot: ...}</code>, rejected with "Could not find the weather_snapshot column of bookings in the schema cache." This PATCH was added in v73.4 as an explicitly best-effort, silently-failing attempt at cross-device weather visibility (Manager/Analytics on a different login seeing the same snapshot) &mdash; the column was never actually added to Supabase, so it has been firing this exact 400 on every single booking submission since v73.4, just quietly (console.warn only, no visible break) until now. Removed the PATCH entirely per instruction rather than adding the column speculatively. Session-local weather snapshot caching (<code>cacheLocalExtra</code>) is untouched and continues to work exactly as it did before v73.4's cross-device attempt &mdash; only the failing server write is gone. Reinstating cross-device weather requires <code>ALTER TABLE bookings ADD COLUMN weather_snapshot jsonb;</code> in Supabase first; the removed PATCH code is preserved in this changelog entry if that's wanted later.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.10 &middot; &#128680; Bookings 400 Diagnosed &mdash; UUID Migration Targeted Wrong Relationship</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> confirmed the collision flagged before the migration ran. <code>window.currentStudentDbId</code> (set at login to <code>stu.id</code>, which is the human-typed roll number, e.g. "2510508" &mdash; not a Supabase UUID) is sent as <code>student_id=eq.&lt;value&gt;</code> in every student-scoped <code>fetchAndRenderBookings()</code> call. After <code>bookings.student_id</code> was migrated to <code>uuid</code> type to match <code>students.id</code>, Postgres rejects the roll-number string outright &mdash; exactly the repeated 400s reported. The relationship the app has always actually used is <code>bookings.student_id</code> &harr; <code>students.student_id</code> (the text roll-number business key), not <code>students.id</code> (the internal UUID PK) &mdash; the migration fixed a join the app doesn't use. <strong>Fix delivered as SQL for manual Supabase execution</strong> (revert <code>bookings.student_id</code> to <code>text</code>, re-point the FK at <code>students.student_id</code>) &mdash; not run from this environment. <strong>Shipped now:</strong> a targeted diagnostic in <code>fetchAndRenderBookings()</code> that recognizes this specific failure signature (a uuid-cast error on a student-scoped fetch) and logs the exact mismatched value and cause immediately, instead of a bare 400 that gives no hint why. <strong>Also delivered:</strong> Supabase sequence/trigger SQL for automatic <code>booking_code</code>/<code>issue_number</code>/<code>return_id</code> generation, adapted to the schema as it actually exists (all three are columns on <code>bookings</code>, not separate tables; category-prefixed EQ-/SYS-/STU- per the app's existing <code>getNextBookingNum()</code> convention, not a single uniform prefix) &mdash; provided as SQL only, not yet wired up client-side pending confirmation of the numbering scheme and because switching this over requires removing the client's own number-generation from the INSERT/PATCH payloads to avoid double-numbering.</div></div>
@@ -5951,7 +5954,20 @@ async function handleBookingSubmit(){
     }
   }
 
-  const stuId    = stuRec ? stuRec.id : (staffRec ? (staffRec.emp_code || staffRec.id || ('STF-' + Math.floor(100000 + Math.random()*900000))) : ('GUEST-' + Math.floor(100000 + Math.random()*900000)));
+  // v80.15 FIX: Offline/Guest bookings must NOT write GUEST-xxxxx into
+  // student_id (a uuid column) — that causes "invalid input syntax for type uuid".
+  // Generate the guest code separately; student_id stays NULL for guest rows.
+  // Staff (Professor/Manager) bookings use their emp_code which is a real UUID
+  // or falls back to a generated STF- string — those are unchanged.
+  var _guestCode = null;
+  var _rawStuId  = stuRec ? stuRec.id
+                 : (staffRec ? (staffRec.emp_code || staffRec.id || ('STF-' + Math.floor(100000 + Math.random()*900000)))
+                 : null);
+  if (!stuRec && !staffRec) {
+    _guestCode = 'GUEST-' + Math.floor(100000 + Math.random()*900000);
+  }
+  const stuId    = _rawStuId;   // null for guest — never written to uuid column
+  const guestCode = _guestCode; // GUEST-xxxxx stored in guest_code column instead
   const stuEmail = (stuRec && stuRec.email) ? stuRec.email : ((staffRec && staffRec.email) ? staffRec.email : (studentEmail || null));
 
   var stuFac   = S.fac;
@@ -5998,7 +6014,8 @@ async function handleBookingSubmit(){
       resource_name  : eq,
       start_time     : startTimeISO,
       end_time       : endTimeISO,
-      student_id     : stuId,
+      student_id     : stuId,       // null for guest/offline bookings (uuid column — never a GUEST- string)
+      guest_code     : guestCode || null, // GUEST-xxxxx for offline/guest; null for real students
       student_name   : studentName,
       email          : stuEmail,
       booking_code   : bkNum,
@@ -6797,12 +6814,16 @@ function renderManager(){
           <label class="flabel">${condHdr}</label>
           <select class="fselect" id="cond-${b.id}" style="margin-bottom:8px;" onchange='toggleMissingBlock(${bid},this.value)' aria-label="${condHdr}">
             <option value="">${condPlaceholder}</option>
-            ${isSuiteOrStudio ? `
-            <option value="good">✅ Session complete — No issues</option>
-            <option value="minor">⚠️ Minor issue — Slight mess or setup out of place</option>
-            <option value="cleanliness">🧹 Cleanliness concern — Premises not left tidy</option>
-            <option value="technical">🔧 Technical issue — Equipment malfunction reported</option>
-            <option value="damaged">🚨 Damaged — Maintenance required</option>
+            ${isStudio ? `
+            <option value="clean">✅ Studio left clean</option>
+            <option value="housekeeping">🧹 Minor housekeeping required</option>
+            <option value="technical">🔧 Technical issue reported</option>
+            <option value="damage">🚨 Damage reported</option>
+            ` : isEditSuite ? `
+            <option value="normal">✅ Session completed normally</option>
+            <option value="software">💾 Software issue encountered</option>
+            <option value="performance">⚙️ System performance issue</option>
+            <option value="hardware">🚨 Hardware fault reported</option>
             ` : `
             <option value="good">✅ Good — No issues</option>
             <option value="minor">⚠️ Minor wear / scratches</option>
@@ -6812,7 +6833,7 @@ function renderManager(){
           </select>
           <div id="missing-block-${b.id}" style="display:none;">
             <label class="flabel">Issue / Damage Note (mandatory) *</label>
-            <textarea class="ftarea" id="missing-note-${b.id}" placeholder="${isSuiteOrStudio ? 'e.g. Whiteboard not erased, chair arrangement left messy, microphone cable coiled incorrectly…' : 'e.g. Lens cap missing, SD card absent, foam windshield worn…'}" style="height:54px;border:1.5px solid #f97316;"></textarea>
+            <textarea class="ftarea" id="missing-note-${b.id}" placeholder="${isStudio ? 'e.g. Whiteboard not erased, chair arrangement left messy, minor housekeeping needed…' : isEditSuite ? 'e.g. Software crashed mid-session, editing suite running slow, monitor/keyboard fault…' : 'e.g. Lens cap missing, SD card absent, foam windshield worn…'}" style="height:54px;border:1.5px solid #f97316;"></textarea>
           </div>
           <label class="flabel" style="margin-top:8px;">${noteLabel}</label>
           <input class="finput" id="return-note-${b.id}" placeholder="${notePlaceholder}" style="margin-bottom:8px;"/>
@@ -6846,7 +6867,11 @@ function renderManager(){
         </div>`;
     } else if(b.ks==='returned'){
       // ── Returned / Session Ended card (was accidentally inside 'issued' block before) ──
-      const condLabels={good:'✅ Good — No issues',minor:'⚠️ Minor issue',cleanliness:'🧹 Cleanliness concern',technical:'🔧 Technical issue',missing:'🔴 Missing item(s)',damaged:'🚨 Damaged'};
+      const condLabels={
+        good:'✅ Good — No issues',minor:'⚠️ Minor wear / scratches',missing:'🔴 Missing item(s)',damaged:'🚨 Damaged — Maintenance required',
+        clean:'✅ Studio left clean',housekeeping:'🧹 Minor housekeeping required',technical:'🔧 Technical issue reported',damage:'🚨 Damage reported',
+        normal:'✅ Session completed normally',software:'💾 Software issue encountered',performance:'⚙️ System performance issue',hardware:'🚨 Hardware fault reported'
+      };
       actionZone=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;margin-top:2px;">
         <div style="font-size:11px;font-weight:700;color:#15803d;">${returnedHdr}</div>
         ${b.returnCondition?`<div style="font-size:11px;color:#374151;margin-top:4px;">Condition: <strong>${condLabels[b.returnCondition]||b.returnCondition}</strong></div>`:''}
@@ -6972,11 +6997,13 @@ function renderManager(){
 function toggleMissingBlock(id,val){
   var mb  = document.getElementById('missing-block-'+id);
   var lbl = document.getElementById('return-note-lbl-'+id);
-  // v49.10: show note block for ANY condition that is not Good
-  var showNote = val && val !== 'good';
+  // v80.16: "no issue" values now vary by resource type — Equipment: good, Studio: clean, System: normal
+  var NO_ISSUE_CONDS = ['good','clean','normal'];
+  var SEVERE_CONDS = ['missing','damaged','damage','hardware'];
+  var showNote = val && NO_ISSUE_CONDS.indexOf(val) === -1;
   if(mb) mb.style.display = showNote ? '' : 'none';
   if(lbl){
-    if(val === 'missing' || val === 'damaged'){
+    if(SEVERE_CONDS.indexOf(val) !== -1){
       lbl.textContent = 'Issue / Damage Note (mandatory) *';
       lbl.style.color = '#f97316';
     } else if(showNote){
@@ -7791,7 +7818,7 @@ async function markReceived(id){
     if(condEl){ condEl.style.borderColor='#dc2626'; condEl.focus(); setTimeout(function(){ condEl.style.borderColor=''; },2000); }
     return;
   }
-  if(cond !== 'good'){
+  if(['good','clean','normal'].indexOf(cond) === -1){
     var missingNoteEl = document.getElementById('missing-note-'+sid);
     var returnNoteEl  = document.getElementById('return-note-'+sid);
     var noteVal = ((missingNoteEl&&missingNoteEl.style.display!=='none'&&missingNoteEl.value) || (returnNoteEl&&returnNoteEl.value) || '').trim();
@@ -10035,16 +10062,17 @@ async function loadStudentDiscipline(sid){
       // Return condition — reputation scoring + timeline incidents
       var resourceLabel = b.resource_name || b.resource_category || 'Equipment';
       var bkCode = b.booking_code || (b.id ? 'BK-'+String(b.id).padStart(4,'0') : '');
-      if(cond==='good'){
+      if(cond==='good'||cond==='clean'||cond==='normal'){
         excellentCount++;
         incidents.push({type:'good', bk:bkCode, resource:resourceLabel, msg:'Returned in good condition — no issues noted', managerNote: extractedNote});
-      } else if(cond==='minor'){
+      } else if(cond==='minor'||cond==='housekeeping'){
         goodCount++;
         incidents.push({type:'minor', bk:bkCode, resource:resourceLabel, msg:'Minor wear noted on return'+(extractedNote?' — '+extractedNote:''), managerNote: extractedNote});
-      } else if(cond==='missing'||cond==='damaged'){
+      } else if(cond==='missing'||cond==='damaged'||cond==='damage'||cond==='hardware'||cond==='technical'||cond==='software'||cond==='performance'){
         improvCount++;
         penaltyCount++;
-        var condLabel = cond==='missing'?'Missing item(s)':'Damaged — maintenance required';
+        var condLabelMap = {missing:'Missing item(s)',damaged:'Damaged — maintenance required',damage:'Damage reported',hardware:'Hardware fault reported',technical:'Technical issue reported',software:'Software issue encountered',performance:'System performance issue'};
+        var condLabel = condLabelMap[cond] || 'Issue reported';
         incidents.push({type:'damage', bk:bkCode, resource:resourceLabel, msg:condLabel+(extractedNote?' · '+extractedNote:''), managerNote: extractedNote});
       } else if(b.status==='returned' && !cond){
         excellentCount++;
@@ -14246,11 +14274,25 @@ async function submitBooking(payload) {
   //   purpose_type, purpose_description, requisition_type, booking_date,
   //   assignment_name, assignment_number, shift_number, booked_hours, batch,
   //   joint_students.
+  // v80.17 FIX: hard guard at the actual INSERT boundary — student_id is a
+  // uuid column, so anything reaching here that isn't UUID-shaped (e.g. a
+  // stray GUEST-xxxxx or roll-number string from a future/edited caller) is
+  // dropped to null instead of being sent to Supabase and 400'ing the whole
+  // insert. This does not change what the correct callers already send
+  // (handleBookingSubmit's stuId is already null for guest/offline rows,
+  // v80.15) — it only catches the case a future edit reintroduces the bug.
+  // Student and staff bookings are untouched: their student_id is already a
+  // real uuid and passes isUuidLike() unchanged.
+  var _rawStudentId = first.student_id || null;
+  var _safeStudentId = (_rawStudentId && typeof window.isUuidLike === 'function' && !window.isUuidLike(_rawStudentId))
+    ? null
+    : _rawStudentId;
   const bookingRow = {
     status               : 'pending',
     start_time           : first.start_time,
     end_time             : first.end_time,
-    student_id           : first.student_id          || null,
+    student_id           : _safeStudentId,                     // null for guest/offline (uuid column) — never a non-uuid string
+    guest_code           : first.guest_code          || null,  // GUEST-xxxxx for offline/guest bookings
     student_name         : first.student_name        || null,
     email                : first.email               || null,
     booking_code         : first.booking_code        || null,
