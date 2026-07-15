@@ -1559,25 +1559,36 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <div id="asgn-cf-summary" style="display:none;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid rgba(99,102,241,.3);">
           <div style="font-size:10px;font-weight:800;color:#a5b4fc;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;">📊 Booking Summary</div>
           <div id="asgn-cf-assign-label" style="font-size:11px;font-weight:700;color:#e2e8f0;margin-bottom:8px;"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
             <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px;text-align:center;">
               <div id="cf-shift-num" style="font-size:14px;font-weight:900;color:#f0abfc;">—</div>
               <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Shift</div>
             </div>
             <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px;text-align:center;">
               <div id="cf-booked-hrs" style="font-size:16px;font-weight:900;color:#facc15;">0</div>
-              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Booked Hrs</div>
+              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Requested</div>
             </div>
             <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px;text-align:center;">
+              <div id="cf-allotted-hrs" style="font-size:16px;font-weight:900;color:#38bdf8;">—</div>
+              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Allotted</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px;text-align:center;">
               <div id="cf-used-hrs" style="font-size:16px;font-weight:900;color:#4ade80;">0</div>
-              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Used Hrs</div>
+              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Used</div>
             </div>
             <div style="background:rgba(99,102,241,.2);border-radius:8px;padding:8px;text-align:center;border:1px solid rgba(99,102,241,.4);">
               <div id="cf-carry-hrs" style="font-size:16px;font-weight:900;color:#a5b4fc;">0</div>
               <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Carry Fwd</div>
             </div>
+            <div style="background:rgba(255,255,255,.06);border-radius:8px;padding:8px;text-align:center;">
+              <div id="cf-balance-hrs" style="font-size:16px;font-weight:900;color:#e2e8f0;">—</div>
+              <div style="font-size:8.5px;font-weight:700;color:#94a3b8;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Balance</div>
+            </div>
           </div>
           <div id="cf-note" style="font-size:10px;color:#7c8aa5;margin-top:8px;line-height:1.5;"></div>
+          <div id="asgn-over-flag" style="display:none;background:rgba(220,38,38,.18);border:1px solid rgba(220,38,38,.5);border-radius:9px;padding:9px 10px;margin-top:8px;font-size:10px;color:#fca5a5;line-height:1.55;"></div>
         </div>
         <label class="flabel">Project Description <span style="color:#dc2626;">*</span></label>
         <textarea class="ftarea" id="asgn-purpose" placeholder="Describe the assignment objective…"></textarea>
@@ -2613,7 +2624,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.21</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.23</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -2623,7 +2634,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <!-- 4-stat strip -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px;">
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
-            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">77</div>
+            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">80</div>
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Versions</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
@@ -2631,7 +2642,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Roles</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
-            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">14K+</div>
+            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">17K+</div>
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Lines</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
@@ -2673,8 +2684,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             </div>
             <!-- Big rating -->
             <div style="background:linear-gradient(135deg,#7b1a1a,#c2410c);border-radius:14px;padding:12px 16px;text-align:center;color:#fff;flex-shrink:0;">
-              <div style="font-size:32px;font-weight:900;font-family:monospace;line-height:1;">9.4<span style="font-size:12px;font-weight:700;opacity:.7;">/10</span></div>
-              <div style="font-size:8px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.4px;margin-top:5px;border-top:1px solid rgba(255,255,255,.25);padding-top:5px;">Re-evaluated<br/>v77 &middot; July 2026</div>
+              <div style="font-size:32px;font-weight:900;font-family:monospace;line-height:1;">9.5<span style="font-size:12px;font-weight:700;opacity:.7;">/10</span></div>
+              <div style="font-size:8px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.4px;margin-top:5px;border-top:1px solid rgba(255,255,255,.25);padding-top:5px;">Re-evaluated<br/>v80.22 &middot; July 2026</div>
             </div>
           </div>
           <div style="background:linear-gradient(135deg,#7b1a1a,#9b2c2c);border-radius:11px;padding:12px 14px;color:#fff;margin-bottom:12px;">
@@ -2877,26 +2888,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             <div style="font-size:9.5px;color:#92400e;font-style:italic;line-height:1.6;">A booking system that students want to open &mdash; not just need to open &mdash; is measurably more valuable than one they treat as a form to fill.</div>
           </div>
 
-          <!-- v57–v67.8 correction cycle: balanced update, doesn't erase prior valuation -->
-          <div style="background:#fdf4ef;border:1.5px solid #e8d5c4;border-radius:12px;padding:13px 14px;margin-top:10px;">
-            <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;">&#128295; v57&ndash;v67.8 Correction Cycle &mdash; Analytics, Discipline &amp; Initiatives Data Integrity</div>
-            <p style="font-size:10.5px;color:#5a3a28;line-height:1.75;margin-bottom:8px;">The valuation above describes what the modules are designed to do. This cycle closed the gap between that design and what the live data actually supported &mdash; several role-permission and data-source bugs meant Analytics, Student Monitoring and the approval trail were quietly running on incomplete or wrong data even though the UI looked correct.</p>
-            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px;">
-              <div style="background:rgba(255,255,255,.7);border-radius:9px;padding:9px 11px;">
-                <div style="font-size:9px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">&#128202; Analytics</div>
-                <div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Fixed: Professor sessions were fetching an unscoped, status-limited slice of bookings, so Analytics silently ran on partial history for that role. Also fixed the Assignment Tag alias mismatch and approval-name resolution ("Assigned" placeholder) that had been suppressing filter population. Professor/Manager filters and approval timestamps are now wired to real data.</div>
-              </div>
-              <div style="background:rgba(255,255,255,.7);border-radius:9px;padding:9px 11px;">
-                <div style="font-size:9px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">&#127891; Student Discipline &amp; Monitoring</div>
-                <div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Fixed: new Supabase-sourced students were crashing the render path (unguarded <code>.toFixed()</code> on missing rating data) and displaying raw UUIDs instead of roll numbers. Batch Year filter had a dead template-literal sitting outside any script context, rendering literal <code>${y}</code> instead of real years.</div>
-              </div>
-              <div style="background:rgba(255,255,255,.7);border-radius:9px;padding:9px 11px;">
-                <div style="font-size:9px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">&#127919; JSJC Initiatives</div>
-                <div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">No functional bugs found in the Initiatives module itself this cycle. Its valuation stands on the design work already recorded above; the correction effort was concentrated in the operational core (booking, approval, analytics) that Initiatives sits on top of.</div>
-              </div>
-            </div>
-            <div style="font-size:9.5px;color:#92400e;font-style:italic;line-height:1.6;">Net effect: no change to the estimated value range above &mdash; this cycle protects the valuation rather than adding to it, by making sure the data underneath Analytics and Discipline is actually trustworthy.</div>
-          </div>
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
@@ -2907,8 +2898,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v79</div>
-        <div style="font-size:10px;color:#a07060;margin-bottom:12px;line-height:1.6;">Seventeen thematic chapters covering the full development arc. Tap any chapter to expand its release notes.</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.22</div>
+        <div style="font-size:10px;color:#a07060;margin-bottom:12px;line-height:1.6;">Thematic chapters covering the full development arc. Tap any chapter to expand its release notes.</div>
 
         <!-- Group 1 -->
         <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:14px;margin-bottom:8px;overflow:hidden;">
@@ -3442,19 +3433,22 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
           <div style="padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="toggleLongRead('vg19-entries','vg19-gchev')">
             <span style="font-size:20px;flex-shrink:0;">&#128203;</span>
             <div style="flex:1;">
-              <div style="font-size:11.5px;font-weight:800;color:#3b1a0e;">Assignment Tags Table Migration &amp; App Info Re-Audit</div>
-              <div style="font-size:9px;font-weight:700;color:#a07060;margin-top:1px;">v76 &ndash; v77 &middot; Assignment audit + diagnostics panel fix &middot; assignment_tags schema SQL &middot; Version Journal cleanup &middot; Architect Review refreshed</div>
+              <div style="font-size:11.5px;font-weight:800;color:#3b1a0e;">Assignment Tags Migration, PWA Packaging &amp; Beta Testing</div>
+              <div style="font-size:9px;font-weight:700;color:#a07060;margin-top:1px;">v76 &ndash; v80.22 &middot; assignment_tags schema SQL &middot; PWA packaging &middot; Supabase UUID/RLS fixes &middot; JSJC faculty/manager beta testing</div>
             </div>
             <span id="vg19-gchev" style="font-size:14px;color:#a07060;flex-shrink:0;transition:transform .2s;">&#9660;</span>
           </div>
           <div id="vg19-entries" style="display:none;border-top:1.5px solid #e8d5c4;padding:12px 14px;">
             <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v78 &ndash; v80.22 &middot; &#128241; Packaged as a Full-Form PWA &amp; Beta Testing Milestone</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">This chapter covers the stretch from v78 to v80.22, during which the app was packaged into full-form Progressive Web App shape so it installs and feels like a native mobile app to end users, rather than a browser-tab-and-URL experience. Alongside the PWA work, this window absorbed the firewall/network-boundary issues surfaced during testing, the Supabase UUID-column fixes across the booking and offline/guest paths, and the underlying SQL corrections needed to keep those columns consistent — all folded into the 30-plus mini-versions logged individually below rather than summarised away. This body of work was released for the app's first beta testing round among JSJC faculty and Studio Managers, following review and approval from Prof. Aditya Singh and Dean Kishalay Bhattacharjee. Every individual fix from this window is still recorded in full below — this entry is a chapter-level summary, not a replacement for those entries.</div></div>
+              
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128269; Assignment Feature Audit (No Migration Performed)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">Requested audit to migrate "assignment" functionality from localStorage to new Supabase tables; the audit found no such feature exists — "assignment" only refers to the booking purpose category and the already-Supabase-backed Assignment Tag Library (since v75.3). Decision: no new assignment/submission feature built; no code changes made in this pass.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v76 &middot; &#128295; Diagnostics Panel Fix — Assignment Tag Library Row</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">The Database Health Check panel's "Assignment Tag Library" row was hardcoded to always show localStorage/&#9888;&#65039; even after the v75.3 Supabase migration shipped. Now checks <code>window.supaAssignmentTags</code> dynamically, matching every other conditional row on that panel.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v79 &middot; &#128683; Disable Demo/Seed Bookings When Database Is Empty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>window._SEED_BOOKINGS</code> (9 hardcoded demo bookings) was being unconditionally merged into <code>S.bookings</code> in the single busiest code path in the app — <code>fetchAndRenderBookings()</code> did <code>S.bookings = dbRows.concat(activeSeed)</code> on EVERY successful Supabase fetch, live rows or not, per an old comment: "so Prof &amp; Manager dashboards always have demo context visible." That meant a genuinely empty Supabase <code>bookings</code> table still rendered all 9 seed records on every screen, every refresh, forever — not a bug in the fetch itself (History Fetch correctly returned <code>[]</code>), but in what happened to that result afterward. Three more injection points did the same thing at boot, logout, and session-restore, and two Analytics summary functions separately fell back to seeds whenever <code>S.bookings</code> was empty, so even a correctly-empty <code>S.bookings</code> could still show fake analytics totals. <strong>Fix:</strong> added a single <code>window.JSJC_DEMO_MODE</code> flag (default <code>false</code>) and gated every one of those seed-injection points behind it — the post-fetch merge, the pre-fetch boot filler, the logout/session-restore reseed, the network-failure fallback, and <code>clearLocalDB()</code>'s reset. With the flag off (production), <code>S.bookings</code> now holds exactly what Supabase returns — zero rows in, zero rows shown, "No bookings available" on the live bookings list, and Analytics correctly reports 0 Total / 0 Approved / 0 Issued / 0 Returned since its summary functions no longer fall back to <code>_SEED_BOOKINGS</code> when the real list is empty. Nothing else was touched: Assignment Tags, Students, Faculty, Managers, Studios, Equipment, and Admin Settings all live in <code>adminData</code>/their own Supabase tables, completely separate from booking seed logic, and are untouched by this fix. A developer who genuinely needs the old walkthrough behaviour back — offline demos, onboarding a new Studio Manager without touching real data — can set <code>window.JSJC_DEMO_MODE = true</code> (top of the script, right above <code>_SEED_BOOKINGS</code>) to restore it exactly as it was; production deployments must leave it <code>false</code>.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.12 &middot; &#128230; Handover Event, Double Issue-Number Fix, Disappearance Debug Logging</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Explicit handover event added:</strong> Process Timeline now shows "&#128230; Equipment handed over to &lt;Student&gt; &mdash; confirmed by &lt;Manager&gt;" immediately after the existing "Issued by" line &mdash; additive only, no new pipeline status, no change to any status transition, purely narrates data that was already being captured (issuedBy/issuedAt). <strong>2. Double issue-number increment fixed &mdash; proven bug, root cause confirmed:</strong> <code>setKS()</code> generated <code>b.issueNum</code> locally for the optimistic UI update, then called <code>issueBooking()</code>, which independently called <code>getNextBookingNum()</code> AGAIN for the same issue event &mdash; two calls to a counter that advances every call means two different numbers for one action, and whichever landed in Supabase could differ from what the UI showed instantly (exactly the proven EQ-IS-0002 double-consumption). <code>issueBooking()</code> now accepts the number <code>setKS()</code> already generated and reuses it, only falling back to generating its own if called without one. This may also be feeding the separately-reported booking_code collision/retry pattern, since it establishes the same call-it-twice mechanism could exist elsewhere &mdash; worth checking <code>submitBooking</code>'s booking_code path next if collisions persist after this fix. <strong>3. Debug logging added, per explicit instruction NOT to patch the archive/disappearance issue yet:</strong> every <code>fetchAndRenderBookings()</code> refresh now logs the raw Supabase row (booking_id, status, issued_at, returned_at) for whichever booking currently carries issue_number EQ-IS-0002, or explicitly logs that it's absent from the result set if not found &mdash; this is evidence-gathering only, marked TEMPORARY in the code, safe to remove once the disappearance cause is confirmed. <strong>4. Archive/disappearance cause itself: still not found.</strong> Traced the full Issue flow in the previous pass (setKS &rarr; issueBooking PATCH &rarr; fetchAndRenderBookings refetch &rarr; renderManager's default filter, which explicitly includes status==='issued') and found no code path that removes an issued booking from the Manager queue or advances it past 'issued' &mdash; the new debug logging above is what should surface the actual mechanism next time it's reproduced live.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.23 &middot; &#128202; Assignment Tag Allotted Hours, Over-Allotment Flagging &amp; Hours Board</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Color as name, not hex:</strong> the tag color dropdown and every tag pill now show a friendly name (Indigo, Sky Blue, Teal…) with a live swatch preview, instead of a raw <code>#6366f1</code> string — same ten colors, easier to read at a glance. <strong>Allotted Hours per assignment number:</strong> each checked Assignment 1/2/3 box now has its own Allotted Hours input; <code>tag.numbers</code> changed shape from a flat list of numbers to <code>[{num, allottedHours}]</code>, read everywhere it's used (student tag picker, admin list, hours board) with a fallback for old flat-number data so nothing already saved breaks. <strong>Enforcement, re-added by request:</strong> a very similar per-tag hour cap existed at v72.5 and was explicitly removed at the time — this reinstates it, now driven by the admin-set allotment instead of one global number. As a student fills the booking form, running total (all their non-cancelled bookings under that tag+assignment number, plus this new request) is checked against the allotment live; going over shows an inline warning and is carried onto the booking as <code>over_allotted_hours</code>/<code>allotted_hours</code>. <strong>Surfaced everywhere, not just at submission:</strong> the shared Assignment Hours box (used by Student History, Professor Approve, Manager, Analytics, Admin — one function, so it can't drift between views) now shows an Allotted tile alongside Requested/Used/Carried Forward, plus a red "Over Allotted Hours" badge next to the existing Joint/Single Requisition badge on every one of those cards. <strong>Assignment Hours Board:</strong> new table at the bottom of the Admin Assignments tab — one row per booking, grouped by tag+assignment number, columns Shift / Requested / Allotted / Balance / Used / Carry Forward / Total, with a totals row and over-allotted rows highlighted red — the management view requested. <strong>Supabase:</strong> SQL provided separately for you to run manually, per standing instruction — covers making <code>assignment_tags.numbers</code> JSONB-safe for the new per-number hours shape, and two new <code>bookings</code> columns (<code>over_allotted_hours</code>, <code>allotted_hours</code>); <code>booked_hours</code>/<code>used_hours</code>/<code>carry_forward_hours</code>/<code>shift_number</code>/<code>assignment_number</code>/<code>assignment_name</code> were already confirmed real, populated columns from the v55/v73 schema work, so nothing new needed there — flagged in the SQL notes so you can verify against your actual live schema before running anything, since this sandbox has no direct Supabase access to check column types itself.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.21 &middot; &#10133; Repeatable Kit/System Blocks for Faster Bulk Entry</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Equipment:</strong> Brand &amp; Model and Category are now entered once at the top; below them, an "➕ Add Another Kit" button appends a fresh Kit#/Facility/Status/Kit Contents/Manager Note block, each independently removable (✕) except the first. One tap of "Add Equipment" loops through every block and creates one record per kit — e.g. TASCAM DR-05 with Kit 1 through Kit 8 in a single pass, no retyping Brand/Model/Category eight times. An extra block left completely untouched is skipped rather than silently duplicating the first kit. <strong>Editing Systems:</strong> same pattern — OS and Location entered once, then repeatable System name/Suite number/Software/Manager Note blocks under "➕ Add Another System." <strong>Calendar sync — checked, already correct:</strong> the booking screen's availability calendar (<code>renderCalendar()</code>) reads live from <code>kitDB[facility][category]</code> at render time, and both <code>admAddEquipment()</code>/<code>admAddEditing()</code> already push straight into that same <code>kitDB</code> object (plus call <code>populateKit()</code>) before saving — so every kit/system added here, including through the new repeatable blocks, is immediately selectable and calendar-checked in the booking flow with no separate sync step required. Nothing needed fixing here; confirmed by tracing the actual read/write path rather than assumed. <strong>Studio form intentionally left single-entry</strong> — the request scoped the repeatable-block pattern to Equipment and Editing only; happy to extend it to Studios too if wanted next.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.20 &middot; &#128230; Admin/Manager Entry Redesign (Equipment/Editing/Studio) &amp; Supabase Delete-Sync Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Icon "guessing" explained:</strong> it wasn't guessing — the old Add forms had a free-form icon-chip row that defaulted to the first chip (camera) and relied on someone remembering to click a different one; easy to leave un-clicked, which is why entries kept landing on 📷 regardless of what was actually being added. Replaced on all three forms with a deterministic category → icon lookup: pick a category, the icon follows automatically, no separate click required. <strong>Equipment form order:</strong> Brand &amp; Model text box first, then Category dropdown (Camera Kit 📷 / Audio Recorder Kit 🎙️ / Lights Kit 💡 / Headphones 🎧 / Accessories 🔌 / Other 🧰 — each with its own icon, not just camera), then Kit Contents ("what's inside this kit") separated from the existing internal Manager Note field (remarks like "bag torn, no handle"). <strong>Editing System form order:</strong> Mac/Windows dropdown first (icon follows OS), then a Location dropdown (T1 Radio Edit, T1 TV Edit, T1 Preview Room Edit, T1 F&amp;NM Edit, T1 Smaller Suite Windows, T1 Smaller Suite Mac, Film &amp; TV Studio) which is pre-mapped to the existing T1 Central/Film &amp; TV facility the booking/kitDB logic already runs on, then a new System Details field for available software. <strong>Studio form order:</strong> Purpose dropdown first (Video Production 🎥 / Audio Production 🎙️, icon follows purpose), then Location dropdown (T1 Radio Studio, T1 TV Studio, T1 Film Screening Classroom Theatre, T3 Sound Studio, New Film &amp; TV Studio Media Lab). <strong>Flagged, not guessed:</strong> T3 Sound Studio and the New Film &amp; TV Studio Media Lab were mapped to the existing Film &amp; TV Studio facility bucket as the closest fit — the app's booking/kitDB model only has two facility keys (T1 Central / Film &amp; TV). If T3 is actually a separate physical facility, that needs a real third facility key added, which is a larger structural change than this form redesign and wasn't done here without confirmation. <strong>New fields are local-only for now:</strong> Kit Contents, Item Category, System Details/Software, and the specific Location strings save to <code>adminData</code>/localStorage immediately (visible and persistent across refresh) but are deliberately NOT sent to Supabase yet — those columns don't exist on the <code>equipment</code>/<code>systems</code>/<code>studios</code> tables, and posting unknown fields would 400 the whole insert (the same class of schema-mismatch bug fixed in earlier versions). Run this in the Supabase SQL editor if cross-device persistence of these new fields is wanted:<br><code>ALTER TABLE equipment ADD COLUMN IF NOT EXISTS item_category text, ADD COLUMN IF NOT EXISTS kit_contents text;<br>ALTER TABLE systems ADD COLUMN IF NOT EXISTS software text;<br>ALTER TABLE studios ADD COLUMN IF NOT EXISTS purpose text;</code> — once added, the three <code>addSupa*()</code> payloads can be extended to include them; not done automatically here since unconfirmed schema changes are exactly what has caused the app's past PGRST204 outages. <strong>Delete-sync root cause found:</strong> <code>admDeleteEquipment/Editing/Studio()</code> always toasted "removed" regardless of what Supabase actually did — <code>deleteSupaEquipment()</code> etc. already existed and already attempted the real DELETE, but a failure (Supabase RLS blocking the DELETE policy, most likely) was only logged to console and silently swallowed, so the row survived server-side and reappeared on the next refresh with no explanation. Now the real result is checked: success still shows "🗑️ removed", failure now shows an explicit "Supabase rejected the delete (likely RLS)" warning instead of a false-positive. <strong>To actually fix the underlying RLS block</strong> (needs to run in the Supabase dashboard — no DB credentials reachable from this sandbox to do it directly):<br><code>CREATE POLICY "Allow delete for authenticated" ON equipment FOR DELETE USING (true);<br>CREATE POLICY "Allow delete for authenticated" ON systems FOR DELETE USING (true);<br>CREATE POLICY "Allow delete for authenticated" ON studios FOR DELETE USING (true);</code> — adjust the <code>USING</code> clause to your actual auth model if you want it scoped tighter than "any request with the anon/service key," which is what the rest of this app's inserts already assume. <strong>Scoped out of this pass, on purpose:</strong> the student-facing visual grid grouped by Brand+Model with aggregate kit counts (e.g. "TASCAM DR05 = 8 kits"), and verifying calendar-availability sync against it — both touch the student Booking screen, a bigger blast radius than the admin-only forms this request's final line scoped to ("these changes will apply for manager's data entry style through admin"). Ready to take on as v80.21 if you want it next — flagging now rather than quietly expanding this pass's surface area.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.19 &middot; &#128736;&#65039; Studio Manager Resource Administration — Add-Only Access, Scoped from the v80.3 Boundary Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Context:</strong> v80.3 correctly stripped Studio Manager's access to <code>screen-admin</code> entirely, because the sub-tab hiding built alongside it (<code>managerOnlyTabs</code>, the <code>admin-manager-note</code> banner, and <code>admDelBtn()</code>'s role-gated "🔒 Admin only" swap) left the nav item itself — and the app-wide Weekend Approval / Blackout toggles and "Reset Reports" button sitting above the tab bar — all still reachable. This pass re-grants access the narrow way that audit intended instead of the broad way it rejected. <strong>What Studio Manager now gets:</strong> the Admin nav item and <code>screen-admin</code> route (added to the <code>_ROLE_SCREENS</code> whitelist), landing on a panel re-labelled "Resource Administration / ADD ACCESS ONLY" for that role, with only the Equipment/Editing/Studios tabs visible — Students, Faculty, Managers, Assignments, Bookings, and Password tabs stay hidden exactly as <code>managerOnlyTabs</code> already enforced. <strong>What stays Admin-only:</strong> every delete button across all three resource tabs (<code>admDelBtn()</code> was already role-gated — now backed by a matching guard inside <code>admDeleteEquipment/Editing/Studio()</code> themselves, so the action is blocked even if ever called directly, not just hidden); the Weekend Approval Restriction and 8PM–8AM Blackout toggles and the Reset Reports button (new <code>admin-master-toggles</code>/<code>admin-reset-reports-btn</code> containers, hidden for Studio Manager in <code>applyRoleUI()</code> — these are app-wide settings, not resource records); and all deletion of bookings/students/professors/managers, unchanged. <strong>Audit logging added:</strong> every successful Add Equipment/Editing System/Studio now calls a new <code>logResourceAudit()</code> — Added By, Role, Date &amp; Time, Resource Type, Resource Name — written to a capped local log (<code>localStorage</code>, survives refresh) and mirrored best-effort to a <code>resource_audit_log</code> Supabase table if one exists, with the same silent no-op fallback pattern already used for <code>weather_snapshot</code>/<code>kit_prep_by</code> elsewhere in this file — nothing breaks if that table isn't provisioned; the local log alone satisfies the traceability requirement. No SQL required to ship this; a <code>resource_audit_log</code> table is only needed if cross-device audit visibility is wanted later. <strong>Untouched, per instruction:</strong> Booking/Approval/Issue/Return workflows, Analytics, and Student/Professor permissions — none of their nav grants, route whitelists, or functions were touched.</div></div>
@@ -3794,6 +3788,18 @@ function requisitionTypeBadgeHTML(b){
 }
 window.requisitionTypeBadgeHTML = requisitionTypeBadgeHTML;
 
+// V80.23: compact "over allotted hours" badge — shown alongside the
+// requisition-type badge at a glance on Student/Professor/Manager/Admin
+// booking cards, without needing to open the full Assignment Hours box.
+function overAllottedBadgeHTML(b){
+  if(!b || !b.overAllottedHours) return '';
+  return '<div style="display:inline-flex;align-items:center;gap:6px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:22px;padding:7px 15px;margin-bottom:10px;margin-left:8px;">'
+    + '<span style="font-size:14px;">⚠️</span>'
+    + '<span style="font-size:11px;font-weight:800;color:#b91c1c;letter-spacing:.2px;">Over Allotted Hours</span>'
+    + '</div>';
+}
+window.overAllottedBadgeHTML = overAllottedBadgeHTML;
+
 // ── V73.9: shared, uniform Student Description + Professor Remarks boxes — kept as
 // TWO separate, distinctly-labeled boxes (never merged) per the confirmed brief. Used
 // by both the Student card and the Admin/Professor card. Manager Remarks intentionally
@@ -3924,13 +3930,21 @@ function pipelineRecordHTML(b){
   // Approve screen, Analytics) since they all share this single function.
   if(b.strat === 'assignment' && b.bookedHrs != null){
     var hasUsage = (b.usedHrs != null);
+    var hasAllot = (b.allottedHours != null);
+    var colCount = (hasUsage?3:1) + (hasAllot?1:0);
     pipelineHTML += '<div class="mgc-timeline-box" style="margin-top:8px;">'
       + '<div class="mgc-status-lbl" style="margin-bottom:6px;">📚 Assignment Hours'+(b.asgnNum?' — '+esc(b.asgnNum):'')+(b.asgnShift?' · '+esc(b.asgnShift):'')+'</div>'
-      + '<div style="display:grid;grid-template-columns:repeat('+(hasUsage?3:1)+',1fr);gap:6px;">'
+      + '<div style="display:grid;grid-template-columns:repeat('+colCount+',1fr);gap:6px;">'
       +   '<div style="text-align:center;background:#f8f9fb;border-radius:8px;padding:6px;">'
       +     '<div style="font-size:14px;font-weight:900;color:#7b1a1a;">'+esc(b.bookedHrs)+'</div>'
-      +     '<div style="font-size:8px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">Booked Hrs</div>'
+      +     '<div style="font-size:8px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">Requested</div>'
       +   '</div>'
+      +   (hasAllot ? (
+      '<div style="text-align:center;background:#eff6ff;border-radius:8px;padding:6px;border:1px solid #bfdbfe;">'
+      +     '<div style="font-size:14px;font-weight:900;color:#1d4ed8;">'+esc(b.allottedHours)+'</div>'
+      +     '<div style="font-size:8px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">Allotted</div>'
+      +   '</div>'
+      ) : '')
       +   (hasUsage ? (
       '<div style="text-align:center;background:#f8f9fb;border-radius:8px;padding:6px;">'
       +     '<div style="font-size:14px;font-weight:900;color:#16a34a;">'+esc(b.usedHrs)+'</div>'
@@ -3943,6 +3957,9 @@ function pipelineRecordHTML(b){
       ) : '')
       + '</div>'
       + (hasUsage && b.carryForwardHrs > 0 ? '<div style="font-size:9.5px;color:#4338ca;margin-top:6px;">↪ '+esc(b.carryForwardHrs)+' unused hr'+(b.carryForwardHrs!==1?'s':'')+' carried forward to next shift under '+esc(b.asgnNum||'this assignment')+'.</div>' : '')
+      // V80.23: over-allotment flag — visible on every stakeholder view that
+      // renders this shared box (Student, Professor Approve, Manager, Analytics).
+      + (b.overAllottedHours ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:7px 9px;margin-top:8px;font-size:9.5px;color:#b91c1c;font-weight:700;">⚠️ Requested hours exceed the allotted '+esc(b.allottedHours!=null?b.allottedHours:'')+' hrs for '+esc(b.asgnNum||'this assignment')+' — flagged for Professor and Manager review.</div>' : '')
       + '</div>';
   }
   return pipelineHTML;
@@ -6061,6 +6078,11 @@ async function handleBookingSubmit(){
       asgnNum        : asgnNum   || null,
       asgnShift      : asgnShift || null,
       bookedHrs      : asgnHrs   || null,
+      // V80.23: computed by asgnUpdateCFSummary() as the student filled the
+      // form — carried through as-is rather than recomputed here so what the
+      // student saw on screen is exactly what gets flagged.
+      overAllottedHours : (S.strat === 'assignment') ? !!window._asgnOverAllotted : false,
+      allottedHours     : (S.strat === 'assignment') ? (window._asgnAllottedHours!=null ? window._asgnAllottedHours : null) : null,
       // ── V70.1: Weekend workflow + Equipment declaration (all verified existing columns) ──
       weekend_request            : (typeof isWeekendDate==='function') ? isWeekendDate(new Date().toISOString().split('T')[0]) : false,
       declaration_responsibility : !!(document.getElementById('eq-decl-1')||{}).checked,
@@ -6413,7 +6435,7 @@ function renderApprovals(){
     // Requisition type badge — now the same shared, larger, higher-contrast
     // component the Student card uses (V73.9).
     var reqBox = document.createElement('div');
-    reqBox.innerHTML = requisitionTypeBadgeHTML(b);
+    reqBox.innerHTML = requisitionTypeBadgeHTML(b) + overAllottedBadgeHTML(b);
     card.appendChild(reqBox);
 
     // ── Student Description + Professor Remarks — two separate, uniformly-labeled
@@ -6999,7 +7021,7 @@ function renderManager(){
     return `
     <div class="card" style="padding:13px;">
       ${canonicalRecordHTML(b, mgrRightBadgeHTML)}
-      ${requisitionTypeBadgeHTML(b)}
+      ${requisitionTypeBadgeHTML(b)}${overAllottedBadgeHTML(b)}
       ${descBlock}
       ${b.reqType==='joint' && b.joint_students ? `<div style="margin-bottom:8px;background:#fdf4ef;border:1px dashed #e8d5c4;border-radius:8px;padding:7px 9px;">
         <div style="font-size:9px;font-weight:800;color:#a07060;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">👥 Joint Request Team (${b.joint_students.split(',').filter(s=>s.trim()).length} Participants)</div>
@@ -7272,7 +7294,7 @@ function renderAsgnTagChips(filterText){
   var q = (filterText||'').trim().toLowerCase();
   var tags = (adminData.assignmentTags||[]).filter(function(t){
     if(!t.active) return false;
-    if((t.numbers||[]).indexOf(numIdx) === -1) return false;
+    if(!(t.numbers||[]).some(function(n){ return (typeof n==='object'?n.num:n) === numIdx; })) return false;
     if(q && t.label.toLowerCase().indexOf(q) === -1) return false;
     return true;
   });
@@ -7308,6 +7330,20 @@ function asgnHoursChange(){ asgnUpdateCFSummary(); }
 window.asgnHoursChange = asgnHoursChange;
 
 // Compute and show/hide carry-forward summary block
+// V80.23: look up the admin-set Allotted Hours for a tag+assignment-number pair.
+// asgnNum may arrive as "Assignment 1", "A1", or a bare number — normalized the
+// same way renderAsgnTagChips() already does.
+function getTagAllottedHours(tagId, asgnNum){
+  if(!tagId || !asgnNum) return null;
+  var tag = (adminData.assignmentTags||[]).find(function(t){ return t.id === tagId; });
+  if(!tag) return null;
+  var numIdx = parseInt(String(asgnNum).replace(/[^0-9]/g,''),10);
+  var match = (tag.numbers||[]).find(function(n){ return (typeof n==='object'?n.num:n) === numIdx; });
+  if(!match) return null;
+  return (typeof match === 'object' && match.allottedHours != null) ? match.allottedHours : null;
+}
+window.getTagAllottedHours = getTagAllottedHours;
+
 function asgnUpdateCFSummary(){
   var asgnNum   = (document.getElementById('asgn-num-select')||{}).value || '';
   var shiftNum  = (document.getElementById('asgn-shift-num')||{}).value || '';
@@ -7337,6 +7373,28 @@ function asgnUpdateCFSummary(){
   });
   var carryFwd = Math.max(0, totalBooked - totalUsed);
 
+  // V80.23: allotted-hours check, re-added per request (v72.5's version of this
+  // was explicitly removed earlier) — now driven by the admin-set Allotted Hours
+  // per tag+assignment-number instead of a single global cap. Balance is
+  // allotted minus (everything already used) minus (this new request), so
+  // carry-forward from returned-but-unused hours doesn't count against the cap.
+  var allotted = (typeof getTagAllottedHours==='function') ? getTagAllottedHours(window._selectedAsgnTag && window._selectedAsgnTag.id, asgnNum) : null;
+  var totalRequested = totalBooked + bookedHrs;
+  var overAllotted = (allotted != null && totalRequested > allotted);
+  window._asgnOverAllotted = overAllotted;
+  window._asgnAllottedHours = allotted;
+  window._asgnBalanceHours = (allotted != null) ? Math.max(0, allotted - totalUsed - bookedHrs) : null;
+
+  var flagEl = document.getElementById('asgn-over-flag');
+  if(flagEl){
+    if(overAllotted){
+      flagEl.style.display = '';
+      flagEl.innerHTML = '⚠️ This request puts you at <strong>'+totalRequested+' hrs</strong> against an allotted <strong>'+allotted+' hrs</strong> for '+asgnNum+' under #'+((window._selectedAsgnTag||{}).label||'')+'. This will be flagged to your Professor and the Studio Manager for approval.';
+    } else {
+      flagEl.style.display = 'none';
+    }
+  }
+
   // Show the block
   cfDiv.style.display = '';
   var label = document.getElementById('asgn-cf-assign-label');
@@ -7348,6 +7406,8 @@ function asgnUpdateCFSummary(){
   setVal('cf-booked-hrs', bookedHrs);
   setVal('cf-used-hrs',   totalUsed > 0 ? totalUsed : '—');
   setVal('cf-carry-hrs',  carryFwd > 0 ? carryFwd : '—');
+  setVal('cf-allotted-hrs', allotted != null ? allotted : '—');
+  setVal('cf-balance-hrs',  window._asgnBalanceHours != null ? window._asgnBalanceHours : '—');
 
   var noteEl = document.getElementById('cf-note');
   if(noteEl){
@@ -8987,7 +9047,7 @@ function an2BuildRecordHTML(b){
   var canonicalBox =
     '<div class="an2-canonical-box" style="background:#141b29;border:1px solid #232c3d;border-radius:10px;padding:11px 12px;margin-bottom:10px;color:#e5e9f0;">'+
       canonicalRecordHTML(b)+
-      requisitionTypeBadgeHTML(b)+
+      requisitionTypeBadgeHTML(b)+overAllottedBadgeHTML(b)+
       descriptionBoxesHTML(b)+
       an2DeclarationBadgesHTML(b)+
     '</div>';
@@ -12408,6 +12468,15 @@ function fetchAdminBookings(){
 window.fetchAdminBookings = fetchAdminBookings; // will be overwritten by async version below
 
 // ── Admin: Change Admin Password ──
+// V80.23: friendly names for the existing color palette — shown instead of
+// raw hex so admins pick "Indigo" not "#6366f1".
+var TAG_COLOR_NAMES = {
+  '#6366f1':'Indigo', '#0ea5e9':'Sky Blue', '#14b8a6':'Teal', '#f59e0b':'Amber',
+  '#ef4444':'Red', '#ec4899':'Pink', '#8b5cf6':'Violet', '#22c55e':'Green',
+  '#84cc16':'Lime', '#f97316':'Orange'
+};
+window.TAG_COLOR_NAMES = TAG_COLOR_NAMES;
+
 function renderAdminAssignments(){
   var tags = adminData.assignmentTags || [];
   var colorOpts = ['#6366f1','#0ea5e9','#14b8a6','#f59e0b','#ef4444','#ec4899','#8b5cf6','#22c55e','#84cc16','#f97316'];
@@ -12415,25 +12484,32 @@ function renderAdminAssignments(){
   <div class="adm-add-panel">
     <div class="adm-add-title">➕ Create Assignment Tag</div>
     <input class="finput" id="adm-tag-label" placeholder="Tag name (e.g. AudioStory) — no spaces or #"/>
-    <select class="fselect" id="adm-tag-color" aria-label="Tag Color">
-      ${colorOpts.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('')}
+    <select class="fselect" id="adm-tag-color" aria-label="Tag Color" onchange="admUpdateTagColorPreview()">
+      ${colorOpts.map(function(c){ return '<option value="'+c+'">'+(TAG_COLOR_NAMES[c]||c)+'</option>'; }).join('')}
     </select>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:6px 0 4px;">Available under:</div>
-    <div style="display:flex;gap:10px;margin-bottom:8px;">
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="adm-tag-num-1"/> Assignment 1</label>
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="adm-tag-num-2"/> Assignment 2</label>
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="adm-tag-num-3"/> Assignment 3</label>
+    <div id="adm-tag-color-preview" style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;"><span style="width:12px;height:12px;border-radius:50%;background:#6366f1;display:inline-block;"></span> Tag will appear in this color</div>
+    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:6px 0 4px;">Available under — check a box and set its Allotted Hours for this assignment:</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+      ${[1,2,3].map(function(n){ return `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <label style="font-size:11px;display:flex;align-items:center;gap:4px;flex:1;"><input type="checkbox" id="adm-tag-num-${n}" onchange="admToggleTagHoursInput(${n})"/> Assignment ${n}</label>
+        <input class="finput" id="adm-tag-hrs-${n}" type="number" min="0" step="0.5" placeholder="Allotted hrs" disabled style="margin:0;width:110px;opacity:.5;"/>
+      </div>`; }).join('')}
     </div>
     <button class="adm-save-btn" onclick="admAddAssignmentTag()">🏷️ Add Tag</button>
   </div>
   <div class="sec-lbl">${tags.length} Assignment Tag${tags.length!==1?'s':''}</div>
   ${tags.map(function(t,i){
-    var nums = (t.numbers||[]).map(function(n){ return 'A'+n; }).join(', ') || '—';
+    var nums = (t.numbers||[]).map(function(n){
+      var num = (typeof n === 'object') ? n.num : n;
+      var hrs = (typeof n === 'object') ? n.allottedHours : null;
+      return 'A'+num+(hrs!=null?' ('+hrs+'h)':'');
+    }).join(', ') || '—';
     return `
     <div class="adm-item">
       <div class="adm-item-hd">
         <div>
-          <div class="adm-item-name"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:${t.color}22;color:${t.color};border:1px solid ${t.color};">#${t.label}</span></div>
+          <div class="adm-item-name"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:${t.color}22;color:${t.color};border:1px solid ${t.color};">#${t.label}</span> <span style="font-size:9px;color:#9ca3af;">${TAG_COLOR_NAMES[t.color]||''}</span></div>
           <div class="adm-item-sub">Assignment: ${nums} · <span style="color:${t.active?'#16a34a':'#6b7280'}">${t.active?'Active':'Deactivated'}</span></div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -12442,15 +12518,111 @@ function renderAdminAssignments(){
         </div>
       </div>
     </div>`;
+  }).join('')}
+  ${renderAssignmentHoursBoard()}`;
+}
+function admUpdateTagColorPreview(){
+  var sel = document.getElementById('adm-tag-color');
+  var dot = document.querySelector('#adm-tag-color-preview span');
+  if(sel && dot) dot.style.background = sel.value;
+}
+window.admUpdateTagColorPreview = admUpdateTagColorPreview;
+// V80.23: management display board — Shift/Requested/Allotted/Balance/Used/
+// Carry Forward/Total per booking, grouped by tag+assignment number, so an
+// admin can see at a glance whether any student is running over allotment.
+function renderAssignmentHoursBoard(){
+  var tags = (adminData.assignmentTags||[]).filter(function(t){ return t.active; });
+  var groups = [];
+  tags.forEach(function(t){
+    (t.numbers||[]).forEach(function(n){
+      var num = (typeof n==='object') ? n.num : n;
+      var allotted = (typeof n==='object') ? n.allottedHours : null;
+      var rows = (S.bookings||[]).filter(function(b){
+        return b.asgnName === ('#'+t.label) && parseInt(String(b.asgnNum||'').replace(/[^0-9]/g,''),10) === num
+          && (b.status||'') !== 'cancelled' && (b.status||'') !== 'rejected';
+      });
+      if(!rows.length) return;
+      groups.push({ tag:t, num:num, allotted:allotted, rows:rows });
+    });
+  });
+  if(!groups.length) return '';
+  return `
+  <div class="sec-lbl" style="margin-top:16px;">📊 Assignment Hours Board</div>
+  ${groups.map(function(g){
+    var totalReq = 0, totalUsed = 0, totalCF = 0;
+    var rowsHtml = g.rows.map(function(b){
+      totalReq += parseFloat(b.bookedHrs||0);
+      totalUsed += parseFloat(b.usedHrs||0);
+      totalCF = parseFloat(b.carryForwardHrs||0); // most recent carry-forward value, not summed
+      var balance = (g.allotted != null) ? Math.max(0, g.allotted - parseFloat(b.usedHrs||0)) : null;
+      var over = g.allotted != null && totalReq > g.allotted;
+      return '<tr style="'+(over?'background:#fef2f2;':'')+'">'
+        + '<td style="padding:5px 6px;font-size:10px;">'+(esc(b.asgnShift)||'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.bookedHrs!=null?b.bookedHrs:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(g.allotted!=null?g.allotted:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(balance!=null?balance:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.usedHrs!=null?b.usedHrs:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.carryForwardHrs||'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;font-weight:700;'+(over?'color:#b91c1c;':'')+'">'+(b.bookedHrs!=null?b.bookedHrs:'—')+(over?' ⚠️':'')+'</td>'
+        + '</tr>';
+    }).join('');
+    return `
+    <div class="adm-item" style="padding:10px 11px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:${g.tag.color}22;color:${g.tag.color};border:1px solid ${g.tag.color};">#${g.tag.label} · A${g.num}</span>
+        <span style="font-size:9.5px;color:#9ca3af;">Allotted: ${g.allotted!=null?g.allotted+'h':'not set'}</span>
+      </div>
+      <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:1.5px solid #e8d5c4;">
+          <th style="padding:5px 6px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Shift</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Req.</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Allotted</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Balance</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Used</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Carry Fwd</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Total</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+        <tfoot><tr style="border-top:1.5px solid #e8d5c4;font-weight:800;">
+          <td style="padding:5px 6px;font-size:10px;">Total</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalReq}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${g.allotted!=null?g.allotted:'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${g.allotted!=null?Math.max(0,g.allotted-totalUsed):'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalUsed}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalCF||'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;${g.allotted!=null&&totalReq>g.allotted?'color:#b91c1c;':''}">${totalReq}${g.allotted!=null&&totalReq>g.allotted?' ⚠️':''}</td>
+        </tr></tfoot>
+      </table>
+      </div>
+    </div>`;
   }).join('')}`;
 }
+window.renderAssignmentHoursBoard = renderAssignmentHoursBoard;
+
+function admToggleTagHoursInput(n){
+  var chk = document.getElementById('adm-tag-num-'+n);
+  var hrs = document.getElementById('adm-tag-hrs-'+n);
+  if(!chk || !hrs) return;
+  hrs.disabled = !chk.checked;
+  hrs.style.opacity = chk.checked ? '1' : '.5';
+  if(!chk.checked) hrs.value = '';
+}
+window.admToggleTagHoursInput = admToggleTagHoursInput;
 
 async function admAddAssignmentTag(){
   if(guestBlock()) return;
   const raw = document.getElementById('adm-tag-label').value.trim();
   const label = raw.replace(/^#/,'').replace(/\s+/g,'');
   const color = document.getElementById('adm-tag-color').value;
-  const numbers = [1,2,3].filter(function(n){ return document.getElementById('adm-tag-num-'+n).checked; });
+  // V80.23: numbers now carry an Allotted Hours figure per assignment number,
+  // not just which numbers apply — this is what the requisition-hours check
+  // in asgnUpdateCFSummary() compares a student's running total against.
+  const numbers = [1,2,3].filter(function(n){ return document.getElementById('adm-tag-num-'+n).checked; })
+    .map(function(n){
+      var hrsVal = parseFloat((document.getElementById('adm-tag-hrs-'+n)||{}).value);
+      return { num:n, allottedHours: (isNaN(hrsVal) ? null : hrsVal) };
+    });
   if(!label){ toast('⚠️ Enter a tag name'); return; }
   if(!numbers.length){ toast('⚠️ Select at least one Assignment Number'); return; }
   var dupe = (adminData.assignmentTags||[]).some(function(t){ return t.label.toLowerCase()===label.toLowerCase(); });
@@ -14541,6 +14713,12 @@ async function submitBooking(payload) {
     assignment_number    : first.assignment_number   || first.asgnNum   || null,
     shift_number         : first.shift_number        || first.shiftNum  || null,
     booked_hours         : first.booked_hours        || first.bookedHrs || null,
+    // V80.23: allotted-hours flag — surfaced on Professor/Manager dashboards
+    // and the booking record so a student requesting more than the tag's
+    // admin-set allotment for this assignment number is visible everywhere,
+    // not just on the device that created the booking.
+    over_allotted_hours  : first.overAllottedHours   || false,
+    allotted_hours        : first.allottedHours      != null ? first.allottedHours : null,
     batch                : first.batch               || null,
     joint_students       : first.joint_students      || first.jointStudentsVal || null,
     // ── V70.1: Weekend workflow + Equipment declaration flags (verified existing columns) ──
@@ -14953,6 +15131,8 @@ window.fetchAndRenderBookings = async function() {
         asgnShift       : b.shift_number      || '',
         usedHrs         : (b.used_hours != null ? b.used_hours : null),
         carryForwardHrs : b.carry_forward_hours || 0,
+        overAllottedHours: !!b.over_allotted_hours,
+        allottedHours   : (b.allotted_hours != null ? b.allotted_hours : null),
         // V73 FIX: cancellation/denial timestamp + actor — Process Timeline was
         // showing "—" for Denied/Cancelled rows because rejectBooking() never
         // sent a timestamp or actor column to Supabase, and this mapper never
@@ -16030,7 +16210,7 @@ function renderStudentBookings() {
     var locationHTML = locVal ? ('<div style="font-size:11px;color:#374151;margin-bottom:8px;">' + esc(locVal) + '</div>') : '';
 
     // -- [5b] requisition type — now the same shared badge Professor/Admin use (V73.9) --
-    var reqTypeHTML = requisitionTypeBadgeHTML(b);
+    var reqTypeHTML = requisitionTypeBadgeHTML(b) + overAllottedBadgeHTML(b);
 
     // -- [6] approval flow --
     // V71.5: replaced the standalone "Approved by Professor: b.prof" line (which showed the
