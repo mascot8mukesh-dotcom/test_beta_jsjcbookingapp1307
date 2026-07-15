@@ -2613,7 +2613,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.17</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.21</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3455,6 +3455,10 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.12 &middot; &#128230; Handover Event, Double Issue-Number Fix, Disappearance Debug Logging</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Explicit handover event added:</strong> Process Timeline now shows "&#128230; Equipment handed over to &lt;Student&gt; &mdash; confirmed by &lt;Manager&gt;" immediately after the existing "Issued by" line &mdash; additive only, no new pipeline status, no change to any status transition, purely narrates data that was already being captured (issuedBy/issuedAt). <strong>2. Double issue-number increment fixed &mdash; proven bug, root cause confirmed:</strong> <code>setKS()</code> generated <code>b.issueNum</code> locally for the optimistic UI update, then called <code>issueBooking()</code>, which independently called <code>getNextBookingNum()</code> AGAIN for the same issue event &mdash; two calls to a counter that advances every call means two different numbers for one action, and whichever landed in Supabase could differ from what the UI showed instantly (exactly the proven EQ-IS-0002 double-consumption). <code>issueBooking()</code> now accepts the number <code>setKS()</code> already generated and reuses it, only falling back to generating its own if called without one. This may also be feeding the separately-reported booking_code collision/retry pattern, since it establishes the same call-it-twice mechanism could exist elsewhere &mdash; worth checking <code>submitBooking</code>'s booking_code path next if collisions persist after this fix. <strong>3. Debug logging added, per explicit instruction NOT to patch the archive/disappearance issue yet:</strong> every <code>fetchAndRenderBookings()</code> refresh now logs the raw Supabase row (booking_id, status, issued_at, returned_at) for whichever booking currently carries issue_number EQ-IS-0002, or explicitly logs that it's absent from the result set if not found &mdash; this is evidence-gathering only, marked TEMPORARY in the code, safe to remove once the disappearance cause is confirmed. <strong>4. Archive/disappearance cause itself: still not found.</strong> Traced the full Issue flow in the previous pass (setKS &rarr; issueBooking PATCH &rarr; fetchAndRenderBookings refetch &rarr; renderManager's default filter, which explicitly includes status==='issued') and found no code path that removes an issued booking from the Manager queue or advances it past 'issued' &mdash; the new debug logging above is what should surface the actual mechanism next time it's reproduced live.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.21 &middot; &#10133; Repeatable Kit/System Blocks for Faster Bulk Entry</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Equipment:</strong> Brand &amp; Model and Category are now entered once at the top; below them, an "➕ Add Another Kit" button appends a fresh Kit#/Facility/Status/Kit Contents/Manager Note block, each independently removable (✕) except the first. One tap of "Add Equipment" loops through every block and creates one record per kit — e.g. TASCAM DR-05 with Kit 1 through Kit 8 in a single pass, no retyping Brand/Model/Category eight times. An extra block left completely untouched is skipped rather than silently duplicating the first kit. <strong>Editing Systems:</strong> same pattern — OS and Location entered once, then repeatable System name/Suite number/Software/Manager Note blocks under "➕ Add Another System." <strong>Calendar sync — checked, already correct:</strong> the booking screen's availability calendar (<code>renderCalendar()</code>) reads live from <code>kitDB[facility][category]</code> at render time, and both <code>admAddEquipment()</code>/<code>admAddEditing()</code> already push straight into that same <code>kitDB</code> object (plus call <code>populateKit()</code>) before saving — so every kit/system added here, including through the new repeatable blocks, is immediately selectable and calendar-checked in the booking flow with no separate sync step required. Nothing needed fixing here; confirmed by tracing the actual read/write path rather than assumed. <strong>Studio form intentionally left single-entry</strong> — the request scoped the repeatable-block pattern to Equipment and Editing only; happy to extend it to Studios too if wanted next.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.20 &middot; &#128230; Admin/Manager Entry Redesign (Equipment/Editing/Studio) &amp; Supabase Delete-Sync Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Icon "guessing" explained:</strong> it wasn't guessing — the old Add forms had a free-form icon-chip row that defaulted to the first chip (camera) and relied on someone remembering to click a different one; easy to leave un-clicked, which is why entries kept landing on 📷 regardless of what was actually being added. Replaced on all three forms with a deterministic category → icon lookup: pick a category, the icon follows automatically, no separate click required. <strong>Equipment form order:</strong> Brand &amp; Model text box first, then Category dropdown (Camera Kit 📷 / Audio Recorder Kit 🎙️ / Lights Kit 💡 / Headphones 🎧 / Accessories 🔌 / Other 🧰 — each with its own icon, not just camera), then Kit Contents ("what's inside this kit") separated from the existing internal Manager Note field (remarks like "bag torn, no handle"). <strong>Editing System form order:</strong> Mac/Windows dropdown first (icon follows OS), then a Location dropdown (T1 Radio Edit, T1 TV Edit, T1 Preview Room Edit, T1 F&amp;NM Edit, T1 Smaller Suite Windows, T1 Smaller Suite Mac, Film &amp; TV Studio) which is pre-mapped to the existing T1 Central/Film &amp; TV facility the booking/kitDB logic already runs on, then a new System Details field for available software. <strong>Studio form order:</strong> Purpose dropdown first (Video Production 🎥 / Audio Production 🎙️, icon follows purpose), then Location dropdown (T1 Radio Studio, T1 TV Studio, T1 Film Screening Classroom Theatre, T3 Sound Studio, New Film &amp; TV Studio Media Lab). <strong>Flagged, not guessed:</strong> T3 Sound Studio and the New Film &amp; TV Studio Media Lab were mapped to the existing Film &amp; TV Studio facility bucket as the closest fit — the app's booking/kitDB model only has two facility keys (T1 Central / Film &amp; TV). If T3 is actually a separate physical facility, that needs a real third facility key added, which is a larger structural change than this form redesign and wasn't done here without confirmation. <strong>New fields are local-only for now:</strong> Kit Contents, Item Category, System Details/Software, and the specific Location strings save to <code>adminData</code>/localStorage immediately (visible and persistent across refresh) but are deliberately NOT sent to Supabase yet — those columns don't exist on the <code>equipment</code>/<code>systems</code>/<code>studios</code> tables, and posting unknown fields would 400 the whole insert (the same class of schema-mismatch bug fixed in earlier versions). Run this in the Supabase SQL editor if cross-device persistence of these new fields is wanted:<br><code>ALTER TABLE equipment ADD COLUMN IF NOT EXISTS item_category text, ADD COLUMN IF NOT EXISTS kit_contents text;<br>ALTER TABLE systems ADD COLUMN IF NOT EXISTS software text;<br>ALTER TABLE studios ADD COLUMN IF NOT EXISTS purpose text;</code> — once added, the three <code>addSupa*()</code> payloads can be extended to include them; not done automatically here since unconfirmed schema changes are exactly what has caused the app's past PGRST204 outages. <strong>Delete-sync root cause found:</strong> <code>admDeleteEquipment/Editing/Studio()</code> always toasted "removed" regardless of what Supabase actually did — <code>deleteSupaEquipment()</code> etc. already existed and already attempted the real DELETE, but a failure (Supabase RLS blocking the DELETE policy, most likely) was only logged to console and silently swallowed, so the row survived server-side and reappeared on the next refresh with no explanation. Now the real result is checked: success still shows "🗑️ removed", failure now shows an explicit "Supabase rejected the delete (likely RLS)" warning instead of a false-positive. <strong>To actually fix the underlying RLS block</strong> (needs to run in the Supabase dashboard — no DB credentials reachable from this sandbox to do it directly):<br><code>CREATE POLICY "Allow delete for authenticated" ON equipment FOR DELETE USING (true);<br>CREATE POLICY "Allow delete for authenticated" ON systems FOR DELETE USING (true);<br>CREATE POLICY "Allow delete for authenticated" ON studios FOR DELETE USING (true);</code> — adjust the <code>USING</code> clause to your actual auth model if you want it scoped tighter than "any request with the anon/service key," which is what the rest of this app's inserts already assume. <strong>Scoped out of this pass, on purpose:</strong> the student-facing visual grid grouped by Brand+Model with aggregate kit counts (e.g. "TASCAM DR05 = 8 kits"), and verifying calendar-availability sync against it — both touch the student Booking screen, a bigger blast radius than the admin-only forms this request's final line scoped to ("these changes will apply for manager's data entry style through admin"). Ready to take on as v80.21 if you want it next — flagging now rather than quietly expanding this pass's surface area.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.19 &middot; &#128736;&#65039; Studio Manager Resource Administration — Add-Only Access, Scoped from the v80.3 Boundary Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Context:</strong> v80.3 correctly stripped Studio Manager's access to <code>screen-admin</code> entirely, because the sub-tab hiding built alongside it (<code>managerOnlyTabs</code>, the <code>admin-manager-note</code> banner, and <code>admDelBtn()</code>'s role-gated "🔒 Admin only" swap) left the nav item itself — and the app-wide Weekend Approval / Blackout toggles and "Reset Reports" button sitting above the tab bar — all still reachable. This pass re-grants access the narrow way that audit intended instead of the broad way it rejected. <strong>What Studio Manager now gets:</strong> the Admin nav item and <code>screen-admin</code> route (added to the <code>_ROLE_SCREENS</code> whitelist), landing on a panel re-labelled "Resource Administration / ADD ACCESS ONLY" for that role, with only the Equipment/Editing/Studios tabs visible — Students, Faculty, Managers, Assignments, Bookings, and Password tabs stay hidden exactly as <code>managerOnlyTabs</code> already enforced. <strong>What stays Admin-only:</strong> every delete button across all three resource tabs (<code>admDelBtn()</code> was already role-gated — now backed by a matching guard inside <code>admDeleteEquipment/Editing/Studio()</code> themselves, so the action is blocked even if ever called directly, not just hidden); the Weekend Approval Restriction and 8PM–8AM Blackout toggles and the Reset Reports button (new <code>admin-master-toggles</code>/<code>admin-reset-reports-btn</code> containers, hidden for Studio Manager in <code>applyRoleUI()</code> — these are app-wide settings, not resource records); and all deletion of bookings/students/professors/managers, unchanged. <strong>Audit logging added:</strong> every successful Add Equipment/Editing System/Studio now calls a new <code>logResourceAudit()</code> — Added By, Role, Date &amp; Time, Resource Type, Resource Name — written to a capped local log (<code>localStorage</code>, survives refresh) and mirrored best-effort to a <code>resource_audit_log</code> Supabase table if one exists, with the same silent no-op fallback pattern already used for <code>weather_snapshot</code>/<code>kit_prep_by</code> elsewhere in this file — nothing breaks if that table isn't provisioned; the local log alone satisfies the traceability requirement. No SQL required to ship this; a <code>resource_audit_log</code> table is only needed if cross-device audit visibility is wanted later. <strong>Untouched, per instruction:</strong> Booking/Approval/Issue/Return workflows, Analytics, and Student/Professor permissions — none of their nav grants, route whitelists, or functions were touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.18 &middot; &#128203; Booking History Closure &amp; Supabase Category Mapper Fix (Root Cause Found)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause of Studio/System bookings rendering as Equipment (STU-BK-0004 &rarr; EQ-IS-0004, Equipment condition dropdown, Equipment workflow):</strong> confirmed the Studio/System condition work in v80.16 was correct — the actual defect was one line upstream, in <code>fetchAndRenderBookings()</code>'s DB&rarr;display mapper, where <code>cat</code> was hardcoded to an empty string on every single Supabase refetch instead of being read from <code>resource_category</code>. Every <code>b.cat==='Studio Booking'</code> / <code>b.cat==='Editing Systems'</code> check across workflow routing, the condition dropdown, issue/return rendering, and analytics was therefore comparing against <code>''</code> and silently falling through to the Equipment default — on every screen, for every user, the instant a fresh fetch replaced the optimistic local booking object (which had always mapped <code>cat</code> correctly at creation time, which is why this looked intermittent). Fixed by mapping <code>cat: b.resource_category || ''</code>, matching the same alias the local-insert path already used. <code>resource_category</code> is confirmed as the only field this now reads from — no inference from <code>booking_code</code>/<code>issue_number</code> prefixes or <code>resource_name</code> text remains anywhere in the mapper. <strong>Supabase data check:</strong> no migration needed — this was purely a client-side mapper/render defect; <code>resource_category</code> itself has been correctly populated on every INSERT since v55's schema alignment, so no blank/NULL/legacy-value cleanup is required. <strong>Personal Booking History — final policy enforced:</strong> the shared "My Booking History" view (<code>renderStudentBookings()</code>, used by Student/Professor/Manager alike whenever they book a resource themselves) had two compounding privacy defects — it matched ownership on the display-name field only, and whenever that single-field match came up empty it fell back to showing literally every booking in the system, other users' included. Replaced with a multi-key identity match (name, roll number, email — whichever the booking and the logged-in session both carry) and removed both fallback lines outright: an empty result now stays empty, never widens to "show everyone." History is also now explicitly sorted latest-first by creation/start time rather than relying on incidental array order, and continues to show every historical record regardless of status, exactly as before. <strong>Untouched, per instruction:</strong> Equipment workflow, Offline Guest booking logic, the UUID migration work from v80.10/v80.17, Approval/Handover/Return workflows, and all analytics calculations.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.16 &middot; &#127916; Resource-Specific Studio &amp; Edit Suite Completion Conditions</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> the Session End Condition dropdown on Manager's issued/in-use cards had already been split away from raw Equipment wording (v71.x <code>isSuiteOrStudio</code>), but Studio and Edit Suite still shared one merged 5-option list — including "Equipment malfunction reported" phrasing that made no sense for a Studio and generic wording that didn't distinguish a software crash from a hardware fault in an Edit Suite. <strong>Fix (surgical &mdash; dropdown + supporting logic only):</strong> the condition <code>&lt;select&gt;</code> now branches three ways on <code>isStudio</code> / <code>isEditSuite</code> / equipment fallback. Equipment keeps its unchanged 4 options (good/minor/missing/damaged). Studio now shows Studio left clean / Minor housekeeping required / Technical issue reported / Damage reported (values: <code>clean/housekeeping/technical/damage</code>). Edit Suite/System now shows Session completed normally / Software issue encountered / System performance issue / Hardware fault reported (values: <code>normal/software/performance/hardware</code>) &mdash; no "Missing item(s)" or equipment return terminology in either. <strong>Supporting logic updated so nothing regresses:</strong> <code>toggleMissingBlock()</code>'s "no issue" check and <code>markReceived()</code>'s mandatory-note check both previously tested only <code>cond !== 'good'</code>, which would have wrongly forced a mandatory note on Studio's "clean" and System's "normal" selections — both now check against a <code>['good','clean','normal']</code> no-issue set. The Returned/Session-Ended card's <code>condLabels</code> map and the student discipline/reputation analytics classification (good/minor/damage buckets feeding <code>incidents</code>, <code>excellentCount</code>, <code>improvCount</code>, penalty scoring) were both extended to recognize the new codes alongside the existing Equipment ones, so history and analytics display correctly for all three resource types instead of falling through to an unrecognized-value branch. <strong>Untouched:</strong> Equipment's own 4 options and workflow, the booking/approval/issue/handover/return pipeline itself, and the Studio/System session-start &rarr; session-end state machine.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.15 &middot; &#128683; Offline/Guest UUID Error Fix &mdash; GUEST-xxxxx No Longer Written to student_id</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>handleBookingSubmit()</code> computed <code>stuId</code> as <code>GUEST-xxxxxx</code> when neither a matching student nor staff record was found (i.e. Offline Entry / Guest Booking flows). That string was then placed directly into the <code>student_id</code> field of the INSERT payload. After the v54 UUID migration (<code>bookings.student_id</code> now <code>uuid</code> type), Postgres rejects any non-UUID string outright &mdash; "invalid input syntax for type uuid: GUEST-xxxxxx" &mdash; and the entire booking INSERT fails. <strong>Fix (surgical &mdash; three lines changed):</strong> <code>stuId</code> is now <code>null</code> when no real student/staff record is found. The <code>GUEST-xxxxxx</code> identifier is generated into a separate <code>guestCode</code> variable and flows through the payload as <code>guest_code</code> instead. <code>submitBooking()</code>'s <code>bookingRow</code> passes <code>guest_code</code> to Supabase. <strong>Schema requirement:</strong> a <code>guest_code text</code> column must exist (or be added: <code>ALTER TABLE bookings ADD COLUMN IF NOT EXISTS guest_code text;</code>) &mdash; it is nullable, so existing student and staff rows are unaffected. If the column does not yet exist, Supabase will return a 400 for guest bookings only; student bookings are completely unaffected. <strong>Nothing else touched:</strong> student booking flow, equipment/studio/system workflows, approval/issue/return/history workflows, UUID migration, and all other status transitions are unchanged.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.14 &middot; &#127991;&#65039; Assignment Tag Legacy Fallback Removed (Boot Merge Timing Gap)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> SQL and console were both right — <code>assignment_tags</code> genuinely has only the 2 real rows, and <code>fetchSupaAssignmentTags()</code> genuinely fetched them (<code>window._assignmentTagsFetchOk = true</code>). The stale <code>#AudioStory / #NewsPackage / #InterviewProject</code> seed tags were never a fetch or fallback problem — <code>initSupaModules()</code>'s boot sequence already had a documented "safety net" pattern for exactly this timing gap (<code>rebuildKitDBFromSupabase()</code> and <code>mergeSupaAuthIntoAdminData()</code> are both called explicitly after the startup <code>Promise.allSettled</code>, because their monkey-patched hook onto <code>fetchSupa*</code> installs too late in script order to catch this very first boot-time call) &mdash; but <code>mergeSupaTagsIntoAdminData()</code> was never added to that same safety-net block. So the one fetch that ran this session pulled the real rows into <code>window.supaAssignmentTags</code> and stopped there; <code>adminData.assignmentTags</code> &mdash; the array every render path (Admin tag list, booking screen's #tag picker, Analytics tag filter) actually reads &mdash; was never touched, and stayed on its hardcoded 3-tag seed value for the entire session. <strong>Fix:</strong> added the single missing call, <code>window.mergeSupaTagsIntoAdminData()</code>, alongside its two siblings in the existing safety-net block. No fetch logic, no SQL, no <code>assignment_tags</code> table, and no other render path touched &mdash; <code>mergeSupaTagsIntoAdminData()</code> itself (already correctly authoritative-replace since v80.9) was called at the right time, nothing about it changed.</div></div>
@@ -3547,15 +3551,15 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
         <div class="admin-hero">
           <div class="admin-logo">⚙️</div>
           <div style="flex:1;min-width:0;">
-            <div class="admin-sub">Admin Control Panel</div>
-            <div class="admin-badge">MASTER ACCESS</div>
+            <div class="admin-sub" id="admin-hero-sub">Admin Control Panel</div>
+            <div class="admin-badge" id="admin-hero-badge">MASTER ACCESS</div>
           </div>
-          <button onclick="adminResetWorkReportData()" style="background:rgba(220,38,38,.3);color:#fca5a5;border:1px solid rgba(220,38,38,.4);border-radius:20px;padding:5px 11px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;">🗑️ Reset Reports</button>
+          <button id="admin-reset-reports-btn" onclick="adminResetWorkReportData()" style="background:rgba(220,38,38,.3);color:#fca5a5;border:1px solid rgba(220,38,38,.4);border-radius:20px;padding:5px 11px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap;">🗑️ Reset Reports</button>
         </div>
       </div>
 
-      <!-- V73: Admin Control Panel toggles -->
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <!-- V73: Admin Control Panel toggles — V80.19: Admin-only (app-wide settings), hidden for Studio Manager's scoped resource-admin access -->
+      <div id="admin-master-toggles" style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;background:#fff;border:1px solid #e8d5c4;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div style="min-width:0;">
             <div style="font-size:10.5px;font-weight:800;color:#1f2937;">Weekend Approval Restriction</div>
@@ -4151,7 +4155,7 @@ document.querySelectorAll('.nav-it').forEach(n=>{n.addEventListener('click',()=>
 var _ROLE_SCREENS = {
   'Student':       ['screen-login','screen-booking','screen-students','screen-birthday','screen-appinfo'],
   'Professor':     ['screen-login','screen-booking','screen-professor','screen-analytics','screen-students','screen-birthday','screen-appinfo'],
-  'Studio Manager':['screen-login','screen-booking','screen-manager','screen-report','screen-analytics','screen-birthday','screen-appinfo','screen-dbhealth'],
+  'Studio Manager':['screen-login','screen-booking','screen-manager','screen-report','screen-analytics','screen-birthday','screen-appinfo','screen-dbhealth','screen-admin'],
   'Admin':         null // null = unrestricted
 };
 
@@ -4241,14 +4245,20 @@ function applyRoleUI(role){
     if(navBirthday){ navBirthday.style.display=''; if(typeof renderBirthdayTab==='function') renderBirthdayTab(); if(typeof renderInitiativesTab==='function') renderInitiativesTab(); if(typeof renderYouTubeJSJCTab==='function') renderYouTubeJSJCTab(); if(typeof renderJSJCNewsTab==='function') renderJSJCNewsTab(); if(typeof renderRadioJSJCTab==='function') renderRadioJSJCTab(); }
   }
   else if(role === 'Studio Manager'){
-    // V80.3: Role boundary fix — navStudents and navAdmin removed from Studio Manager grants.
-    // Studio Managers must NOT access Students Management or Admin Panel per role policy.
+    // V80.3: navStudents removed — Studio Manager must NOT access Student Management.
+    // V80.19: navAdmin RE-GRANTED, but scoped — Resource Administration only (Add
+    // Equipment/Editing/Studios). managerOnlyTabs below hides every other admin tab
+    // (Students/Faculty/Managers/Assignments/Bookings/Password), admDelBtn() already
+    // hides all delete buttons for non-Admin roles, and the master-controls block
+    // (Reset Reports + Weekend/Blackout toggles — app-wide settings, not resource
+    // management) is hidden separately below. This is intentionally narrower than
+    // the v80.3 audit's rejected "full Admin nav" grant.
     if(navBook)      navBook.style.display=''; // managers can book equipment/systems/studios themselves
     if(navManager)   navManager.style.display='';
     if(navReport)    navReport.style.display='';
     if(navAnalytics) navAnalytics.style.display='';
-    // navStudents: REMOVED — Studio Manager must NOT access Student Management
-    // navAdmin:    REMOVED — Studio Manager must NOT access Admin Panel
+    if(navAdmin)     navAdmin.style.display='';
+    // navStudents: still REMOVED — Studio Manager must NOT access Student Management
     if(navAppInfo)   navAppInfo.style.display='';
     if(navDbHealth)  navDbHealth.style.display='';
     if(navBirthday){ navBirthday.style.display=''; if(typeof renderBirthdayTab==='function') renderBirthdayTab(); if(typeof renderInitiativesTab==='function') renderInitiativesTab(); if(typeof renderYouTubeJSJCTab==='function') renderYouTubeJSJCTab(); if(typeof renderJSJCNewsTab==='function') renderJSJCNewsTab(); if(typeof renderRadioJSJCTab==='function') renderRadioJSJCTab(); }
@@ -4271,12 +4281,26 @@ function applyRoleUI(role){
   // Admin sees every tab. This runs regardless of role so switching roles mid-session re-applies correctly.
   var managerOnlyTabs = ['admtab-students','admtab-professors','admtab-managers','admtab-assignments','admtab-bookings','admtab-password'];
   var noteEl = document.getElementById('admin-manager-note');
+  // V80.19: app-wide master controls (Reset Reports, Weekend Approval / Blackout toggles) are
+  // Admin-only settings, separate from resource administration — hidden for Studio Manager here.
+  var masterToggles  = document.getElementById('admin-master-toggles');
+  var resetReportsBtn= document.getElementById('admin-reset-reports-btn');
+  var heroSub  = document.getElementById('admin-hero-sub');
+  var heroBadge= document.getElementById('admin-hero-badge');
   if(role === 'Studio Manager'){
     managerOnlyTabs.forEach(function(tid){ var el=document.getElementById(tid); if(el) el.style.display='none'; });
     if(noteEl) noteEl.style.display='';
+    if(masterToggles)   masterToggles.style.display='none';
+    if(resetReportsBtn) resetReportsBtn.style.display='none';
+    if(heroSub)   heroSub.textContent   = 'Resource Administration';
+    if(heroBadge) heroBadge.textContent = 'ADD ACCESS ONLY';
   } else {
     managerOnlyTabs.forEach(function(tid){ var el=document.getElementById(tid); if(el) el.style.display=''; });
     if(noteEl) noteEl.style.display='none';
+    if(masterToggles)   masterToggles.style.display='flex';
+    if(resetReportsBtn) resetReportsBtn.style.display='';
+    if(heroSub)   heroSub.textContent   = 'Admin Control Panel';
+    if(heroBadge) heroBadge.textContent = 'MASTER ACCESS';
   }
 
   // Facility selector: students see inferred location, others see selector
@@ -11921,6 +11945,44 @@ function admDelBtn(onclick){
 function admApproveBtn(onclick){
   return `<button class="adm-del-btn" style="background:#dcfce7;color:#16a34a;" onclick='${onclick}'>✓ Approve</button>`;
 }
+// V80.19: traceability log for resource additions — Added By / Date & Time / Resource
+// Type / Resource Name. Persisted to localStorage (survives refresh/session) and
+// best-effort mirrored to Supabase's resource_audit_log table if one exists — silent
+// no-op fallback if it doesn't, same pattern already used for weather_snapshot/kit_prep_by
+// elsewhere in this file, so this ships safely with zero schema changes required.
+function logResourceAudit(resourceType, resourceName){
+  var entry = {
+    addedBy: window.currentUser || window.currentRole || 'Unknown',
+    role: window.currentRole || '',
+    dateTime: new Date().toISOString(),
+    resourceType: resourceType,
+    resourceName: resourceName
+  };
+  try {
+    var log = JSON.parse(localStorage.getItem('jsjc_resource_audit_log') || '[]');
+    log.unshift(entry);
+    if(log.length > 500) log = log.slice(0, 500); // cap growth
+    localStorage.setItem('jsjc_resource_audit_log', JSON.stringify(log));
+  } catch(e){ console.warn('Resource audit log (local) failed:', e.message); }
+  console.log('📋 Resource added — traceability log:', entry);
+  // Best-effort Supabase mirror — safe no-op if the table isn't provisioned yet.
+  try {
+    fetch(SUPABASE_URL + '/rest/v1/resource_audit_log', {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({
+        added_by: entry.addedBy, added_by_role: entry.role,
+        resource_type: entry.resourceType, resource_name: entry.resourceName,
+        added_at: entry.dateTime
+      })
+    }).catch(function(){ /* table likely doesn't exist yet — local log already has this entry */ });
+  } catch(e){ /* no-op */ }
+}
+window.logResourceAudit = logResourceAudit;
+window.getResourceAuditLog = function(){
+  try { return JSON.parse(localStorage.getItem('jsjc_resource_audit_log') || '[]'); }
+  catch(e){ return []; }
+};
 function admIssueBtn(onclick){
   return `<button class="adm-del-btn" style="background:#fef3c7;color:#d97706;" onclick='${onclick}'>📦 Issue</button>`;
 }
@@ -11928,100 +11990,191 @@ function admReturnBtn(onclick){
   return `<button class="adm-del-btn" style="background:#eff6ff;color:#1e40af;" onclick='${onclick}'>↩ Return</button>`;
 }
 
+// V80.20: category → icon is now a fixed lookup, never a manual "last chip clicked"
+// guess — this is what was producing the "always shows camera" symptom (the old
+// free-form icon-chip picker defaulted to the first chip and was easy to leave
+// un-clicked). Selecting a category now sets the icon deterministically.
+var EQUIPMENT_CATEGORY_ICONS = {
+  'Camera Kit'       : '📷',
+  'Audio Recorder Kit': '🎙️',
+  'Lights Kit'       : '💡',
+  'Headphones'       : '🎧',
+  'Accessories'      : '🔌',
+  'Other'            : '🧰'
+};
+window.EQUIPMENT_CATEGORY_ICONS = EQUIPMENT_CATEGORY_ICONS;
+
 function renderAdminEquipment(){
-  var icons = [['📷','Camera'],['🎤','Mic'],['💡','Light'],['🎧','Headphones'],['🎙️','Recorder']];
   return `
   <div class="adm-add-panel">
     <div class="adm-add-title">➕ Add Equipment</div>
-    <input class="finput" id="adm-eq-name" placeholder="Equipment name (e.g. Sony A7 IV)"/>
-    <input class="finput" id="adm-eq-kit" placeholder="Kit number (e.g. Kit 6) — leave blank if N/A"/>
-    <select class="fselect" id="adm-eq-fac" aria-label="Equipment Facility">
-      <option value="T1 Central">${adminData.facilityLabels.t1}</option>
-      <option value="Film & TV">${adminData.facilityLabels.film}</option>
+    <input class="finput" id="adm-eq-name" placeholder="Brand &amp; Model (e.g. TASCAM DR-05)"/>
+    <select class="fselect" id="adm-eq-cat" aria-label="Equipment Category" onchange="admUpdateEqIconPreview()">
+      ${Object.keys(EQUIPMENT_CATEGORY_ICONS).map(function(c){ return `<option value="${c}">${EQUIPMENT_CATEGORY_ICONS[c]} ${c}</option>`; }).join('')}
     </select>
-    <select class="fselect" id="adm-eq-status" aria-label="Equipment Status">
-      <option value="Active">Active</option>
-      <option value="Maintenance">Maintenance</option>
-      <option value="Retired">Retired</option>
-    </select>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">Icon</div>
-    <div id="adm-eq-icon-row" style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap;">
-      ${icons.map(function(ic,i){ return `<button type="button" class="adm-icon-chip${i===0?' active':''}" data-icon="${ic[0]}" onclick="admPickIcon('eq',this)" title="${ic[1]}">${ic[0]}</button>`; }).join('')}
-    </div>
+    <div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Icon is set automatically from the category above: <span id="adm-eq-icon-preview">📷</span></div>
     <input type="hidden" id="adm-eq-icon" value="📷"/>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">🔒 Manager Note <span style="font-weight:400;color:#9ca3af;">(internal only — never shown to students)</span></div>
-    <input class="finput" id="adm-eq-note" placeholder="e.g. Battery drains fast, check before issuing…"/>
+    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:6px 0 4px;">Kits for this Brand &amp; Model — add as many as you're entering right now</div>
+    <div id="adm-eq-kit-blocks">${admEqKitBlockHTML(0)}</div>
+    <button type="button" onclick="admAddEqKitBlock()" style="background:#eff6ff;color:#1e40af;border:1.5px dashed #93c5fd;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:10px;">➕ Add Another Kit (same Brand &amp; Model)</button>
     <button class="adm-save-btn" onclick="admAddEquipment()">📷 Add Equipment</button>
   </div>
   <div class="sec-lbl">${adminData.equipment.length} Equipment Items</div>
   ${adminData.equipment.map((e,i)=>`
     <div class="adm-item">
       <div class="adm-item-hd">
-        <div><div class="adm-item-name">${e.icon||'📷'} ${e.name}</div><div class="adm-item-sub">${e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · <span style="color:${e.status==='Active'?'#16a34a':e.status==='Maintenance'?'#ea580c':'#6b7280'}">${e.status}</span></div>
+        <div><div class="adm-item-name">${e.icon||'📷'} ${e.name}</div><div class="adm-item-sub">${e.itemCategory?e.itemCategory+' · ':''}${e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · <span style="color:${e.status==='Active'?'#16a34a':e.status==='Maintenance'?'#ea580c':'#6b7280'}">${e.status}</span></div>
+        ${e.kitContents?`<div style="font-size:9.5px;color:#374151;margin-top:5px;">🎒 <strong>Contains:</strong> ${e.kitContents}</div>`:''}
         ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}</div>
         ${admDelBtn(`admDeleteEquipment(${i})`)}
       </div>
     </div>`).join('')}`;
 }
-
-function renderAdminEditing(){
-  var icons = [['🍎','Mac'],['🪟','Windows']];
+// V80.21: one repeatable block = one kit's Kit#/Facility/Status/Contents/Note.
+// Brand & Model and Category stay entered once, above, and apply to every block.
+function admEqKitBlockHTML(idx){
   return `
-  <div class="adm-add-panel">
-    <div class="adm-add-title">➕ Add Editing System</div>
-    <input class="finput" id="adm-ed-name" placeholder="System name (e.g. Mac M3 Video Suite 4)"/>
-    <input class="finput" id="adm-ed-suite" placeholder="Suite name (e.g. Suite 4) — leave blank if N/A"/>
-    <select class="fselect" id="adm-ed-fac" aria-label="Editing System Facility">
+  <div class="adm-kit-block" data-idx="${idx}" style="border:1px solid #e8d5c4;border-radius:10px;padding:9px;margin-bottom:8px;position:relative;">
+    ${idx>0?`<button type="button" onclick="admRemoveEqKitBlock(this)" style="position:absolute;top:6px;right:6px;background:none;border:none;color:#dc2626;font-size:13px;cursor:pointer;padding:2px 6px;" title="Remove this kit">✕</button>`:''}
+    <input class="finput adm-eq-kit" placeholder="Kit number (e.g. Kit ${idx+1}) — leave blank if N/A"/>
+    <select class="fselect adm-eq-fac" aria-label="Equipment Facility">
       <option value="T1 Central">${adminData.facilityLabels.t1}</option>
       <option value="Film & TV">${adminData.facilityLabels.film}</option>
     </select>
-    <select class="fselect" id="adm-ed-os" aria-label="Editing System OS">
-      <option value="macOS">macOS</option>
-      <option value="Windows">Windows</option>
+    <select class="fselect adm-eq-status" aria-label="Equipment Status">
+      <option value="Active">Active</option>
+      <option value="Maintenance">Maintenance</option>
+      <option value="Retired">Retired</option>
     </select>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">Icon</div>
-    <div id="adm-ed-icon-row" style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap;">
-      ${icons.map(function(ic,i){ return `<button type="button" class="adm-icon-chip${i===0?' active':''}" data-icon="${ic[0]}" onclick="admPickIcon('ed',this)" title="${ic[1]}">${ic[0]}</button>`; }).join('')}
-    </div>
+    <input class="finput adm-eq-kitcontents" placeholder="Kit Contents — what's inside e.g. Recorder + ATR100 mic + Senn Headphones + 3 batteries"/>
+    <input class="finput adm-eq-note" placeholder="🔒 Manager Note (internal only) — e.g. bag torn, no handle…"/>
+  </div>`;
+}
+function admAddEqKitBlock(){
+  var wrap = document.getElementById('adm-eq-kit-blocks');
+  if(!wrap) return;
+  var idx = wrap.querySelectorAll('.adm-kit-block').length;
+  wrap.insertAdjacentHTML('beforeend', admEqKitBlockHTML(idx));
+}
+window.admAddEqKitBlock = admAddEqKitBlock;
+function admRemoveEqKitBlock(btn){
+  var block = btn.closest('.adm-kit-block');
+  if(block) block.remove();
+}
+window.admRemoveEqKitBlock = admRemoveEqKitBlock;
+function admUpdateEqIconPreview(){
+  var cat = (document.getElementById('adm-eq-cat')||{}).value;
+  var icon = EQUIPMENT_CATEGORY_ICONS[cat] || '🧰';
+  var prev = document.getElementById('adm-eq-icon-preview'); if(prev) prev.textContent = icon;
+  var hidden = document.getElementById('adm-eq-icon'); if(hidden) hidden.value = icon;
+}
+window.admUpdateEqIconPreview = admUpdateEqIconPreview;
+
+// V80.20: specific edit-suite locations, each pre-mapped to the underlying
+// facility (T1 Central / Film & TV) that booking/kitDB logic already runs on —
+// this is additive detail, not a new facility, so nothing downstream breaks.
+var EDITING_LOCATIONS = [
+  ['T1 Radio Edit',           'T1 Central'],
+  ['T1 TV Edit',              'T1 Central'],
+  ['T1 Preview Room Edit',    'T1 Central'],
+  ['T1 F&NM Edit',            'T1 Central'],
+  ['T1 Smaller Suite Windows','T1 Central'],
+  ['T1 Smaller Suite Mac',    'T1 Central'],
+  ['Film & TV Studio',        'Film & TV']
+];
+window.EDITING_LOCATIONS = EDITING_LOCATIONS;
+
+function renderAdminEditing(){
+  return `
+  <div class="adm-add-panel">
+    <div class="adm-add-title">➕ Add Editing System</div>
+    <select class="fselect" id="adm-ed-os" aria-label="Editing System OS" onchange="admUpdateEdIconPreview()">
+      <option value="macOS">🍎 Mac</option>
+      <option value="Windows">🪟 Windows</option>
+    </select>
+    <div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Icon: <span id="adm-ed-icon-preview">🍎</span></div>
     <input type="hidden" id="adm-ed-icon" value="🍎"/>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">🔒 Manager Note <span style="font-weight:400;color:#9ca3af;">(internal only — never shown to students)</span></div>
-    <input class="finput" id="adm-ed-note" placeholder="e.g. Colour calibration due next month…"/>
+    <select class="fselect" id="adm-ed-loc" aria-label="Editing System Location">
+      ${EDITING_LOCATIONS.map(function(l){ return `<option value="${l[0]}">${l[0]}</option>`; }).join('')}
+    </select>
+    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:6px 0 4px;">Systems for this OS &amp; Location — add as many as you're entering right now</div>
+    <div id="adm-ed-sys-blocks">${admEdSysBlockHTML(0)}</div>
+    <button type="button" onclick="admAddEdSysBlock()" style="background:#eff6ff;color:#1e40af;border:1.5px dashed #93c5fd;border-radius:10px;padding:8px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-bottom:10px;">➕ Add Another System (same OS &amp; Location)</button>
     <button class="adm-save-btn" onclick="admAddEditing()">🖥️ Add Editing System</button>
   </div>
   <div class="sec-lbl">${adminData.editing.length} Editing Systems</div>
   ${adminData.editing.map((e,i)=>`
     <div class="adm-item">
       <div class="adm-item-hd">
-        <div><div class="adm-item-name">${e.icon||'🖥️'} ${e.name}</div><div class="adm-item-sub">${e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · ${e.os}</div>
+        <div><div class="adm-item-name">${e.icon||'🖥️'} ${e.name}</div><div class="adm-item-sub">${e.location||(e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film)} · ${e.os}</div>
+        ${e.software?`<div style="font-size:9.5px;color:#374151;margin-top:5px;">💿 <strong>Software:</strong> ${e.software}</div>`:''}
         ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}</div>
         ${admDelBtn(`admDeleteEditing(${i})`)}
       </div>
     </div>`).join('')}`;
 }
+// V80.21: one repeatable block = one system's Name/Suite#/Software/Note.
+// OS and Location stay entered once, above, and apply to every block.
+function admEdSysBlockHTML(idx){
+  return `
+  <div class="adm-sys-block" data-idx="${idx}" style="border:1px solid #e8d5c4;border-radius:10px;padding:9px;margin-bottom:8px;position:relative;">
+    ${idx>0?`<button type="button" onclick="admRemoveEdSysBlock(this)" style="position:absolute;top:6px;right:6px;background:none;border:none;color:#dc2626;font-size:13px;cursor:pointer;padding:2px 6px;" title="Remove this system">✕</button>`:''}
+    <input class="finput adm-ed-name" placeholder="System name (e.g. Mac M3 Video Suite ${idx+1})"/>
+    <input class="finput adm-ed-suite" placeholder="Suite/system number (e.g. Suite ${idx+1}) — leave blank if N/A"/>
+    <input class="finput adm-ed-software" placeholder="System Details — software e.g. Premiere Pro, DaVinci Resolve, Photoshop, Audition"/>
+    <input class="finput adm-ed-note" placeholder="🔒 Manager Note (internal only) — e.g. colour calibration due next month…"/>
+  </div>`;
+}
+function admAddEdSysBlock(){
+  var wrap = document.getElementById('adm-ed-sys-blocks');
+  if(!wrap) return;
+  var idx = wrap.querySelectorAll('.adm-sys-block').length;
+  wrap.insertAdjacentHTML('beforeend', admEdSysBlockHTML(idx));
+}
+window.admAddEdSysBlock = admAddEdSysBlock;
+function admRemoveEdSysBlock(btn){
+  var block = btn.closest('.adm-sys-block');
+  if(block) block.remove();
+}
+window.admRemoveEdSysBlock = admRemoveEdSysBlock;
+function admUpdateEdIconPreview(){
+  var os = (document.getElementById('adm-ed-os')||{}).value;
+  var icon = os==='Windows' ? '🪟' : '🍎';
+  var prev = document.getElementById('adm-ed-icon-preview'); if(prev) prev.textContent = icon;
+  var hidden = document.getElementById('adm-ed-icon'); if(hidden) hidden.value = icon;
+}
+window.admUpdateEdIconPreview = admUpdateEdIconPreview;
+
+// V80.20: purpose drives icon deterministically; specific studio locations,
+// each pre-mapped to the underlying facility. T3 Sound Studio and New Film &
+// TV Studio Media Lab are mapped to Film & TV Studio as the closest existing
+// bucket — flag to Mukesh: if T3 is actually a third physical facility distinct
+// from T1 Central/Film & TV, that needs a real third facility key added to the
+// booking/kitDB model, which is a bigger change than this form redesign covers.
+var STUDIO_PURPOSE_ICONS = { 'Video Production':'🎥', 'Audio Production':'🎙️' };
+var STUDIO_LOCATIONS = [
+  ['T1 Radio Studio',                    'T1 Central'],
+  ['T1 TV Studio',                       'T1 Central'],
+  ['T1 Film Screening Classroom Theatre','T1 Central'],
+  ['T3 Sound Studio',                    'Film & TV'],
+  ['New Film & TV Studio Media Lab',     'Film & TV']
+];
+window.STUDIO_LOCATIONS = STUDIO_LOCATIONS;
 
 function renderAdminStudios(){
-  var icons = [['📷','Camera'],['🎤','Mic']];
   return `
   <div class="adm-add-panel">
     <div class="adm-add-title">➕ Add Studio</div>
+    <select class="fselect" id="adm-st-purpose" aria-label="Studio Purpose" onchange="admUpdateStIconPreview()">
+      ${Object.keys(STUDIO_PURPOSE_ICONS).map(function(p){ return `<option value="${p}">${STUDIO_PURPOSE_ICONS[p]} ${p}</option>`; }).join('')}
+    </select>
+    <div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Icon: <span id="adm-st-icon-preview">🎥</span></div>
+    <input type="hidden" id="adm-st-icon" value="🎥"/>
+    <select class="fselect" id="adm-st-loc" aria-label="Studio Location">
+      ${STUDIO_LOCATIONS.map(function(l){ return `<option value="${l[0]}">${l[0]}</option>`; }).join('')}
+    </select>
     <input class="finput" id="adm-st-name" placeholder="Studio name (e.g. Podcast Booth 2)"/>
-    <select class="fselect" id="adm-st-fac" aria-label="Studio Facility">
-      <option value="T1 Central">${adminData.facilityLabels.t1}</option>
-      <option value="Film & TV">${adminData.facilityLabels.film}</option>
-    </select>
     <input class="finput" id="adm-st-cap" type="number" min="1" placeholder="Capacity (persons)"/>
-    <select class="fselect" id="adm-st-type" aria-label="Studio Type">
-      <option value="Radio">Radio</option>
-      <option value="Audio">Audio</option>
-      <option value="TV">TV</option>
-      <option value="Production">Production</option>
-      <option value="Live">Live Streaming</option>
-    </select>
-    <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">Icon</div>
-    <div id="adm-st-icon-row" style="display:flex;gap:6px;margin-bottom:9px;flex-wrap:wrap;">
-      ${icons.map(function(ic,i){ return `<button type="button" class="adm-icon-chip${i===0?' active':''}" data-icon="${ic[0]}" onclick="admPickIcon('st',this)" title="${ic[1]}">${ic[0]}</button>`; }).join('')}
-    </div>
-    <input type="hidden" id="adm-st-icon" value="📷"/>
     <div style="font-size:10px;font-weight:700;color:#6b7280;margin:2px 0 6px;">🔒 Manager Note <span style="font-weight:400;color:#9ca3af;">(internal only — never shown to students)</span></div>
     <input class="finput" id="adm-st-note" placeholder="e.g. Soundproofing panel loose near door…"/>
     <button class="adm-save-btn" onclick="admAddStudio()">🎙️ Add Studio</button>
@@ -12030,12 +12183,19 @@ function renderAdminStudios(){
   ${adminData.studios.map((s,i)=>`
     <div class="adm-item">
       <div class="adm-item-hd">
-        <div><div class="adm-item-name">${s.icon||'🎙️'} ${s.name}</div><div class="adm-item-sub">${s.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · ${s.type} · Capacity: ${s.capacity}</div>
+        <div><div class="adm-item-name">${s.icon||'🎙️'} ${s.name}</div><div class="adm-item-sub">${s.location||(s.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film)} · ${s.type} · Capacity: ${s.capacity}</div>
         ${s.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${s.note}</div>`:''}</div>
         ${admDelBtn(`admDeleteStudio(${i})`)}
       </div>
     </div>`).join('')}`;
 }
+function admUpdateStIconPreview(){
+  var p = (document.getElementById('adm-st-purpose')||{}).value;
+  var icon = STUDIO_PURPOSE_ICONS[p] || '🎙️';
+  var prev = document.getElementById('adm-st-icon-preview'); if(prev) prev.textContent = icon;
+  var hidden = document.getElementById('adm-st-icon'); if(hidden) hidden.value = icon;
+}
+window.admUpdateStIconPreview = admUpdateStIconPreview;
 
 function renderAdminStudents(){
   var capWarn = window._studentRowCapWarning;
@@ -12574,94 +12734,153 @@ window.admPickIcon = admPickIcon;
 function admAddEquipment(){
   if(guestBlock()) return;
   const name=document.getElementById('adm-eq-name').value.trim();
-  const kit=document.getElementById('adm-eq-kit').value.trim();
-  const fac=document.getElementById('adm-eq-fac').value;
-  const status=document.getElementById('adm-eq-status').value;
-  const icon=(document.getElementById('adm-eq-icon')||{}).value||'📷';
-  const note=(document.getElementById('adm-eq-note')||{}).value.trim()||'';
-  if(!name){toast('⚠️ Enter equipment name');return;}
-  const fullName = kit ? name + ' – ' + kit : name;
-  const id=adminData.equipment.length+1;
-  adminData.equipment.push({id,name:fullName,fac,cat:'Equipment',status,icon,note});
-  // Also add to kitDB
-  const facKey=fac==='T1 Central'?'t1':'film';
-  if(!kitDB[facKey]['Equipment'])kitDB[facKey]['Equipment']=[];
-  kitDB[facKey]['Equipment'].push(fullName);
+  const category=document.getElementById('adm-eq-cat').value;
+  const icon=(document.getElementById('adm-eq-icon')||{}).value || EQUIPMENT_CATEGORY_ICONS[category] || '📷';
+  if(!name){toast('⚠️ Enter Brand & Model');return;}
+  // V80.21: Brand & Model + Category are entered once and apply to every kit
+  // block below — this is what lets a manager add multiple kits of the same
+  // item without retyping the shared fields each time.
+  var blocks = document.querySelectorAll('#adm-eq-kit-blocks .adm-kit-block');
+  var addedNames = [];
+  blocks.forEach(function(block, bi){
+    const kit = (block.querySelector('.adm-eq-kit')||{}).value.trim();
+    const fac = (block.querySelector('.adm-eq-fac')||{}).value || 'T1 Central';
+    const status = (block.querySelector('.adm-eq-status')||{}).value || 'Active';
+    const kitContents = (block.querySelector('.adm-eq-kitcontents')||{}).value.trim()||'';
+    const note = (block.querySelector('.adm-eq-note')||{}).value.trim()||'';
+    // an extra block (bi>0) left completely untouched is skipped rather than
+    // creating an accidental duplicate of the first kit
+    if(bi>0 && !kit && !kitContents && !note) return;
+    const fullName = kit ? name + ' – ' + kit : name;
+    const id=adminData.equipment.length+1;
+    // V80.20: itemCategory/kitContents are new fields, stored in adminData/localStorage
+    // (saveAdminData persists both) so they display and survive refresh right away.
+    // NOT sent to Supabase yet — the equipment table doesn't have matching columns,
+    // and sending unknown fields would 400 the whole insert (same PGRST204 class of
+    // bug fixed in earlier versions). See the v80.20 journal entry for the ALTER
+    // TABLE SQL to run if you want these persisted server-side/cross-device too.
+    adminData.equipment.push({id,name:fullName,fac,cat:'Equipment',itemCategory:category,kitContents,status,icon,note});
+    const facKey=fac==='T1 Central'?'t1':'film';
+    if(!kitDB[facKey]['Equipment'])kitDB[facKey]['Equipment']=[];
+    kitDB[facKey]['Equipment'].push(fullName);
+    // Sync to Supabase — unchanged columns only
+    if(typeof window.addSupaEquipment==='function'){
+      window.addSupaEquipment({ name: fullName, kit_number: kit||null, location: fac, status: status });
+    }
+    addedNames.push(fullName);
+  });
   populateKit();
-  saveAdminData();toast('✅ Equipment added: '+fullName);
-  // Sync to Supabase
-  if(typeof window.addSupaEquipment==='function'){
-    window.addSupaEquipment({ name: fullName, kit_number: kit||null, location: fac, status: status });
-  }
+  saveAdminData();
+  toast(addedNames.length>1 ? '✅ '+addedNames.length+' kits added: '+name : '✅ Equipment added: '+addedNames[0]);
+  addedNames.forEach(function(n){ logResourceAudit('Equipment', n); });
   setAdminTab('equipment',null);
   document.querySelectorAll('.adm-tab')[0].classList.add('active');
 }
 async function admDeleteEquipment(i){
   if(guestBlock())return;
+  // V80.19: route-level guard — admDelBtn() already hides this action for non-Admin,
+  // but block the function itself too in case it's ever called directly.
+  if(window.currentRole !== 'Admin'){ toast('⛔ Only Admin can remove entries.'); return; }
   var rec = adminData.equipment[i];
   adminData.equipment.splice(i,1);
   saveAdminData();
-  toast('🗑️ Equipment removed');
   setAdminTab('equipment',null);document.querySelectorAll('.adm-tab')[0].classList.add('active');
   // V68.9 FIX: previously local-only — Supabase row survived and reappeared
   // on the next kitDB rebuild, same pattern as the studio deletion bug.
+  // V80.20 FIX: deleteSupaEquipment() failing (e.g. Supabase RLS blocking DELETE)
+  // used to be swallowed silently — the toast below always said "removed" even
+  // when the row was still live in Supabase, so it just reappeared on next
+  // refresh with no explanation. Now the actual result is checked and reported.
   if(rec && rec.id && typeof window.deleteSupaEquipment==='function'){
-    await window.deleteSupaEquipment(rec.id);
-    if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    var ok = await window.deleteSupaEquipment(rec.id);
+    if(ok){
+      toast('🗑️ Equipment removed');
+      if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    } else {
+      toast('⚠️ Removed locally, but Supabase rejected the delete (likely RLS) — it will reappear on next refresh. See App Info → v80.20 note.');
+    }
+  } else {
+    toast('🗑️ Equipment removed');
   }
 }
 
 function admAddEditing(){
   if(guestBlock()) return;
-  const name=document.getElementById('adm-ed-name').value.trim();
-  const suite=document.getElementById('adm-ed-suite').value.trim();
-  const fac=document.getElementById('adm-ed-fac').value;
+  const location=document.getElementById('adm-ed-loc').value;
+  const locMatch = EDITING_LOCATIONS.find(function(l){ return l[0]===location; });
+  const fac = locMatch ? locMatch[1] : 'T1 Central';
   const os=document.getElementById('adm-ed-os').value;
-  const icon=(document.getElementById('adm-ed-icon')||{}).value||'🍎';
-  const note=(document.getElementById('adm-ed-note')||{}).value.trim()||'';
-  if(!name){toast('⚠️ Enter system name');return;}
-  const fullName = suite ? name + ' – ' + suite : name;
-  adminData.editing.push({id:adminData.editing.length+1,name:fullName,fac,seats:1,os,icon,note});
-  const facKey=fac==='T1 Central'?'t1':'film';
-  if(!kitDB[facKey]['Editing Systems'])kitDB[facKey]['Editing Systems']=[];
-  kitDB[facKey]['Editing Systems'].push(fullName);
+  const icon=(document.getElementById('adm-ed-icon')||{}).value || (os==='Windows'?'🪟':'🍎');
+  // V80.21: OS + Location are entered once and apply to every system block below.
+  var blocks = document.querySelectorAll('#adm-ed-sys-blocks .adm-sys-block');
+  var addedNames = [];
+  blocks.forEach(function(block){
+    const name = (block.querySelector('.adm-ed-name')||{}).value.trim();
+    if(!name) return; // skip empty blocks silently rather than error the whole batch
+    const suite = (block.querySelector('.adm-ed-suite')||{}).value.trim();
+    const software = (block.querySelector('.adm-ed-software')||{}).value.trim()||'';
+    const note = (block.querySelector('.adm-ed-note')||{}).value.trim()||'';
+    const fullName = suite ? name + ' – ' + suite : name;
+    // V80.20: location/software are new fields, stored locally (see equipment note
+    // above re: not sending unmapped columns to Supabase to avoid a 400 on insert).
+    adminData.editing.push({id:adminData.editing.length+1,name:fullName,fac,location,seats:1,os,software,icon,note});
+    const facKey=fac==='T1 Central'?'t1':'film';
+    if(!kitDB[facKey]['Editing Systems'])kitDB[facKey]['Editing Systems']=[];
+    kitDB[facKey]['Editing Systems'].push(fullName);
+    if(typeof window.addSupaEditing==='function'){
+      window.addSupaEditing({ system_name: fullName, location: fac, os: os });
+    }
+    addedNames.push(fullName);
+  });
+  if(!addedNames.length){ toast('⚠️ Enter at least one system name'); return; }
   populateKit();
-  saveAdminData();toast('✅ Editing system added: '+fullName);
-  // Sync to Supabase
-  if(typeof window.addSupaEditing==='function'){
-    window.addSupaEditing({ system_name: fullName, location: fac, os: os });
-  }
+  saveAdminData();
+  toast(addedNames.length>1 ? '✅ '+addedNames.length+' systems added' : '✅ Editing system added: '+addedNames[0]);
+  addedNames.forEach(function(n){ logResourceAudit('Editing System', n); });
   setAdminTab('editing',null);document.querySelectorAll('.adm-tab')[1].classList.add('active');
 }
 async function admDeleteEditing(i){
   if(guestBlock())return;
+  if(window.currentRole !== 'Admin'){ toast('⛔ Only Admin can remove entries.'); return; }
   var rec = adminData.editing[i];
   adminData.editing.splice(i,1);
   saveAdminData();
-  toast('🗑️ System removed');
   setAdminTab('editing',null);document.querySelectorAll('.adm-tab')[1].classList.add('active');
   if(rec && rec.id && typeof window.deleteSupaEditing==='function'){
-    await window.deleteSupaEditing(rec.id);
-    if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    var ok = await window.deleteSupaEditing(rec.id);
+    if(ok){
+      toast('🗑️ System removed');
+      if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    } else {
+      toast('⚠️ Removed locally, but Supabase rejected the delete (likely RLS) — it will reappear on next refresh. See App Info → v80.20 note.');
+    }
+  } else {
+    toast('🗑️ System removed');
   }
 }
 
 function admAddStudio(){
   if(guestBlock()) return;
   const name=document.getElementById('adm-st-name').value.trim();
-  const fac=document.getElementById('adm-st-fac').value;
+  const purpose=document.getElementById('adm-st-purpose').value;
+  const location=document.getElementById('adm-st-loc').value;
+  const locMatch = STUDIO_LOCATIONS.find(function(l){ return l[0]===location; });
+  const fac = locMatch ? locMatch[1] : 'T1 Central';
   const cap=parseInt(document.getElementById('adm-st-cap').value)||0;
-  const type=document.getElementById('adm-st-type').value;
-  const icon=(document.getElementById('adm-st-icon')||{}).value||'🎙️';
+  const type=purpose; // display-only tag, matches purpose — not used to gate any workflow logic
+  const icon=(document.getElementById('adm-st-icon')||{}).value || STUDIO_PURPOSE_ICONS[purpose] || '🎙️';
   const note=(document.getElementById('adm-st-note')||{}).value.trim()||'';
   if(!name){toast('⚠️ Enter studio name');return;}
-  adminData.studios.push({id:adminData.studios.length+1,name,fac,capacity:cap,type,icon,note});
+  // V80.20: purpose/location are new fields, stored locally (see equipment note
+  // above re: not sending unmapped columns to Supabase to avoid a 400 on insert).
+  adminData.studios.push({id:adminData.studios.length+1,name,fac,location,purpose,capacity:cap,type,icon,note});
   const facKey=fac==='T1 Central'?'t1':'film';
   if(!kitDB[facKey]['Studio Booking'])kitDB[facKey]['Studio Booking']=[];
   kitDB[facKey]['Studio Booking'].push(name);
   populateKit();
   saveAdminData();toast('✅ Studio added');
-  // Sync to Supabase
+  logResourceAudit('Studio', name);
+  // Sync to Supabase — unchanged columns only
   if(typeof window.addSupaStudio==='function'){
     window.addSupaStudio({ studio_name: name, location: fac, capacity: cap, studio_type: type });
   }
@@ -12669,17 +12888,24 @@ function admAddStudio(){
 }
 async function admDeleteStudio(i){
   if(guestBlock())return;
+  if(window.currentRole !== 'Admin'){ toast('⛔ Only Admin can remove entries.'); return; }
   var rec = adminData.studios[i];
   adminData.studios.splice(i,1);
   saveAdminData();
-  toast('🗑️ Studio removed');
   setAdminTab('studio',null);document.querySelectorAll('.adm-tab')[2].classList.add('active');
   // V68.8 FIX: previously only removed the local copy — the Supabase row
   // was never deleted, so the studio reappeared on the next kitDB rebuild
   // (rebuildKitDBFromSupabase pulls fresh data and overwrites adminData.studios).
   if(rec && rec.id && typeof window.deleteSupaStudio==='function'){
-    await window.deleteSupaStudio(rec.id);
-    if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    var ok = await window.deleteSupaStudio(rec.id);
+    if(ok){
+      toast('🗑️ Studio removed');
+      if(typeof window.rebuildKitDBFromSupabase==='function') window.rebuildKitDBFromSupabase();
+    } else {
+      toast('⚠️ Removed locally, but Supabase rejected the delete (likely RLS) — it will reappear on next refresh. See App Info → v80.20 note.');
+    }
+  } else {
+    toast('🗑️ Studio removed');
   }
 }
 
@@ -14652,7 +14878,13 @@ window.fetchAndRenderBookings = async function() {
         })(),
         fac           : '',
         location      : '',
-        cat           : '',
+        // V80.18 FIX: was hardcoded '' on every Supabase refetch — every b.cat==='Studio Booking'/
+        // 'Editing Systems' check in the app (workflow routing, condition dropdown, issue/return
+        // rendering, analytics) silently fell through to the Equipment branch because b.cat was
+        // never anything but ''. resource_category is the verified, always-populated DB column
+        // (sent as-is from S.cat on submit — see submitBooking) and is now the single source this
+        // reads from, matching the local-insert mapper's own cat alias at ~L16867.
+        cat           : b.resource_category || '',
         // V68.3 FIX: strat was hardcoded '' even though purpose_type was
         // already being read from the DB into a separate field below — the
         // purpose label (General Practice / Assignment / etc.) never showed
@@ -15574,17 +15806,41 @@ function renderStudentBookings() {
     return;
   }
 
-  // ── Step 1: gather this student's bookings (privacy guard kept from v31) ──
+  // ── Step 1: gather THIS logged-in user's own bookings only (v80.18 FINAL POLICY) ──
   // V56 FIX (TypeError): myBookings was declared but never assigned because the
   // filter block was wrapped in `if (false)`, making myBookings always undefined.
   // Restored the actual filter logic so myBookings is always a valid array.
-  var myBookings = S.bookings ? S.bookings.filter(function (b) {
+  // V80.18 FIX — root cause of cross-user/cross-role visibility in Booking History:
+  // (a) the old filter matched on b.student (display name) ONLY, which silently
+  //     failed on any name-formatting mismatch; and (b) whenever that match came
+  //     up empty, TWO fallback lines below it re-populated myBookings with
+  //     literally every booking in S.bookings — other students', other
+  //     professors', other managers' — defeating the privacy guard entirely the
+  //     moment the primary match missed. Both fallbacks are removed. Identity is
+  //     now checked against every key this booking could plausibly carry for the
+  //     current user (display name, student roll number, email) so a single
+  //     formatting mismatch on one field doesn't wrongly exclude a real match —
+  //     but an empty result is left empty, never widened to "show everyone."
+  var _myIdKeys = [
+    window.currentUser || '',
+    window.currentStudentDbId || '',
+    (typeof window.currentUserEmail !== 'undefined' ? window.currentUserEmail : '') || ''
+  ].filter(Boolean).map(function(v){ return String(v).trim().toLowerCase(); });
+
+  var myBookings = (S.bookings || []).filter(function (b) {
     if (b._isSeed) return false;
-    if (window.currentUser && b.student && b.student !== window.currentUser) return false;
-    return true;
-  }) : [];
-  if (!myBookings.length) myBookings = (S.bookings||[]).filter(function (b) { return !b._isSeed; });
-  if (!myBookings.length) myBookings = (S.bookings||[]).slice();
+    if (!_myIdKeys.length) return true; // no identity to scope by (shouldn't happen post-login) — show nothing hidden, nothing widened
+    var bkKeys = [b.student, b.student_id, b.sid, b.email, b.studentEmail]
+      .filter(Boolean).map(function(v){ return String(v).trim().toLowerCase(); });
+    return bkKeys.some(function(k){ return _myIdKeys.indexOf(k) !== -1; });
+  });
+
+  // ── Step 1b: latest booking first, explicitly — don't rely on incidental array order ──
+  myBookings = myBookings.slice().sort(function(a, b2){
+    var ta = new Date(a.created_at || a.start_time || 0).getTime();
+    var tb = new Date(b2.created_at || b2.start_time || 0).getTime();
+    return tb - ta;
+  });
 
   if (!myBookings.length) {
     container.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:11px;">No bookings yet. Submit your first booking above.</div>';
