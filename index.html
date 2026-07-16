@@ -495,86 +495,96 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-heig
 .srch-clear{background:none;border:none;cursor:pointer;color:#9ca3af;font-size:15px;padding:0 0 0 2px;line-height:1;flex-shrink:0;display:none;transition:color .15s;}
 .srch-clear:hover{color:#7b1a1a;}
 /* ── Student Monitoring — Premium Card Design v49.10 ── */
-.sc-sort-btn,.sc-filt-btn{padding:5px 11px;border-radius:20px;border:1.3px solid #e5e7eb;background:#fff;color:#6b7280;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
-.sc-sort-btn.active,.sc-filt-btn.active{background:#7b1a1a;border-color:#7b1a1a;color:#fff;}
+/* ── DRI (Discipline & Responsibility Index) — Academic Report Design v80.26.5 ── */
+.sc-sort-btn,.sc-filt-btn{padding:5px 11px;border-radius:20px;border:1.3px solid #E8DED0;background:#fff;color:#6B6256;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.sc-sort-btn.active,.sc-filt-btn.active{background:#B89B72;border-color:#B89B72;color:#fff;}
+.sc-status-btn{padding:5px 11px;border-radius:20px;border:1.3px solid #E8DED0;background:#fff;color:#6B6256;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
+.sc-status-btn.active{color:#fff;border-color:transparent;}
+.sc-status-btn.active[data-sfstatus="excellent"],.sc-status-btn.active[data-sfstatus="good"]{background:#4F8A5B;}
+.sc-status-btn.active[data-sfstatus="monitor"]{background:#D38B36;}
+.sc-status-btn.active[data-sfstatus="attention"],.sc-status-btn.active[data-sfstatus="review"]{background:#C05A4A;}
+.sc-status-btn.active[data-sfstatus="all"]{background:#B89B72;}
 .adm-icon-chip{width:38px;height:38px;border-radius:10px;border:1.5px solid #e5e7eb;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .adm-icon-chip.active{border-color:#7b1a1a;background:linear-gradient(135deg,#fff0f6,#fce4ec);box-shadow:0 0 0 2px rgba(123,26,26,.15);}
-.scard{background:linear-gradient(145deg,#0f172a,#1a2235);border-radius:16px;padding:0;margin-bottom:10px;border:1px solid #1e2a3d;box-shadow:0 4px 20px rgba(0,0,0,.3);overflow:hidden;}
-.scard.warn{border-left:4px solid #f97316;}
-.scard.flagged{border-left:4px solid #dc2626;}
+.scard{background:#FFFFFF;border-radius:16px;padding:0;margin-bottom:10px;border:1px solid #E8DED0;box-shadow:0 2px 10px rgba(46,46,46,.06);overflow:hidden;}
+.scard.warn{border-left:4px solid #D38B36;}
+.scard.flagged{border-left:4px solid #C05A4A;}
 /* Profile header */
-.sc-profile-hd{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px;}
-.sc-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7b1a1a,#c2410c);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(123,26,26,.4);}
+.sc-profile-hd{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px;background:#FFFDF7;}
+.sc-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#B89B72,#8a6d4a);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(184,155,114,.35);}
 .sc-profile-info{flex:1;min-width:0;}
-.sc-nm{font-size:13.5px;font-weight:800;color:#f1f5f9;letter-spacing:-.2px;}
-.sc-id{font-size:10px;color:#4b5566;font-family:monospace;margin-top:1px;}
+.sc-nm{font-size:13.5px;font-weight:800;color:#2E2E2E;letter-spacing:-.2px;}
+.sc-id{font-size:10px;color:#6B6256;font-family:monospace;margin-top:1px;}
 .sc-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
 .sc-badge{padding:2px 7px;border-radius:10px;font-size:8.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
-.sc-badge-jms{background:#1d4ed8;color:#bfdbfe;}
-.sc-badge-fnm{background:#15803d;color:#bbf7d0;}
-.sc-badge-ccpa{background:#854d0e;color:#fef08a;}
-.sc-badge-batch{background:#1e2a3d;color:#7c8aa5;border:1px solid #2d3748;}
-/* Reputation score ring area */
+.sc-badge-jms{background:#e0e7ff;color:#3730a3;}
+.sc-badge-fnm{background:#dcfce7;color:#166534;}
+.sc-badge-ccpa{background:#fef3c7;color:#92400e;}
+.sc-badge-batch{background:#FFFDF7;color:#6B6256;border:1px solid #E8DED0;}
+/* DRI score area */
 .sc-rep-area{text-align:center;flex-shrink:0;}
-.sc-rep-score{font-size:18px;font-weight:900;color:#e9c46a;line-height:1;}
-.sc-rep-lbl{font-size:7.5px;color:#4b5566;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:1px;}
+.sc-rep-score{font-size:18px;font-weight:900;color:#B89B72;line-height:1;}
+.sc-rep-lbl{font-size:7.5px;color:#6B6256;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:1px;}
 /* Resource usage tiles */
 .sc-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 14px 10px;}
-.sc-tile{background:#0e1420;border:1px solid #1e2a3d;border-radius:10px;padding:8px;text-align:center;}
+.sc-tile{background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:8px;text-align:center;}
 .sc-tile-icon{font-size:14px;margin-bottom:3px;}
-.sc-tile-val{font-size:13px;font-weight:900;color:#f1f5f9;}
-.sc-tile-lbl{font-size:7.5px;color:#4b5566;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-top:1px;}
+.sc-tile-val{font-size:13px;font-weight:900;color:#2E2E2E;}
+.sc-tile-lbl{font-size:7.5px;color:#6B6256;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-top:1px;}
 .sc-tile-sub{font-size:9px;margin-top:2px;}
-.sc-tile-sub.good{color:#4ade80;}
-.sc-tile-sub.warn{color:#fbbf24;}
-.sc-tile-sub.bad{color:#f87171;}
+.sc-tile-sub.good{color:#4F8A5B;}
+.sc-tile-sub.warn{color:#D38B36;}
+.sc-tile-sub.bad{color:#C05A4A;}
 /* KPI strip */
 .sc-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 14px 10px;}
-.sc-kpi{background:#0e1420;border:1px solid #1e2a3d;border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:6px;}
+.sc-kpi{background:#FFFDF7;border:1px solid #E8DED0;border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:6px;}
 .sc-kpi-ico{font-size:14px;flex-shrink:0;}
 .sc-kpi-body{flex:1;min-width:0;}
-.sc-kpi-lbl{font-size:8px;font-weight:700;color:#4b5566;letter-spacing:.6px;text-transform:uppercase;}
-.sc-kpi-val{font-size:12px;font-weight:800;color:#e2e8f0;margin-top:1px;}
-.sc-prog-wrap{height:4px;background:#1e2a3d;border-radius:3px;margin-top:3px;overflow:hidden;}
+.sc-kpi-lbl{font-size:8px;font-weight:700;color:#6B6256;letter-spacing:.6px;text-transform:uppercase;}
+.sc-kpi-val{font-size:12px;font-weight:800;color:#2E2E2E;margin-top:1px;}
+.sc-prog-wrap{height:4px;background:#E8DED0;border-radius:3px;margin-top:3px;overflow:hidden;}
 .sc-prog{height:100%;border-radius:3px;transition:width .4s ease;}
-/* Reputation & Discipline panel */
-.sc-rep-panel{padding:10px 14px;border-top:1px solid #1e2a3d;}
-.sc-rep-title{font-size:9px;font-weight:800;color:#4b5566;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px;}
+/* DRI panel — simplified score + stars + recent activity */
+.sc-rep-panel{padding:10px 14px;border-top:1px solid #E8DED0;}
+.sc-rep-title{font-size:9px;font-weight:800;color:#6B6256;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px;}
+.sc-dri-divider{height:1px;background:#E8DED0;margin:8px 0;}
+.sc-dri-stars-row{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:#2E2E2E;margin-bottom:5px;}
+.sc-dri-stars{color:#B89B72;letter-spacing:1px;font-size:11px;}
+.sc-dri-recent-lbl{font-size:8.5px;font-weight:800;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.sc-dri-recent-item{font-size:10.5px;color:#2E2E2E;line-height:1.6;}
 .sc-rep-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}
-.sc-rep-cell{background:#0e1420;border-radius:8px;padding:7px 4px;text-align:center;}
+.sc-rep-cell{background:#FFFDF7;border:1px solid #E8DED0;border-radius:8px;padding:7px 4px;text-align:center;}
 .sc-rep-cell-val{font-size:14px;font-weight:900;}
-.sc-rep-cell-lbl{font-size:7px;font-weight:700;color:#4b5566;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;line-height:1.3;}
+.sc-rep-cell-lbl{font-size:7px;font-weight:700;color:#6B6256;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;line-height:1.3;}
 /* Impact statement */
-.sc-impact{background:#0e1420;border:1px solid #1e2a3d;border-radius:10px;padding:8px 10px;margin-bottom:8px;}
-.sc-impact-label{font-size:8.5px;font-weight:800;color:#4b5566;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
-.sc-impact-txt{font-size:11.5px;font-weight:700;color:#e2e8f0;line-height:1.4;}
+.sc-impact{background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:8px 10px;margin-bottom:8px;}
+.sc-impact-label{font-size:8.5px;font-weight:800;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.sc-impact-txt{font-size:11.5px;font-weight:700;color:#2E2E2E;line-height:1.4;}
 /* Activity timeline */
-.sc-timeline{border-top:1px solid #1e2a3d;padding:10px 14px 14px;}
-.sc-timeline-title{font-size:9px;font-weight:800;color:#4b5566;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.sc-timeline{border-top:1px solid #E8DED0;padding:10px 14px 14px;}
+.sc-timeline-title{font-size:9px;font-weight:800;color:#6B6256;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
 .sc-timeline-item{display:flex;gap:8px;margin-bottom:8px;}
 .sc-tl-left{display:flex;flex-direction:column;align-items:center;gap:0;}
 .sc-tl-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
-.sc-tl-line{width:1px;flex:1;background:#1e2a3d;margin-top:2px;}
+.sc-tl-line{width:1px;flex:1;background:#E8DED0;margin-top:2px;}
 .sc-tl-body{flex:1;min-width:0;padding-top:2px;}
-.sc-tl-mgr{font-size:10.5px;font-weight:800;color:#e2e8f0;}
-.sc-tl-meta{font-size:9px;color:#4b5566;margin-top:1px;}
-.sc-tl-comment{font-size:10.5px;color:#94a3b8;margin-top:3px;line-height:1.5;background:#0e1420;border-radius:6px;padding:5px 7px;border-left:2px solid #2d3748;}
+.sc-tl-mgr{font-size:10.5px;font-weight:800;color:#2E2E2E;}
+.sc-tl-meta{font-size:9px;color:#6B6256;margin-top:1px;}
+.sc-tl-comment{font-size:10.5px;color:#6B6256;margin-top:3px;line-height:1.5;background:#FFFDF7;border-radius:6px;padding:5px 7px;border-left:2px solid #E8DED0;}
 .disc-row{display:flex;align-items:flex-start;gap:6px;font-size:11px;}
 .disc-ico{font-size:11px;flex-shrink:0;margin-top:1px;}
-.disc-lbl{color:#9ca3af;min-width:70px;flex-shrink:0;}
-.disc-val{color:#374151;font-weight:600;flex:1;}
-.disc-val.disc-warn{color:#ea580c;}
-.disc-val.disc-bad{color:#dc2626;font-weight:700;}
-.disc-val.disc-good{color:#16a34a;}
+.disc-lbl{color:#6B6256;min-width:70px;flex-shrink:0;}
+.disc-val{color:#2E2E2E;font-weight:600;flex:1;}
+.disc-val.disc-warn{color:#D38B36;}
+.disc-val.disc-bad{color:#C05A4A;font-weight:700;}
+.disc-val.disc-good{color:#4F8A5B;}
 .flag-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
-.flag-pill.fp-flagged{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
-.flag-pill.fp-warn{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
-.flag-pill.fp-ok{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;}
-.disc-late-item{font-size:10.5px;color:#6b7280;padding:3px 7px;background:#f9fafb;border-radius:6px;border-left:2px solid #f97316;line-height:1.4;}
-.disc-late-item.di-damage{border-left-color:#dc2626;}
-.disc-load-state{font-size:10px;color:#9ca3af;font-style:italic;text-align:center;padding:4px 0;}
-/* Pie chart */
-.pie-wrap{position:relative;width:140px;height:140px;margin:0 auto 10px;}
+.flag-pill.fp-flagged{background:#fbe9e6;color:#C05A4A;border:1px solid #eecfc9;}
+.flag-pill.fp-warn{background:#fbf1e3;color:#D38B36;border:1px solid #f0ddb9;}
+.flag-pill.fp-ok{background:#eaf3ec;color:#4F8A5B;border:1px solid #cfe4d5;}
+.disc-late-item{font-size:10.5px;color:#6B6256;padding:3px 7px;background:#FFFDF7;border-radius:6px;border-left:2px solid #D38B36;line-height:1.4;}
+.disc-late-item.di-damage{border-left-color:#C05A4A;}
+.disc-load-state{font-size:10px;color:#6B6256;font-style:italic;text-align:center;padding:4px 0;}
 /* Summary strip */
 .sum-strip{background:linear-gradient(135deg,#5c0000,#7b1a1a);border-radius:12px;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;margin-top:9px;}
 .ss-lbl{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.8);}
@@ -2562,19 +2572,30 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 
     <!-- ═══ STUDENTS ═══ -->
     <div class="screen" id="screen-students">
-      <div id="sc-header-title" style="font-size:14px;font-weight:800;color:#111827;margin-bottom:8px;letter-spacing:-.3px;">Student Monitoring &amp; Discipline</div>
+      <div id="sc-header-title" style="font-size:14px;font-weight:800;color:#2E2E2E;margin-bottom:2px;letter-spacing:-.3px;">🎓 Discipline &amp; Responsibility Index (DRI)</div>
+      <div id="sc-header-subtitle" style="font-size:10.5px;color:#6B6256;font-weight:600;margin-bottom:8px;">Responsible Use &bull; Return Discipline &bull; Participation</div>
 
       <!-- Sort + Filter bar -->
       <div id="sc-toolbar" style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;padding:10px 12px;margin-bottom:10px;">
         <!-- Sort row -->
         <div style="font-size:9px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Sort</div>
         <div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:10px;">
-          <button class="sc-sort-btn active" data-sort="rep-desc"    onclick="scSetSort('rep-desc',this)"   style="white-space:nowrap;">🏅 High Performers</button>
-          <button class="sc-sort-btn"        data-sort="rep-asc"     onclick="scSetSort('rep-asc',this)"    style="white-space:nowrap;">⚠️ Needs Attention</button>
+          <button class="sc-sort-btn active" data-sort="rep-desc"    onclick="scSetSort('rep-desc',this)"   style="white-space:nowrap;">⭐ Highest DRI</button>
+          <button class="sc-sort-btn"        data-sort="rep-asc"     onclick="scSetSort('rep-asc',this)"    style="white-space:nowrap;">🔻 Lowest DRI</button>
           <button class="sc-sort-btn"        data-sort="latest"      onclick="scSetSort('latest',this)"     style="white-space:nowrap;">🕐 Latest Batch</button>
           <button class="sc-sort-btn"        data-sort="oldest"      onclick="scSetSort('oldest',this)"     style="white-space:nowrap;">📅 Earliest Batch</button>
           <button class="sc-sort-btn"        data-sort="name-az"     onclick="scSetSort('name-az',this)"    style="white-space:nowrap;">🔤 A→Z</button>
           <button class="sc-sort-btn"        data-sort="name-za"     onclick="scSetSort('name-za',this)"    style="white-space:nowrap;">🔤 Z→A</button>
+        </div>
+        <!-- DRI Status filter row (v80.26.5) -->
+        <div style="font-size:9px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">DRI Status</div>
+        <div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-bottom:10px;">
+          <button class="sc-status-btn active" data-sfstatus="all"       onclick="scSetStatus('all',this)"       style="white-space:nowrap;">All</button>
+          <button class="sc-status-btn"        data-sfstatus="excellent" onclick="scSetStatus('excellent',this)" style="white-space:nowrap;">⭐ Excellent</button>
+          <button class="sc-status-btn"        data-sfstatus="good"      onclick="scSetStatus('good',this)"      style="white-space:nowrap;">🟢 Good Standing</button>
+          <button class="sc-status-btn"        data-sfstatus="monitor"   onclick="scSetStatus('monitor',this)"   style="white-space:nowrap;">🟡 Monitor</button>
+          <button class="sc-status-btn"        data-sfstatus="attention" onclick="scSetStatus('attention',this)" style="white-space:nowrap;">🟠 Attention Required</button>
+          <button class="sc-status-btn"        data-sfstatus="review"    onclick="scSetStatus('review',this)"    style="white-space:nowrap;">🔴 Review Required</button>
         </div>
         <!-- Programme filter row -->
         <div style="font-size:9px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Programme</div>
@@ -2627,7 +2648,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.26.1</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.26.5</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -2902,6 +2923,10 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 
         <!-- ── SECTION DIVIDER ── -->
         <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.22</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #B89B72;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.5 &middot; &#127891; Student Monitoring &amp; Discipline &#8594; Discipline &amp; Responsibility Index (DRI)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Transform, not replace:</strong> every retained feature from the request \u2014 name/ID search, Programme/Section/Batch Year filters, Sorting Options, Student Profile view, Manager Activity Log, return history, damage reports, late-return tracking, equipment usage history \u2014 is untouched in its underlying data path; only the module name, scoring model, card layout, filter set, and color palette changed. <strong>Renamed</strong> \u201cStudent Monitoring &amp; Discipline\u201d &#8594; \u201cDiscipline &amp; Responsibility Index (DRI)\u201d with the requested subtitle, on both the static header and the two dynamic header states (roster view / single-student \u201cMy DRI Report\u201d view). <strong>Scoring model rewritten</strong> in <code>stuImpactStatement()</code>: replaced v75\u2019s Base-50 \u201cno floor\u201d formula with the requested DRI model \u2014 Base 85, On-Time Return +1, Good Equipment Condition +1, Active Practice Participation +1 (each capped +10), Late Return -2 / Repeated Late Return -4 per additional, clamped 0-100 via a new <code>driBand()</code> helper (95-100 Excellent / 85-94 Good Standing / 70-84 Monitor / 50-69 Attention Required / 0-49 Review Required). <strong>Explicit, flagged limitation:</strong> the existing discipline data source tracks one aggregate \u201cimprovCount\u201d for missing/damaged/technical/software/hardware/performance issues \u2014 it cannot yet distinguish Minor Damage (-5) from Missing Item (-10) or Equipment Misuse (-10), so all three currently score as a single -5 bucket until the booking-remarks schema is extended to record which occurred; Faculty Recognition (+2) has no data source anywhere in the app yet and always contributes 0 rather than being fabricated. Both gaps are commented in the code, not silently guessed at. <strong>Card simplified</strong> per spec: DRI Score / Band replaces the old 4-cell Excellent/Good/Improve/Penalties breakdown; new Equipment Care / Return Discipline / Participation star ratings (<code>driStarsHTML()</code>, 0-5 stars from a 0-100% measure); Recent Activity shows up to 2 derived delta lines. Resource Usage Tiles, KPI strip and Manager Activity Log timeline are unchanged, per \u201cdo not remove existing functionality.\u201d <strong>New DRI Status filter row</strong> added alongside (not replacing) the existing Sort row \u2014 5 chips (Excellent/Good Standing/Monitor/Attention Required/Review Required) wired to a new <code>scSetStatus()</code> and <code>window._scState.status</code>, filtering on the same <code>driBand()</code> the score/label already use; existing Sort, Programme, Section and Batch Year filters are untouched, only the two Sort button labels were reworded (\u201cHigh Performers\u201d/\u201cNeeds Attention\u201d &#8594; \u201cHighest DRI\u201d/\u201cLowest DRI\u201d) with identical underlying sort keys. <strong>Palette re-themed</strong> across every <code>.sc-*</code> card/CSS class (previously a dark navy \u201cgaming\u201d theme) to the requested cream/white academic palette (#FFFDF7 background, #FFFFFF cards, #E8DED0 borders, #B89B72 accent, #2E2E2E/#6B6256 text, #4F8A5B/#D38B36/#C05A4A status colors) \u2014 this is the same screen the spec\u2019s \u201cAnalytics Page Redesign\u201d refers to (there is no separate Student Analytics screen in this app; Student Monitoring itself is the analytics view), so the re-theme was applied here rather than left unaddressed. <strong>DRI Disclaimer</strong> added \u2014 shortened, bold, boxed, appended once after the rendered list, showing on both the full roster (Admin/Professor/Manager) and single-student (Student\u2019s own \u201cMy DRI Report\u201d) views, matching the \u201cdisplay on analytics reports and student profile\u201d requirement given this app has no separate profile screen from the card list. <strong>Untouched:</strong> <code>loadStudentDiscipline()</code>\u2019s Supabase fetch/parsing, booking pipeline, discipline flag logic (<code>s.flagged</code>/<code>s.warn</code>), Manager Activity Log timeline rendering, and every other screen/role in the app.</div></div>
+              
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0d9488;"><div style="font-size:10px;font-weight:800;color:#0d9488;margin-bottom:3px;">v80.26.4 &middot; &#128203; Utilization + Throughput Model \u2014 Working-Days Basis &amp; Shortened Disclaimer</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Working-days basis clarified:</strong> the Work Report's Utilization Framework card now states explicitly that working-day counts are drawn from actual logged entries (predominantly Mon\u2013Fri, with occasional Sat/Sun entries included exactly as recorded, not assumed on a fixed weekday calendar) \u2014 matches how the underlying data is actually entered, where roughly 90% of logs land Mon\u2013Fri and a small minority land on weekends. <strong>Disclaimer shortened, boxed, and made mandatory on every report:</strong> replaced with a condensed bold notice (font-size 8px) in a bordered box, covering utilization methodology, the throughput minute-values, and the managerial-review caveat in four short lines. Appended once at the end of <code>_wrBuildInnerHTML()</code>'s return value \u2014 the single function both the individual-manager and \"All Managers\" group report paths render through \u2014 so it appears at the close of every report, individual or group, with no per-block duplication. <strong>Untouched:</strong> utilization math, equipment throughput minute-values (10 min issue / 5 min return), activity breakdown table, efficiency scoring, PDF/print pipelines.</div></div>
+              
         <div style="font-size:10px;color:#a07060;margin-bottom:12px;line-height:1.6;">Thematic chapters covering the full development arc. Tap any chapter to expand its release notes.</div>
 
         <!-- Group 1 -->
@@ -10361,78 +10386,92 @@ function discBlockHTML(s){
   </div>`;
 }
 
-// ── renderStudents — Premium Analytics Card v75 ─────────────────────────────
-// v75 SURGICAL FIX: previous version had hardcoded score floors (Math.max(60,...),
-// Math.max(72,...), Math.max(88,...), Math.max(20,...)) that OVERRODE the computed
-// repScore regardless of actual activity — a student with zero bookings, zero
-// ratings and zero on-time% still landed on a floor of 60 ("Active Participant").
-// This version removes every floor, derives the score entirely from an auditable
-// additive formula, and returns an explicit "Insufficient Activity Data" state
-// when there is nothing to score, instead of a fabricated number.
+// ── renderStudents — DRI (Discipline & Responsibility Index) v80.26.5 ─────
+// v80.26.5 SURGICAL FIX: replaces the v75 additive Rep Score formula (Base 50,
+// "Insufficient Activity Data" for zero-activity students) with the DRI model
+// requested — every student starts at a Base of 85 ("Good Standing") and
+// moves up/down from named operational events, per the explicit spec:
+// On-Time Return +1, Good Equipment Condition +1, Active Practice Participation +1,
+// Faculty Recognition +2, Late Return -2, Repeated Late Return -4 (each late
+// beyond the first), Minor Damage -5, Missing Item -10, Equipment Misuse -10.
+// This is an intentional reversal of v75's "no floor" policy, not a regression —
+// v75 removed floors because a fabricated 60 was being shown for empty records;
+// this version's floor of 85 is the literal, explicitly-requested default state
+// of the new model, not a fabricated non-zero score hiding an empty record.
+// DATA LIMITATION (flagged, not hidden): the existing discipline data source
+// (loadStudentDiscipline) tracks a single aggregate "improvCount" for
+// missing/damaged/technical/software/hardware/performance issues — it does not
+// distinguish Minor Damage / Missing Item / Equipment Misuse as separate counts.
+// Until the booking remarks schema is extended to record which of the three
+// occurred, improvCount is scored as a single -5 "Damage / Missing / Misuse"
+// bucket per event (the least severe of the three penalty values) rather than
+// guessing which of -5/-10/-10 applies to each row. Faculty Recognition (+2)
+// has no existing data source at all (no "faculty recognition" event is ever
+// written anywhere in this app) and always contributes 0 until one exists —
+// also flagged rather than fabricated.
 function stuImpactStatement(s, cache){
-  var totalBookings = cache ? (cache.totalBookings||0) : 0;
-  // V80.7 FIX: completedBookings (status==='returned' only) now drives the
-  // score bonus and the volume-based label thresholds below — totalBookings
-  // (every request regardless of outcome) previously did both jobs, which
-  // meant a student with several rejected/still-pending requests scored and
-  // was labeled as if they'd completed that many loans. totalBookings is
-  // still used for the "any activity at all" check just below (a pending
-  // request is real activity, just not a completed one) and stays visible
-  // as its own honest "Total Bookings" stat in the discipline card.
+  var totalBookings     = cache ? (cache.totalBookings||0)     : 0;
   var completedBookings = cache ? (cache.completedBookings!=null ? cache.completedBookings : totalBookings) : 0;
-  var excellent = cache ? (cache.excellentCount||0) : 0;
-  var good      = cache ? (cache.goodCount||0)      : 0;
-  var improv    = cache ? (cache.improvCount||0)    : 0;
-  var penalties = cache ? (cache.penaltyCount||0)   : (s.penalties && s.penalties!=='None' ? 1 : 0);
+  var excellent = cache ? (cache.excellentCount||0) : 0; // good-condition returns
+  var good      = cache ? (cache.goodCount||0)      : 0; // minor-wear-but-acceptable returns
+  var improv    = cache ? (cache.improvCount||0)    : 0; // damage/missing/misuse bucket (see note above)
   var late      = cache ? (cache.lateCount||0)      : 0;
-  var onTimePct = (typeof s.onTime==='number') ? s.onTime : null;
 
-  // No trackable activity anywhere → do not fabricate a score
-  if(totalBookings===0 && excellent===0 && good===0 && improv===0 && penalties===0 && late===0){
-    return {
-      label:'🆕 New User', sub:'Insufficient Activity Data',
-      score:null, insufficientData:true, color:'#9ca3af',
-      breakdown:[{label:'Base Score', value:50},{label:'Completed Bookings', value:0, note:'No bookings recorded'}]
-    };
-  }
+  var DRI_BASE = 85;
 
-  // ── Auditable additive formula ──
-  var BASE = 50;
-  var completedBonus     = Math.min(20, completedBookings*2);          // +2 / completed booking, capped +20
-  var onTimeBonus        = onTimePct!==null ? Math.round(onTimePct/100*15) : 0; // up to +15
-  var conditionBonus     = excellent*3 + good*1;                       // reward clean returns
-  var improvPenalty      = improv*4;                                   // missing/damaged returns
-  var latePenalty        = late*5;
-  var disciplinePenalty  = penalties*8;
+  // On-Time Return +1 each, capped +10 so volume alone can't hit 100.
+  var onTimeReturnBonus  = Math.min(10, excellent*1);
+  // Good Equipment Condition +1 each, capped +10.
+  var conditionBonus     = Math.min(10, good*1);
+  // Active Practice Participation +1 per completed booking, capped +10.
+  var participationBonus = Math.min(10, completedBookings*1);
+  // Faculty Recognition +2 — no data source yet (see note above).
+  var facultyBonus       = 0;
+  // Late Return -2 (first) / Repeated Late Return -4 (each additional).
+  var latePenalty        = late>0 ? 2 + Math.max(0, late-1)*4 : 0;
+  // Minor Damage / Missing Item / Equipment Misuse — single -5 bucket (see note above).
+  var damagePenalty      = improv*5;
 
-  var raw = BASE + completedBonus + onTimeBonus + conditionBonus - improvPenalty - latePenalty - disciplinePenalty;
+  var raw = DRI_BASE + onTimeReturnBonus + conditionBonus + participationBonus + facultyBonus - latePenalty - damagePenalty;
   var score = Math.max(0, Math.min(100, Math.round(raw)));
 
   var breakdown = [
-    {label:'Base Score',                         value: BASE},
-    {label:'Completed Bookings ('+completedBookings+')', value: completedBonus},
-    {label:'On-Time Returns',                    value: onTimeBonus},
-    {label:'Condition Quality (Excellent/Good)', value: conditionBonus},
-    {label:'Needs-Improvement Returns',          value: -improvPenalty},
-    {label:'Late Returns',                       value: -latePenalty},
-    {label:'Discipline Penalties',               value: -disciplinePenalty}
+    {label:'DRI Base',                                value: DRI_BASE},
+    {label:'On-Time Returns (+1 each)',               value: onTimeReturnBonus},
+    {label:'Good Equipment Condition (+1 each)',      value: conditionBonus},
+    {label:'Active Practice Participation (+1 each)', value: participationBonus},
+    {label:'Faculty Recognition (not yet tracked)',   value: facultyBonus},
+    {label:'Late Return(s)',                          value: -latePenalty},
+    {label:'Damage / Missing / Misuse',               value: -damagePenalty}
   ];
 
-  // ── Deterministic label — driven by COMPLETED activity volume, not by the score ──
-  var label, sub;
-  if(completedBookings===0) { label='🆕 New User';          sub='No completed bookings yet'; }
-  else if(completedBookings<=5)  { label='🌱 Emerging User';      sub='Building a track record'; }
-  else if(completedBookings<=15) { label='🤝 Active Participant'; sub='Regular user, consistent record'; }
-  else                        { label='🏆 Studio Contributor'; sub='High-volume, trusted user'; }
+  var band = driBand(score);
+  var label = band.label, sub = band.sub;
 
-  // Discipline concerns override the volume-based label regardless of score
-  if(penalties>=2 || late>=3 || s.flagged){
-    label='⚠️ Attention Required'; sub='Multiple concerns — needs follow-up';
+  // Discipline concerns override the band regardless of score — same override
+  // safety behavior the old Rep Score used, kept intact through this rewrite.
+  if(late>=3 || improv>=2 || s.flagged){
+    label = '🟠 Attention Required'; sub = 'Multiple concerns — needs follow-up';
   }
 
-  var color = score>=85?'#4ade80':score>=70?'#a3e635':score>=50?'#fbbf24':'#f87171';
+  return { label:label, sub:sub, score:score, insufficientData:false, color:band.color, band:band.key, breakdown:breakdown };
+}
 
-  return { label:label, sub:sub, score:score, insufficientData:false, color:color, breakdown:breakdown };
+// DRI band lookup — 95-100 Excellent / 85-94 Good Standing / 70-84 Monitor /
+// 50-69 Attention Required / 0-49 Review Required, per the requested ranges.
+function driBand(score){
+  if(score>=95) return {key:'excellent', label:'⭐ Excellent',          sub:'Outstanding conduct record', color:'#4F8A5B'};
+  if(score>=85) return {key:'good',      label:'🟢 Good Standing',      sub:'Meeting all expectations',   color:'#4F8A5B'};
+  if(score>=70) return {key:'monitor',   label:'🟡 Monitor',            sub:'Some concerns to watch',     color:'#D38B36'};
+  if(score>=50) return {key:'attention', label:'🟠 Attention Required', sub:'Needs closer follow-up',     color:'#C05A4A'};
+  return               {key:'review',    label:'🔴 Review Required',    sub:'Faculty review recommended', color:'#C05A4A'};
+}
+
+// Star-rating helper — rounds a 0-100% measure to a 0-5 star count for the
+// simplified DRI card (Equipment Care / Return Discipline / Participation).
+function driStarsHTML(pct){
+  var stars = Math.max(0, Math.min(5, Math.round((pct||0)/20)));
+  return '★★★★★☆☆☆☆☆'.slice(5-stars, 10-stars);
 }
 
 function stuProgBadge(prog){
@@ -10524,7 +10563,7 @@ function stuTimelineHTML(cache, s){
 }
 
 // ── Student Monitoring — sort + filter state (v49.10.9) ──
-window._scState = { sort:'rep-desc', prog:'all', section:'all', year:'all' };
+window._scState = { sort:'rep-desc', prog:'all', section:'all', year:'all', status:'all' };
 
 function scSetSort(val, el){
   window._scState.sort = val;
@@ -10545,7 +10584,12 @@ function scSetYear(val){
   window._scState.year = val;
   renderStudents(document.getElementById('student-search') ? document.getElementById('student-search').value : '');
 }
-window.scSetSort=scSetSort; window.scSetProg=scSetProg; window.scSetSection=scSetSection; window.scSetYear=scSetYear;
+function scSetStatus(val, el){
+  window._scState.status = val;
+  document.querySelectorAll('.sc-status-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.sfstatus===val); });
+  renderStudents(document.getElementById('student-search') ? document.getElementById('student-search').value : '');
+}
+window.scSetSort=scSetSort; window.scSetProg=scSetProg; window.scSetSection=scSetSection; window.scSetYear=scSetYear; window.scSetStatus=scSetStatus;
 
 function renderStudents(filter=''){
   const list  = document.getElementById('student-list');
@@ -10558,13 +10602,13 @@ function renderStudents(filter=''){
   var headerTitle = document.getElementById('sc-header-title');
   if(window.currentRole === 'Student'){
     baseList = S.students.filter(function(s){ return s.name === window.currentUser; });
-    if(headerTitle) headerTitle.textContent = 'My Discipline Report';
+    if(headerTitle) headerTitle.textContent = '🎓 My DRI Report';
     var toolbar = document.getElementById('sc-toolbar');
     if(toolbar) toolbar.style.display = 'none'; // sort/filter bar is meaningless for a single record
     var srchBar = document.querySelector('#screen-students .srch');
     if(srchBar) srchBar.style.display = 'none';
   } else {
-    if(headerTitle) headerTitle.textContent = 'Student Monitoring & Discipline';
+    if(headerTitle) headerTitle.textContent = '🎓 Discipline & Responsibility Index (DRI)';
     var toolbar2 = document.getElementById('sc-toolbar');
     if(toolbar2) toolbar2.style.display = '';
     var srchBar2 = document.querySelector('#screen-students .srch');
@@ -10597,6 +10641,14 @@ function renderStudents(filter=''){
     filtered = filtered.filter(function(s){ return String(s.batch||s.batch_year||'') === String(sc.year); });
   }
 
+  // DRI Status filter (v80.26.5) — filters by the same band stuImpactStatement/driBand compute
+  if(sc.status !== 'all'){
+    filtered = filtered.filter(function(s){
+      var imp = stuImpactStatement(s, window._discCache&&window._discCache[s.id]);
+      return imp.band === sc.status;
+    });
+  }
+
   // Sort
   filtered = filtered.slice().sort(function(a, b){
     var ia = stuImpactStatement(a, window._discCache&&window._discCache[a.id]);
@@ -10626,6 +10678,20 @@ function renderStudents(filter=''){
     const good_c    = cache ? (cache.goodCount||0)      : 0;
     const improv    = cache ? (cache.improvCount||0)     : 0;
     const penalties = cache ? (cache.penaltyCount||0)   : (s.penalties&&s.penalties!=='None'?1:0);
+    const completedBk = cache ? (cache.completedBookings!=null ? cache.completedBookings : (cache.totalBookings||0)) : 0;
+    const lateCnt   = cache ? (cache.lateCount||0)       : 0;
+
+    // DRI star ratings (v80.26.5) — Equipment Care / Return Discipline / Participation, 0-5 stars
+    const totalReturnsForCare = excellent + good_c + improv;
+    const carePct  = totalReturnsForCare>0 ? Math.round((excellent+good_c)/totalReturnsForCare*100) : 100;
+    const discPct  = (typeof s.onTime==='number') ? s.onTime : (completedBk>0 ? Math.round(Math.max(0,completedBk-lateCnt)/completedBk*100) : 100);
+    const partPct  = Math.min(100, completedBk*10);
+    // Recent activity — top 2 most relevant deltas from this student's DRI breakdown
+    const recentLines = [];
+    if(excellent>0) recentLines.push('+'+excellent+' Good Return'+(excellent>1?'s':''));
+    if(lateCnt>0) recentLines.push('-'+(2+Math.max(0,lateCnt-1)*4)+' Late Return'+(lateCnt>1?'s (repeated)':''));
+    if(improv>0) recentLines.push('-'+(improv*5)+' Damage/Missing');
+    if(!recentLines.length) recentLines.push('No recent activity flagged');
 
     // On-time bar color
     const barC = (s.onTime||0)>=90?'#4ade80':(s.onTime||0)>=75?'#fbbf24':'#f87171';
@@ -10669,8 +10735,8 @@ function renderStudents(filter=''){
           </div>
         </div>
         <div class="sc-rep-area">
-          <div class="sc-rep-score" style="color:${impact.color};${impact.insufficientData?'font-size:11px;':''}">${impact.insufficientData?'—':repScore}</div>
-          <div class="sc-rep-lbl">${impact.insufficientData?'Insufficient Data':'Rep Score'}</div>
+          <div class="sc-rep-score" style="color:${impact.color};">${repScore}</div>
+          <div class="sc-rep-lbl">DRI Score</div>
         </div>
       </div>
 
@@ -10729,34 +10795,21 @@ function renderStudents(filter=''){
         </div>
       </div>
 
-      <!-- ── Reputation & Discipline ── -->
+      <!-- ── DRI: Discipline & Responsibility Index (v80.26.5, simplified per spec) ── -->
       <div class="sc-rep-panel">
-        <div class="sc-rep-title">🎖️ Reputation & Discipline</div>
-        <div class="sc-rep-grid">
-          <div class="sc-rep-cell">
-            <div class="sc-rep-cell-val" style="color:#4ade80;">${excellent}</div>
-            <div class="sc-rep-cell-lbl">🏅 Excellent</div>
-          </div>
-          <div class="sc-rep-cell">
-            <div class="sc-rep-cell-val" style="color:#fbbf24;">${good_c}</div>
-            <div class="sc-rep-cell-lbl">👍 Good</div>
-          </div>
-          <div class="sc-rep-cell">
-            <div class="sc-rep-cell-val" style="color:#fb923c;">${improv}</div>
-            <div class="sc-rep-cell-lbl">⚠️ Improve</div>
-          </div>
-          <div class="sc-rep-cell">
-            <div class="sc-rep-cell-val" style="color:${penalties>0?'#f87171':'#4ade80'};">${penalties}</div>
-            <div class="sc-rep-cell-lbl">🚫 Penalties</div>
-          </div>
+        <div class="sc-rep-title">🎓 Discipline &amp; Responsibility</div>
+        <div class="sc-impact" style="margin-bottom:0;">
+          <div class="sc-impact-label">DRI Score</div>
+          <div style="font-size:20px;font-weight:900;color:${impact.color};line-height:1;">${repScore} / 100</div>
+          <div class="sc-impact-txt" style="color:${impact.color};margin-top:4px;">${impact.label}</div>
         </div>
-
-        <!-- Impact Statement -->
-        <div class="sc-impact">
-          <div class="sc-impact-label">Overall Impact</div>
-          <div class="sc-impact-txt" style="color:${impact.color};">${impact.label}</div>
-          <div style="font-size:9.5px;color:#7c8aa5;margin-top:3px;">${impact.sub}</div>
-        </div>
+        <div class="sc-dri-divider"></div>
+        <div class="sc-dri-stars-row"><span>Equipment Care</span><span class="sc-dri-stars">${driStarsHTML(carePct)}</span></div>
+        <div class="sc-dri-stars-row"><span>Return Discipline</span><span class="sc-dri-stars">${driStarsHTML(discPct)}</span></div>
+        <div class="sc-dri-stars-row" style="margin-bottom:0;"><span>Participation</span><span class="sc-dri-stars">${driStarsHTML(partPct)}</span></div>
+        <div class="sc-dri-divider"></div>
+        <div class="sc-dri-recent-lbl">Recent Activity</div>
+        ${recentLines.map(function(l){ return '<div class="sc-dri-recent-item">'+l+'</div>'; }).join('')}
       </div>
 
       <!-- ── Activity Timeline ── -->
@@ -10768,6 +10821,20 @@ function renderStudents(filter=''){
 
     </div>`;
   }).join('');
+
+  // DRI Disclaimer (v80.26.5) — mandatory on analytics reports and student
+  // profile per spec; appended once after the rendered list, so it shows once
+  // whether this is the full roster (Admin/Professor/Manager analytics view)
+  // or a single student's own record (Student profile view).
+  if(filtered.length){
+    list.innerHTML += '<div style="border:1.3px solid #E8DED0;background:#FFFDF7;border-radius:8px;padding:9px 11px;margin-top:4px;">'
+      +'<div style="font-size:9px;font-weight:800;color:#2E2E2E;letter-spacing:.3px;margin-bottom:3px;">DRI DISCLAIMER</div>'
+      +'<div style="font-size:8px;font-weight:700;color:#6B6256;line-height:1.55;">'
+      +'The Discipline &amp; Responsibility Index (DRI) is an operational conduct indicator only — it does not measure academic performance, creativity, grades, learning outcomes, or personal character. '
+      +'Scores are generated from equipment returns, punctuality, condition, and participation activity. '
+      +'It is a guidance/mentoring tool and must not be the sole basis for disciplinary action, grading, ranking, scholarships, internships, or academic evaluation — faculty review and individual circumstances must always be considered alongside it.'
+      +'</div></div>';
+  }
 
   // Trigger async discipline load for any student not yet cached
   filtered.forEach(function(s, i){
@@ -13512,6 +13579,20 @@ function _wrBuildRows(logs, totalHrs){
   return rows;
 }
 
+// ── v80.26.4: Shortened disclaimer — bold text, font-size 8, boxed.
+// Appended once at the end of every report render (single-manager AND
+// "All Managers" group reports both flow through the same _wrBuildInnerHTML
+// return value, so one insertion point covers both cases). ──
+function _wrDisclaimerHTML(){
+  return '<div style="border:1.3px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-top:16px;">'
+    +'<div style="font-size:8px;font-weight:800;color:#334155;line-height:1.55;">'
+    +'DISCLAIMER: Utilization % reflects logged work hours plus equipment throughput effort (10 min/issue, 5 min/return) against the shift target, based on actual data entered. '
+    +'It is an indicative operational metric, not a full performance measure — quality, initiative, coordination and other contextual work are not fully captured. '
+    +'Working-day counts are drawn from actual logged dates (predominantly Mon\u2013Fri, with occasional Sat/Sun entries where recorded). '
+    +'Final evaluation should include managerial review.'
+    +'</div></div>';
+}
+
 function _wrBuildInnerHTML(dateStr, managerFilter){
   var today=getISTNow();
   var pad=function(n){return n<10?'0'+n:''+n;};
@@ -13569,6 +13650,7 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
     +'<div style="font-size:11px;font-weight:800;color:#1e3a5f;margin-bottom:9px;letter-spacing:.2px;">📊 Work Utilization Framework <span style="font-size:9px;font-weight:600;color:#64748b;letter-spacing:.5px;">(Industry Standard)</span></div>'
     +'<div style="font-size:10.5px;color:#475569;margin-bottom:8px;">Introduced in workforce analytics and project management practices (widely used since the 1980s).</div>'
     +'<div style="font-size:10.5px;color:#334155;font-weight:700;margin-bottom:9px;background:#eff6ff;border-radius:7px;padding:6px 10px;font-family:monospace;">Utilization (%) = (Productive Hours ÷ Total Shift Hours) × 100</div>'
+    +'<div style="font-size:9.5px;color:#64748b;margin-bottom:9px;">Working days are counted from actual logged entries (~90% fall Mon\u2013Fri; occasional Sat/Sun entries are included as recorded, not assumed).</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">'
     +'<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:6px 9px;"><span style="font-size:9.5px;font-weight:800;color:#15803d;">75–100% &nbsp;→&nbsp; Optimal</span></div>'
     +'<div style="background:#fefce8;border:1px solid #fde68a;border-radius:7px;padding:6px 9px;"><span style="font-size:9.5px;font-weight:800;color:#854d0e;">60–75% &nbsp;→&nbsp; Moderate</span></div>'
@@ -13669,6 +13751,8 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
       +'</table>'
       +'</div>';
   });
+
+  html += _wrDisclaimerHTML();
 
   return html;
 }
