@@ -981,122 +981,122 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
    Scoped dark, document-style report UI.
    All rules prefixed .an2- so nothing else in the app is touched.
    ═══════════════════════════════════════════════════ */
-#screen-analytics.an2-screen{background:#0b0f17;margin:-14px -14px -80px;padding:14px 14px 80px;min-height:100%;}
-.an2-wrap{color:#e5e7eb;font-family:-apple-system,'Segoe UI',sans-serif;}
-.an2-deny{background:linear-gradient(135deg,#1c1308,#241a08);border:1.5px solid #92400e;border-radius:16px;padding:30px 20px;text-align:center;margin:10px 0;}
+#screen-analytics.an2-screen{background:#FFFDF7;margin:-14px -14px -80px;padding:14px 14px 80px;min-height:100%;}
+.an2-wrap{color:#2E2E2E;font-family:-apple-system,'Segoe UI',sans-serif;}
+.an2-deny{background:#FFFDF7;border:1.5px solid #D38B36;border-radius:16px;padding:30px 20px;text-align:center;margin:10px 0;}
 .an2-deny-ico{font-size:38px;margin-bottom:10px;}
-.an2-deny-title{font-size:16px;font-weight:800;color:#fbbf24;margin-bottom:8px;}
-.an2-deny-sub{font-size:12px;color:#d6a14d;line-height:1.6;}
+.an2-deny-title{font-size:16px;font-weight:800;color:#D38B36;margin-bottom:8px;}
+.an2-deny-sub{font-size:12px;color:#6B6256;line-height:1.6;}
 .an2-head{margin-bottom:14px;}
-.an2-title{font-size:20px;font-weight:900;color:#f9fafb;letter-spacing:-.3px;}
-.an2-date-live{font-size:12px;color:#9ca3af;margin-top:4px;font-weight:600;}
-.an2-date-live strong{color:#e9c46a;font-weight:800;}
-.an2-filterbar{background:#141b29;border:1px solid #232c3d;border-radius:14px;padding:14px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.an2-title{font-size:20px;font-weight:900;color:#2E2E2E;letter-spacing:-.3px;}
+.an2-date-live{font-size:12px;color:#6B6256;margin-top:4px;font-weight:600;}
+.an2-date-live strong{color:#B89B72;font-weight:800;}
+.an2-filterbar{background:#FFFFFF;border:1px solid #E8DED0;border-radius:14px;padding:14px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
 .an2-filterbar .an2-cal-ico{font-size:18px;flex-shrink:0;}
-.an2-filterbar label{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#7c8aa5;display:block;margin-bottom:4px;}
-.an2-filterbar input[type="date"]{width:100%;background:#0e1420;border:1.3px solid #2b3850;border-radius:9px;color:#f3f4f6;padding:9px 10px;font-size:13px;font-family:inherit;outline:none;color-scheme:dark;}
-.an2-filterbar input[type="date"]:focus{border-color:#c89b3c;}
-.an2-filterbar .an2-today-btn{background:#1f2937;border:1.3px solid #374151;color:#cbd5e1;font-size:11px;font-weight:700;border-radius:8px;padding:9px 11px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
-.an2-filterbar .an2-today-btn:active{background:#27344a;}
+.an2-filterbar label{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#6B6256;display:block;margin-bottom:4px;}
+.an2-filterbar input[type="date"]{width:100%;background:#FFFDF7;border:1.3px solid #E8DED0;border-radius:9px;color:#2E2E2E;padding:9px 10px;font-size:13px;font-family:inherit;outline:none;color-scheme:light;}
+.an2-filterbar input[type="date"]:focus{border-color:#B89B72;}
+.an2-filterbar .an2-today-btn{background:#FFFDF7;border:1.3px solid #E8DED0;color:#6B6256;font-size:11px;font-weight:700;border-radius:8px;padding:9px 11px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+.an2-filterbar .an2-today-btn:active{background:#F5EFE2;}
 /* Summary stat tiles — bigger values, more breathing room */
 .an2-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
 .an2-sumcard{
-  background:#141b29;border:1.5px solid #232c3d;border-radius:13px;
+  background:#FFFFFF;border:1.5px solid #E8DED0;border-radius:13px;
   padding:11px 4px;text-align:center;
   cursor:pointer;transition:transform .15s,border-color .2s,background .2s;
   -webkit-user-select:none;user-select:none;
 }
-.an2-sumcard:hover{transform:translateY(-2px);border-color:#c89b3c;background:#1a2235;}
+.an2-sumcard:hover{transform:translateY(-2px);border-color:#B89B72;background:#FFFDF7;}
 .an2-sumcard.active{
-  border:2px solid #c89b3c;
-  background:rgba(200,155,60,.12);
-  box-shadow:0 0 0 3px rgba(200,155,60,.15);
+  border:2px solid #B89B72;
+  background:rgba(184,155,114,.10);
+  box-shadow:0 0 0 3px rgba(184,155,114,.15);
 }
-.an2-sumcard.active .an2-sumlbl{color:#e9c46a !important;}
+.an2-sumcard.active .an2-sumlbl{color:#8a6d4a !important;}
 /* Reset / Show All button */
 .an2-reset-btn{
-  width:100%;background:transparent;border:1px solid #374151;
-  color:#7c8aa5;font-size:11px;font-weight:700;font-family:inherit;
+  width:100%;background:transparent;border:1px solid #E8DED0;
+  color:#6B6256;font-size:11px;font-weight:700;font-family:inherit;
   border-radius:10px;padding:8px;cursor:pointer;
   transition:all .2s;margin-bottom:12px;
   display:none;
 }
 .an2-reset-btn.visible{display:block;}
-.an2-reset-btn:hover{background:#1a2235;color:#cbd5e1;border-color:#7c8aa5;}
+.an2-reset-btn:hover{background:#FFFDF7;color:#2E2E2E;border-color:#B89B72;}
 /* Record list fade animation */
 #an2-records-list{transition:opacity .2s ease;}
 #an2-records-list.fading{opacity:0;}
-.an2-sumval{font-size:20px;font-weight:900;color:#e9c46a;font-family:monospace;line-height:1.1;}
-.an2-sumlbl{font-size:8px;color:#7c8aa5;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-top:4px;}
+.an2-sumval{font-size:20px;font-weight:900;color:#B89B72;font-family:monospace;line-height:1.1;}
+.an2-sumlbl{font-size:8px;color:#6B6256;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-top:4px;}
 /* Document container */
-.an2-doc{background:#10151f;border:1px solid #232c3d;border-radius:18px;overflow:hidden;}
-.an2-doc-hd{background:linear-gradient(135deg,#1a1106,#241806);border-bottom:1.5px solid #c89b3c;padding:18px 18px;}
+.an2-doc{background:#FFFFFF;border:1px solid #E8DED0;border-radius:18px;overflow:hidden;}
+.an2-doc-hd{background:linear-gradient(135deg,#B89B72,#8a6d4a);border-bottom:1.5px solid #8a6d4a;padding:18px 18px;}
 .an2-doc-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.2px;margin-bottom:6px;}
-.an2-doc-org{font-size:13px;font-weight:800;color:#f3e3b8;letter-spacing:.3px;}
-.an2-doc-sub{font-size:10px;color:#a98c4e;margin-top:3px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;}
-.an2-doc-meta{display:flex;justify-content:space-between;font-size:10px;color:#6b7785;margin-top:10px;border-top:1px solid #232c3d;padding-top:10px;}
-.an2-empty{padding:40px 20px;text-align:center;color:#6b7785;}
+.an2-doc-org{font-size:13px;font-weight:800;color:#FFFDF7;letter-spacing:.3px;}
+.an2-doc-sub{font-size:10px;color:#F5EFE2;margin-top:3px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;}
+.an2-doc-meta{display:flex;justify-content:space-between;font-size:10px;color:#6B6256;margin-top:10px;border-top:1px solid #E8DED0;padding-top:10px;}
+.an2-empty{padding:40px 20px;text-align:center;color:#6B6256;}
 .an2-empty-ico{font-size:34px;margin-bottom:10px;opacity:.6;}
 .an2-empty-txt{font-size:13px;line-height:1.6;}
 /* Record rows — more padding, bigger name */
-.an2-record{border-bottom:1px solid #1c2433;padding:16px 18px;}
+.an2-record{border-bottom:1px solid #E8DED0;padding:16px 18px;}
 .an2-record:last-child{border-bottom:none;}
 .an2-rec-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;}
-.an2-rec-name{font-size:15px;font-weight:800;color:#f3f4f6;}
-.an2-rec-email{font-size:11px;color:#7c8aa5;margin-top:2px;font-family:monospace;}
+.an2-rec-name{font-size:15px;font-weight:800;color:#2E2E2E;}
+.an2-rec-email{font-size:11px;color:#6B6256;margin-top:2px;font-family:monospace;}
 .an2-rec-badge{flex-shrink:0;font-size:10px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
-.an2-b-issued{background:#3a2a0e;color:#f0b84e;}
-.an2-b-returned{background:#11321c;color:#4ade80;}
-.an2-b-pending{background:#332512;color:#facc15;}
-.an2-b-approved{background:#102a3a;color:#60c0e6;}
-.an2-b-rejected{background:#3a1414;color:#f87171;}
-.an2-b-cancelled{background:#22262e;color:#9ca3af;}
+.an2-b-issued{background:#fbf1e3;color:#8a6d1f;}
+.an2-b-returned{background:#eaf3ec;color:#4F8A5B;}
+.an2-b-pending{background:#fbf1e3;color:#D38B36;}
+.an2-b-approved{background:#eef4fb;color:#3b6ea5;}
+.an2-b-rejected{background:#fbe9e6;color:#C05A4A;}
+.an2-b-cancelled{background:#F5EFE2;color:#6B6256;}
 /* Grid fields — bigger labels and values */
 .an2-rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:10px;}
 .an2-field{font-size:12px;}
-.an2-field-lbl{font-size:9.5px;color:#5f6b80;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px;}
-.an2-field-val{color:#dbe2ef;font-weight:600;line-height:1.5;font-size:12.5px;}
+.an2-field-lbl{font-size:9.5px;color:#6B6256;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px;}
+.an2-field-val{color:#2E2E2E;font-weight:600;line-height:1.5;font-size:12.5px;}
 /* Feedback block */
-.an2-rec-feedback{background:#141b29;border-left:3px solid #c89b3c;border-radius:0 8px 8px 0;padding:9px 12px;font-size:11.5px;color:#b8c2d4;line-height:1.6;margin-top:6px;}
-.an2-rec-feedback .an2-fb-lbl{font-size:9.5px;color:#a98c4e;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px;display:block;}
+.an2-rec-feedback{background:#FFFDF7;border-left:3px solid #B89B72;border-radius:0 8px 8px 0;padding:9px 12px;font-size:11.5px;color:#6B6256;line-height:1.6;margin-top:6px;}
+.an2-rec-feedback .an2-fb-lbl{font-size:9.5px;color:#8a6d4a;font-weight:800;letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px;display:block;}
 /* Actions */
 .an2-actions{display:flex;gap:8px;margin:14px 0 6px;}
-.an2-print-btn{flex:1;background:linear-gradient(135deg,#8a6a1f,#c89b3c);color:#1a1106;border:none;border-radius:12px;padding:14px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.3px;font-family:inherit;box-shadow:0 4px 16px rgba(200,155,60,.25);}
+.an2-print-btn{flex:1;background:linear-gradient(135deg,#B89B72,#8a6d4a);color:#fff;border:none;border-radius:12px;padding:14px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:.3px;font-family:inherit;box-shadow:0 4px 16px rgba(184,155,114,.3);}
 .an2-print-btn:active{transform:scale(.98);}
-.an2-foot-note{font-size:10px;color:#4b5566;text-align:center;margin-top:12px;line-height:1.7;}
+.an2-foot-note{font-size:10px;color:#6B6256;text-align:center;margin-top:12px;line-height:1.7;}
 /* ── Analytics Smart Filters v49.8 ── */
 .an2-fgroup{margin-bottom:10px;}
-.an2-flabel{font-size:9px;font-weight:800;color:#4b5566;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;}
+.an2-flabel{font-size:9px;font-weight:800;color:#6B6256;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px;}
 .an2-frow{display:flex;gap:5px;flex-wrap:wrap;}
-.an2-fchip{padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1.3px solid #232c3d;background:#141b29;color:#7c8aa5;cursor:pointer;white-space:nowrap;transition:all .18s;font-family:inherit;line-height:1.3;}
+.an2-fchip{padding:5px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1.3px solid #E8DED0;background:#FFFFFF;color:#6B6256;cursor:pointer;white-space:nowrap;transition:all .18s;font-family:inherit;line-height:1.3;}
 .an2-fchip:active{transform:scale(.95);}
-.an2-fchip.active{border-color:#7b1a1a;background:linear-gradient(135deg,#3d0000,#7b1a1a);color:#fff;box-shadow:0 2px 8px rgba(123,26,26,.35);}
+.an2-fchip.active{border-color:#B89B72;background:linear-gradient(135deg,#B89B72,#8a6d4a);color:#fff;box-shadow:0 2px 8px rgba(184,155,114,.3);}
 .an2-fchip.prog-jms.active{border-color:#3b82f6;background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 2px 8px rgba(59,130,246,.3);}
 .an2-fchip.prog-fnm.active{border-color:#22c55e;background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 2px 8px rgba(34,197,94,.3);}
 .an2-fchip.prog-ccpa.active{border-color:#eab308;background:linear-gradient(135deg,#854d0e,#eab308);color:#1a0a00;box-shadow:0 2px 8px rgba(234,179,8,.3);}
-.an2-fyear{padding:6px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1.3px solid #232c3d;background:#141b29;color:#7c8aa5;cursor:pointer;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;min-width:80px;}
-.an2-fyear:focus{border-color:#7b1a1a;color:#fff;}
+.an2-fyear{padding:6px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1.3px solid #E8DED0;background:#FFFFFF;color:#6B6256;cursor:pointer;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;min-width:80px;}
+.an2-fyear:focus{border-color:#B89B72;color:#2E2E2E;}
 /* Active filter display bar */
-.an2-active-filters{display:none;background:#0e1420;border-radius:10px;padding:7px 10px;margin-bottom:8px;font-size:10px;color:#7c8aa5;line-height:1.6;}
+.an2-active-filters{display:none;background:#FFFDF7;border-radius:10px;padding:7px 10px;margin-bottom:8px;font-size:10px;color:#6B6256;line-height:1.6;}
 .an2-active-filters.visible{display:block;}
-.an2-active-filters strong{color:#e2e8f0;}
-.an2-clear-filters{display:inline-block;margin-left:8px;color:#f87171;cursor:pointer;font-weight:700;font-size:10px;}
+.an2-active-filters strong{color:#2E2E2E;}
+.an2-clear-filters{display:inline-block;margin-left:8px;color:#C05A4A;cursor:pointer;font-weight:700;font-size:10px;}
 /* Insights panel */
-.an2-insights{background:#0e1420;border:1px solid #1e2a3d;border-radius:14px;padding:12px;margin-bottom:12px;}
-.an2-insights-title{font-size:10px;font-weight:800;color:#4b5566;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px;}
+.an2-insights{background:#FFFFFF;border:1px solid #E8DED0;border-radius:14px;padding:12px;margin-bottom:12px;}
+.an2-insights-title{font-size:10px;font-weight:800;color:#6B6256;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px;}
 .an2-ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.an2-ins-card{background:#141b29;border:1px solid #1e2a3d;border-radius:10px;padding:9px 10px;}
-.an2-ins-lbl{font-size:8.5px;font-weight:700;color:#4b5566;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
-.an2-ins-val{font-size:12px;font-weight:800;color:#e2e8f0;line-height:1.3;word-break:break-word;}
-.an2-ins-sub{font-size:9px;color:#7c8aa5;margin-top:2px;}
+.an2-ins-card{background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:9px 10px;}
+.an2-ins-lbl{font-size:8.5px;font-weight:700;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.an2-ins-val{font-size:12px;font-weight:800;color:#2E2E2E;line-height:1.3;word-break:break-word;}
+.an2-ins-sub{font-size:9px;color:#6B6256;margin-top:2px;}
 /* Utilization bar */
-.an2-util-bar-wrap{background:#1e2532;border-radius:6px;height:6px;margin-top:5px;overflow:hidden;}
-.an2-util-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,#7b1a1a,#f59e0b);transition:width .4s ease;}
+.an2-util-bar-wrap{background:#E8DED0;border-radius:6px;height:6px;margin-top:5px;overflow:hidden;}
+.an2-util-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,#B89B72,#D38B36);transition:width .4s ease;}
 /* Metrics strip */
 .an2-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px;}
-.an2-met-card{background:#0e1420;border:1px solid #1e2a3d;border-radius:10px;padding:8px;text-align:center;}
-.an2-met-val{font-size:15px;font-weight:900;color:#facc15;}
-.an2-met-lbl{font-size:8px;font-weight:700;color:#4b5566;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;line-height:1.3;}
+.an2-met-card{background:#FFFFFF;border:1px solid #E8DED0;border-radius:10px;padding:8px;text-align:center;}
+.an2-met-val{font-size:15px;font-weight:900;color:#B89B72;}
+.an2-met-lbl{font-size:8px;font-weight:700;color:#6B6256;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;line-height:1.3;}
 
 /* Print-only summary row inside the printable doc header — inverse of
    .an2-noprint: invisible on screen, shown only inside @media print below. */
@@ -2438,9 +2438,9 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <!-- Calendar date filter — Single Day / Date Range toggle (v49.7) -->
           <div class="an2-noprint" style="margin-bottom:8px;">
             <!-- Mode toggle -->
-            <div style="display:flex;background:#1e2532;border-radius:10px;padding:3px;margin-bottom:8px;">
-              <button id="an2-mode-single" onclick="an2SetMode('single')" style="flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#7b1a1a;color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:all .2s;">📅 Single Day</button>
-              <button id="an2-mode-range"  onclick="an2SetMode('range')"  style="flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:transparent;color:#7c8aa5;transition:all .2s;">📆 Date Range</button>
+            <div style="display:flex;background:#F5EFE2;border-radius:10px;padding:3px;margin-bottom:8px;">
+              <button id="an2-mode-single" onclick="an2SetMode('single')" style="flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:#B89B72;color:#fff;box-shadow:0 1px 4px rgba(184,155,114,.3);transition:all .2s;">📅 Single Day</button>
+              <button id="an2-mode-range"  onclick="an2SetMode('range')"  style="flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;border:none;cursor:pointer;font-family:inherit;background:transparent;color:#6B6256;transition:all .2s;">📆 Date Range</button>
             </div>
             <!-- Single Day panel -->
             <div id="an2-panel-single" class="an2-filterbar" style="margin-bottom:0;">
@@ -2452,23 +2452,23 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
               <button class="an2-today-btn" onclick="setAnalyticsDateToday()">Today</button>
             </div>
             <!-- Date Range panel -->
-            <div id="an2-panel-range" style="display:none;background:#1e2532;border-radius:12px;padding:10px 12px;">
-              <div style="font-size:9.5px;font-weight:700;color:#7c8aa5;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">SELECT DATE RANGE</div>
+            <div id="an2-panel-range" style="display:none;background:#FFFDF7;border:1px solid #E8DED0;border-radius:12px;padding:10px 12px;">
+              <div style="font-size:9.5px;font-weight:700;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">SELECT DATE RANGE</div>
               <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
                 <div style="flex:1;">
-                  <div style="font-size:9px;color:#7c8aa5;margin-bottom:3px;font-weight:600;">FROM</div>
-                  <input type="date" id="an2-range-from" style="width:100%;padding:8px 10px;border:1.5px solid #2d3748;border-radius:8px;font-size:11.5px;color:#e2e8f0;background:#111827;outline:none;font-family:inherit;" aria-label="Range from date"/>
+                  <div style="font-size:9px;color:#6B6256;margin-bottom:3px;font-weight:600;">FROM</div>
+                  <input type="date" id="an2-range-from" style="width:100%;padding:8px 10px;border:1.5px solid #E8DED0;border-radius:8px;font-size:11.5px;color:#2E2E2E;background:#FFFFFF;outline:none;font-family:inherit;color-scheme:light;" aria-label="Range from date"/>
                 </div>
-                <div style="color:#7c8aa5;font-size:13px;margin-top:14px;">→</div>
+                <div style="color:#6B6256;font-size:13px;margin-top:14px;">→</div>
                 <div style="flex:1;">
-                  <div style="font-size:9px;color:#7c8aa5;margin-bottom:3px;font-weight:600;">TO</div>
-                  <input type="date" id="an2-range-to" style="width:100%;padding:8px 10px;border:1.5px solid #2d3748;border-radius:8px;font-size:11.5px;color:#e2e8f0;background:#111827;outline:none;font-family:inherit;" aria-label="Range to date"/>
+                  <div style="font-size:9px;color:#6B6256;margin-bottom:3px;font-weight:600;">TO</div>
+                  <input type="date" id="an2-range-to" style="width:100%;padding:8px 10px;border:1.5px solid #E8DED0;border-radius:8px;font-size:11.5px;color:#2E2E2E;background:#FFFFFF;outline:none;font-family:inherit;color-scheme:light;" aria-label="Range to date"/>
                 </div>
               </div>
               <div style="display:flex;gap:6px;">
-                <button onclick="an2ApplyRange()" style="flex:1;padding:8px;background:linear-gradient(135deg,#5c0000,#7b1a1a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">Apply Range</button>
-                <button onclick="an2RangePreset(7)"  style="padding:8px 10px;background:#2d3748;color:#a5b4fc;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">7D</button>
-                <button onclick="an2RangePreset(30)" style="padding:8px 10px;background:#2d3748;color:#a5b4fc;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">30D</button>
+                <button onclick="an2ApplyRange()" style="flex:1;padding:8px;background:linear-gradient(135deg,#B89B72,#8a6d4a);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">Apply Range</button>
+                <button onclick="an2RangePreset(7)"  style="padding:8px 10px;background:#F5EFE2;color:#8a6d4a;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">7D</button>
+                <button onclick="an2RangePreset(30)" style="padding:8px 10px;background:#F5EFE2;color:#8a6d4a;border:none;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;">30D</button>
               </div>
             </div>
           </div>
@@ -2648,7 +2648,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.26.5</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.26.7</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -2923,6 +2923,10 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 
         <!-- ── SECTION DIVIDER ── -->
         <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.22</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.7 &middot; &#128100; Assignment Tags &#8594; Approving Professor Auto-Assignment</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>New:</strong> Admin ▸ Assignments ▸ Create Assignment Tag now has an \u201cApproving Professor\u201d dropdown (populated from the same <code>adminData.professors</code> roster the booking screen\u2019s Approving Professor picker already reads), optional \u2014 defaults to \u201cNo auto-assignment.\u201d Saved on the tag as <code>approvingProf</code>, shown on each tag\u2019s row in the Admin list (\u201c\u{1F464} Approves: Prof. X\u201d) alongside the existing Active/Deactivated status. <strong>Connected on the booking side:</strong> <code>selectAsgnTag()</code> \u2014 already the single place a student\u2019s tag chip selection is handled \u2014 now checks the selected tag\u2019s <code>approvingProf</code> and, if set and that professor still exists in the live roster, calls the existing <code>ppSelect()</code> (the same function the professor-search picker itself calls) to auto-fill the Approving Professor field, with a toast confirming which professor was auto-set and for which tag. This is a pre-fill, not a hard lock \u2014 the student can still reopen the picker and choose someone else if the assigned professor is genuinely unavailable; locking it outright is a follow-up if that turns out to be needed. <strong>Supabase, same fail-safe pattern as v75.3\u2019s tag sync:</strong> <code>approving_prof</code> is included in the <code>addSupaAssignmentTag()</code> payload and read back in <code>mergeSupaTagsIntoAdminData()</code>; on an unmigrated install (no <code>approving_prof</code> column yet) the Supabase write fails exactly like any other missing-column case already handled, and falls back to local-only \u2014 the professor assignment still saves and works for that session, tag creation is never blocked. <strong>Migration required for cross-device sync:</strong> <code>ALTER TABLE assignment_tags ADD COLUMN approving_prof text;</code> \u2014 until run, the assignment persists locally on the device that created the tag but won\u2019t sync to others, same caveat v75.3 documented for the rest of this table. <strong>Untouched:</strong> tag color/label/numbers/allotted-hours logic, <code>admToggleAssignmentTag()</code>/<code>admDeleteAssignmentTag()</code>, the professor picker\u2019s own search/list UI, and every other booking-form field.</div></div>
+              
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #B89B72;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.6 &middot; &#127912; Analytics Module Restyled to DRI Palette (UI/Theme Only)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Surgical, theme-only:</strong> no filter logic, data fetching, calculations, or record structure were touched \u2014 every edit in this pass is a color/background/border swap. <strong>Root cause:</strong> the Analytics screen's entire <code>.an2-*</code> CSS block (~115 rules \u2014 page background, filter bar, summary tiles, document header, record rows, status badges, feedback blocks, smart-filter chips, insights panel, metrics strip) was still on the pre-DRI dark-navy theme (#0b0f17 background, #141b29 cards, #7c8aa5 muted text, #c89b3c/#e9c46a gold accents), while v80.26.5 moved the Discipline module to a bright cream/academic palette \u2014 the resulting light-on-dark vs dark-on-light mismatch was the visibility complaint. <strong>Fix:</strong> every <code>.an2-*</code> rule remapped to the same DRI tokens (#FFFDF7 background / #FFFFFF cards / #E8DED0 borders / #B89B72 accent / #2E2E2E primary text / #6B6256 secondary text / #4F8A5B success / #D38B36 warning / #C05A4A attention), covering the filter bar, date inputs, Today button, summary stat tiles, Reset button, document header + record cards, status badges (Issued/Returned/Pending/Approved/Rejected/Cancelled), field labels/values, feedback callouts, the Print button, Smart Filter chips + Batch Year dropdown, the active-filters bar, the Insights panel, and the Metrics strip. <strong>Also caught and fixed</strong> (same dark theme, just outside the shared CSS block so a plain CSS pass would have missed them): the Single Day / Date Range mode-toggle tabs and their JS-driven active-state colors in <code>an2SetMode()</code>, the custom Date Range panel (background, both date inputs, Apply/7D/30D buttons), and the per-record header block built in <code>an2BuildRecordHTML()</code> (student name/ID/programme text, the canonical-record box background, and the Issue/Return tracking-number color pair) \u2014 all were hardcoded inline dark-theme hex values independent of the CSS classes, now matching the same palette. <strong>Program-color chips</strong> (JMS blue / FNM green / CCPA yellow, used for at-a-glance program identification) were deliberately left as-is \u2014 they're informational color-coding, not part of the dark/light theme, and read fine on either background. <strong>Untouched:</strong> <code>renderAnalytics()</code>, <code>an2ApplyFilters()</code>, <code>an2BuildRecordHTML()</code>'s data logic, <code>canonicalRecordHTML()</code>/<code>pipelineRecordHTML()</code> (shared with other stakeholder views \u2014 left alone since restyling those would ripple into screens outside this request's scope), all Supabase queries, and every non-Analytics screen.</div></div>
+              
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #B89B72;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.5 &middot; &#127891; Student Monitoring &amp; Discipline &#8594; Discipline &amp; Responsibility Index (DRI)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Transform, not replace:</strong> every retained feature from the request \u2014 name/ID search, Programme/Section/Batch Year filters, Sorting Options, Student Profile view, Manager Activity Log, return history, damage reports, late-return tracking, equipment usage history \u2014 is untouched in its underlying data path; only the module name, scoring model, card layout, filter set, and color palette changed. <strong>Renamed</strong> \u201cStudent Monitoring &amp; Discipline\u201d &#8594; \u201cDiscipline &amp; Responsibility Index (DRI)\u201d with the requested subtitle, on both the static header and the two dynamic header states (roster view / single-student \u201cMy DRI Report\u201d view). <strong>Scoring model rewritten</strong> in <code>stuImpactStatement()</code>: replaced v75\u2019s Base-50 \u201cno floor\u201d formula with the requested DRI model \u2014 Base 85, On-Time Return +1, Good Equipment Condition +1, Active Practice Participation +1 (each capped +10), Late Return -2 / Repeated Late Return -4 per additional, clamped 0-100 via a new <code>driBand()</code> helper (95-100 Excellent / 85-94 Good Standing / 70-84 Monitor / 50-69 Attention Required / 0-49 Review Required). <strong>Explicit, flagged limitation:</strong> the existing discipline data source tracks one aggregate \u201cimprovCount\u201d for missing/damaged/technical/software/hardware/performance issues \u2014 it cannot yet distinguish Minor Damage (-5) from Missing Item (-10) or Equipment Misuse (-10), so all three currently score as a single -5 bucket until the booking-remarks schema is extended to record which occurred; Faculty Recognition (+2) has no data source anywhere in the app yet and always contributes 0 rather than being fabricated. Both gaps are commented in the code, not silently guessed at. <strong>Card simplified</strong> per spec: DRI Score / Band replaces the old 4-cell Excellent/Good/Improve/Penalties breakdown; new Equipment Care / Return Discipline / Participation star ratings (<code>driStarsHTML()</code>, 0-5 stars from a 0-100% measure); Recent Activity shows up to 2 derived delta lines. Resource Usage Tiles, KPI strip and Manager Activity Log timeline are unchanged, per \u201cdo not remove existing functionality.\u201d <strong>New DRI Status filter row</strong> added alongside (not replacing) the existing Sort row \u2014 5 chips (Excellent/Good Standing/Monitor/Attention Required/Review Required) wired to a new <code>scSetStatus()</code> and <code>window._scState.status</code>, filtering on the same <code>driBand()</code> the score/label already use; existing Sort, Programme, Section and Batch Year filters are untouched, only the two Sort button labels were reworded (\u201cHigh Performers\u201d/\u201cNeeds Attention\u201d &#8594; \u201cHighest DRI\u201d/\u201cLowest DRI\u201d) with identical underlying sort keys. <strong>Palette re-themed</strong> across every <code>.sc-*</code> card/CSS class (previously a dark navy \u201cgaming\u201d theme) to the requested cream/white academic palette (#FFFDF7 background, #FFFFFF cards, #E8DED0 borders, #B89B72 accent, #2E2E2E/#6B6256 text, #4F8A5B/#D38B36/#C05A4A status colors) \u2014 this is the same screen the spec\u2019s \u201cAnalytics Page Redesign\u201d refers to (there is no separate Student Analytics screen in this app; Student Monitoring itself is the analytics view), so the re-theme was applied here rather than left unaddressed. <strong>DRI Disclaimer</strong> added \u2014 shortened, bold, boxed, appended once after the rendered list, showing on both the full roster (Admin/Professor/Manager) and single-student (Student\u2019s own \u201cMy DRI Report\u201d) views, matching the \u201cdisplay on analytics reports and student profile\u201d requirement given this app has no separate profile screen from the card list. <strong>Untouched:</strong> <code>loadStudentDiscipline()</code>\u2019s Supabase fetch/parsing, booking pipeline, discipline flag logic (<code>s.flagged</code>/<code>s.warn</code>), Manager Activity Log timeline rendering, and every other screen/role in the app.</div></div>
               
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0d9488;"><div style="font-size:10px;font-weight:800;color:#0d9488;margin-bottom:3px;">v80.26.4 &middot; &#128203; Utilization + Throughput Model \u2014 Working-Days Basis &amp; Shortened Disclaimer</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Working-days basis clarified:</strong> the Work Report's Utilization Framework card now states explicitly that working-day counts are drawn from actual logged entries (predominantly Mon\u2013Fri, with occasional Sat/Sun entries included exactly as recorded, not assumed on a fixed weekday calendar) \u2014 matches how the underlying data is actually entered, where roughly 90% of logs land Mon\u2013Fri and a small minority land on weekends. <strong>Disclaimer shortened, boxed, and made mandatory on every report:</strong> replaced with a condensed bold notice (font-size 8px) in a bordered box, covering utilization methodology, the throughput minute-values, and the managerial-review caveat in four short lines. Appended once at the end of <code>_wrBuildInnerHTML()</code>'s return value \u2014 the single function both the individual-manager and \"All Managers\" group report paths render through \u2014 so it appears at the close of every report, individual or group, with no per-block duplication. <strong>Untouched:</strong> utilization math, equipment throughput minute-values (10 min issue / 5 min return), activity breakdown table, efficiency scoring, PDF/print pipelines.</div></div>
@@ -7431,6 +7435,21 @@ function selectAsgnTag(id, el){
   // Re-render so unselected/selected styles refresh consistently
   renderAsgnTagChips((document.getElementById('asgn-tag-search')||{}).value || '');
   asgnUpdateCFSummary();
+
+  // v80.26.7: auto-fill the Approving Professor field from the tag's
+  // admin-assigned professor (Admin ▸ Assignments ▸ Approving Professor),
+  // so a student booking under a tagged assignment routes to the correct
+  // professor without having to know who owns that assignment. Still just
+  // a pre-fill, not a lock — the student can reopen the Approving Professor
+  // picker and choose someone else if the assigned professor is unavailable.
+  if(tag.approvingProf){
+    var profSelectEl = document.getElementById('prof-select');
+    var profExists = profSelectEl && Array.from(profSelectEl.options).some(function(o){ return o.value === tag.approvingProf; });
+    if(profExists && typeof ppSelect === 'function'){
+      ppSelect(tag.approvingProf);
+      toast('👤 Approving Professor auto-set to ' + tag.approvingProf + ' for #' + tag.label);
+    }
+  }
 }
 window.selectAsgnTag = selectAsgnTag;
 
@@ -9141,7 +9160,7 @@ function an2BuildRecordHTML(b){
   var privacyID  = tn.value;
   var privacyIcon = (tn.label==='Return No.') ? '📦' : (tn.label==='Issue No.') ? '🚀' : '📘';
   var privacyLbl = privacyIcon + ' ' + tn.label;
-  var privacyClr = isIssued ? '#4ade80' : '#e9c46a';
+  var privacyClr = isIssued ? '#4F8A5B' : '#B89B72';
 
   // ── V71.10: Brief 1 Analytics Redesign — General Transaction Summary + Resource Usage boxes ──
   function fld(lbl, val){ return '<div class="an2-field"><div class="an2-field-lbl">'+lbl+'</div><div class="an2-field-val">'+(val||'—')+'</div></div>'; }
@@ -9163,7 +9182,7 @@ function an2BuildRecordHTML(b){
   // is now the single source of operational truth for dates/actors/durations —
   // no duplicate Booking/Approval/Issue/Return date fields are re-derived here.
   var canonicalBox =
-    '<div class="an2-canonical-box" style="background:#141b29;border:1px solid #232c3d;border-radius:10px;padding:11px 12px;margin-bottom:10px;color:#e5e9f0;">'+
+    '<div class="an2-canonical-box" style="background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:11px 12px;margin-bottom:10px;color:#2E2E2E;">'+
       canonicalRecordHTML(b)+
       requisitionTypeBadgeHTML(b)+overAllottedBadgeHTML(b)+
       descriptionBoxesHTML(b)+
@@ -9178,17 +9197,17 @@ function an2BuildRecordHTML(b){
     '<div class="an2-record">'+
       '<div class="an2-rec-hd">'+
         '<div style="flex:1;">'+
-          '<div style="font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:2px;">👤 '+studentName+'</div>'+
-          '<div style="font-size:10.5px;color:#94a3b8;margin-bottom:1px;">🆔 '+studentId+'</div>'+
-          '<div style="font-size:10px;color:#7c8aa5;margin-bottom:1px;">🏫 '+(b.prog||'—')+(b.batch?' &middot; Batch/Sem '+b.batch:'')+'</div>'+
-          '<div style="display:inline-block;background:rgba(0,0,0,.25);border-radius:6px;padding:2px 8px;">'+
-            '<span style="font-size:9.5px;color:#94a3b8;font-weight:600;letter-spacing:.3px;">'+privacyLbl+'</span>'+
+          '<div style="font-size:13px;font-weight:800;color:#2E2E2E;margin-bottom:2px;">👤 '+studentName+'</div>'+
+          '<div style="font-size:10.5px;color:#6B6256;margin-bottom:1px;">🆔 '+studentId+'</div>'+
+          '<div style="font-size:10px;color:#6B6256;margin-bottom:1px;">🏫 '+(b.prog||'—')+(b.batch?' &middot; Batch/Sem '+b.batch:'')+'</div>'+
+          '<div style="display:inline-block;background:#F5EFE2;border-radius:6px;padding:2px 8px;">'+
+            '<span style="font-size:9.5px;color:#6B6256;font-weight:600;letter-spacing:.3px;">'+privacyLbl+'</span>'+
             '<span style="font-size:10px;font-family:monospace;color:'+privacyClr+';font-weight:800;margin-left:5px;">'+privacyID+'</span>'+
           '</div>'+
         '</div>'+
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+
           an2StatusBadge(b.status)+
-          weatherSnapshotStampHTML(b, {dark:true})+
+          weatherSnapshotStampHTML(b, {dark:false})+
         '</div>'+
       '</div>'+
       canonicalBox+
@@ -9318,16 +9337,16 @@ function an2SetMode(mode){
   var liveLbl   = document.getElementById('an2-date-live');
 
   if(mode === 'single'){
-    if(btnSingle){ btnSingle.style.background='#7b1a1a'; btnSingle.style.color='#fff'; btnSingle.style.boxShadow='0 1px 4px rgba(0,0,0,.3)'; }
-    if(btnRange) { btnRange.style.background='transparent'; btnRange.style.color='#7c8aa5'; btnRange.style.boxShadow='none'; }
+    if(btnSingle){ btnSingle.style.background='#B89B72'; btnSingle.style.color='#fff'; btnSingle.style.boxShadow='0 1px 4px rgba(184,155,114,.3)'; }
+    if(btnRange) { btnRange.style.background='transparent'; btnRange.style.color='#6B6256'; btnRange.style.boxShadow='none'; }
     if(panSingle) panSingle.style.display='';
     if(panRange)  panRange.style.display='none';
     // Re-render for current single date
     var picker = document.getElementById('an2-date-picker');
     if(picker && picker.value) renderAnalyticsByDate(picker.value);
   } else {
-    if(btnRange) { btnRange.style.background='#7b1a1a'; btnRange.style.color='#fff'; btnRange.style.boxShadow='0 1px 4px rgba(0,0,0,.3)'; }
-    if(btnSingle){ btnSingle.style.background='transparent'; btnSingle.style.color='#7c8aa5'; btnSingle.style.boxShadow='none'; }
+    if(btnRange) { btnRange.style.background='#B89B72'; btnRange.style.color='#fff'; btnRange.style.boxShadow='0 1px 4px rgba(184,155,114,.3)'; }
+    if(btnSingle){ btnSingle.style.background='transparent'; btnSingle.style.color='#6B6256'; btnSingle.style.boxShadow='none'; }
     if(panSingle) panSingle.style.display='none';
     if(panRange)  panRange.style.display='';
     // Pre-fill range defaults to last 7 days
@@ -12671,6 +12690,12 @@ function renderAdminAssignments(){
       ${colorOpts.map(function(c){ return '<option value="'+c+'">'+(TAG_COLOR_NAMES[c]||c)+'</option>'; }).join('')}
     </select>
     <div id="adm-tag-color-preview" style="display:flex;align-items:center;gap:6px;font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;"><span style="width:12px;height:12px;border-radius:50%;background:#6366f1;display:inline-block;"></span> Tag will appear in this color</div>
+    <label class="flabel" style="margin-top:0;">Approving Professor</label>
+    <select class="fselect" id="adm-tag-prof" aria-label="Approving Professor for this tag">
+      <option value="">— No auto-assignment (student picks any professor) —</option>
+      ${(adminData.professors||[]).map(function(p){ return '<option value="'+p.name+'">'+p.name+'</option>'; }).join('')}
+    </select>
+    <div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Student's Approving Professor field auto-fills with this professor when they pick this tag.</div>
     <div style="font-size:10px;font-weight:700;color:#6b7280;margin:6px 0 4px;">Available under — check a box and set its Allotted Hours for this assignment:</div>
     <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
       ${[1,2,3].map(function(n){ return `
@@ -12693,7 +12718,7 @@ function renderAdminAssignments(){
       <div class="adm-item-hd">
         <div>
           <div class="adm-item-name"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:${t.color}22;color:${t.color};border:1px solid ${t.color};">#${t.label}</span> <span style="font-size:9px;color:#9ca3af;">${TAG_COLOR_NAMES[t.color]||''}</span></div>
-          <div class="adm-item-sub">Assignment: ${nums} · <span style="color:${t.active?'#16a34a':'#6b7280'}">${t.active?'Active':'Deactivated'}</span></div>
+          <div class="adm-item-sub">Assignment: ${nums} · <span style="color:${t.active?'#16a34a':'#6b7280'}">${t.active?'Active':'Deactivated'}</span>${t.approvingProf ? ' · 👤 Approves: <strong>'+t.approvingProf+'</strong>' : ''}</div>
         </div>
         <div style="display:flex;gap:6px;">
           <button class="adm-del-btn" style="background:${t.active?'#fef3c7':'#dcfce7'};color:${t.active?'#d97706':'#16a34a'};" onclick="admToggleAssignmentTag(${i})">${t.active?'⏸ Deactivate':'▶ Activate'}</button>
@@ -12799,6 +12824,10 @@ async function admAddAssignmentTag(){
   const raw = document.getElementById('adm-tag-label').value.trim();
   const label = raw.replace(/^#/,'').replace(/\s+/g,'');
   const color = document.getElementById('adm-tag-color').value;
+  // v80.26.7: which professor is auto-assigned to approve requests booked
+  // under this tag — see selectAsgnTag() on the booking side for the
+  // consuming half of this wiring.
+  const approvingProf = (document.getElementById('adm-tag-prof')||{}).value || '';
   // V80.23: numbers now carry an Allotted Hours figure per assignment number,
   // not just which numbers apply — this is what the requisition-hours check
   // in asgnUpdateCFSummary() compares a student's running total against.
@@ -12816,8 +12845,13 @@ async function admAddAssignmentTag(){
   // not syncing across devices/students. Falls back to local-only (old
   // behaviour) if the assignment_tags table hasn't been migrated yet, so this
   // never blocks Admin from working on an unmigrated install.
+  // v80.26.7: approvingProf is included in the Supabase payload too — if the
+  // assignment_tags table doesn't have an approving_prof column yet, this
+  // POST will fail exactly like any other missing-column case already
+  // handled below, and the tag falls back to local-only (with the professor
+  // assignment still saved locally) rather than blocking tag creation.
   var saved = (typeof window.addSupaAssignmentTag==='function')
-    ? await window.addSupaAssignmentTag({ label:label, color:color, active:true, numbers:numbers })
+    ? await window.addSupaAssignmentTag({ label:label, color:color, active:true, numbers:numbers, approving_prof:approvingProf||null })
     : false;
 
   // V80.5 FIX: root cause of "updated tags from Supabase rows not visible" —
@@ -12829,12 +12863,12 @@ async function admAddAssignmentTag(){
   // reload happened to re-run mergeSupaTagsIntoAdminData(). Now both paths
   // update local state so the UI reflects the change immediately either way.
   if(saved){
-    var newTag = (saved && saved.id) ? { id:saved.id, supa_id:saved.id, label:label, color:color, active:true, numbers:numbers } : { id:(adminData.assignmentTags.reduce(function(m,t){ return Math.max(m,t.id); },0))+1, label:label, color:color, active:true, numbers:numbers };
+    var newTag = (saved && saved.id) ? { id:saved.id, supa_id:saved.id, label:label, color:color, active:true, numbers:numbers, approvingProf:approvingProf } : { id:(adminData.assignmentTags.reduce(function(m,t){ return Math.max(m,t.id); },0))+1, label:label, color:color, active:true, numbers:numbers, approvingProf:approvingProf };
     adminData.assignmentTags.push(newTag);
     toast('✅ Assignment tag added: #'+label+' — synced to Supabase');
   } else {
     const id = (adminData.assignmentTags.reduce(function(m,t){ return Math.max(m,t.id); },0)) + 1;
-    adminData.assignmentTags.push({id:id,label:label,color:color,active:true,numbers:numbers});
+    adminData.assignmentTags.push({id:id,label:label,color:color,active:true,numbers:numbers,approvingProf:approvingProf});
     saveAdminData();
     toast('⚠️ Tag added locally only — Supabase sync unavailable (run the assignment_tags migration to fix this)');
   }
@@ -17843,7 +17877,8 @@ function mergeSupaTagsIntoAdminData() {
         label    : r.label || '',
         color    : r.color || '#6366f1',
         active   : r.active !== false,
-        numbers  : Array.isArray(r.numbers) ? r.numbers : []
+        numbers  : Array.isArray(r.numbers) ? r.numbers : [],
+        approvingProf : r.approving_prof || ''
       };
     }).filter(function(t){ return t.label; });
     adminData.assignmentTags = replaced;
