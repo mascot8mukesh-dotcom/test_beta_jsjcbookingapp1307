@@ -125,6 +125,16 @@ Before writing any code in this file, re-read this note once. That's it.
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(ellipse at 20% 60%,rgba(123,26,26,.15),transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(37,99,235,.1),transparent 50%);}
 .device{width:375px;height:812px;max-height:100vh;max-height:100dvh;background:#f5f5f7;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7);display:flex;flex-direction:column;}
+/* v80.32: Mobile/Desktop view-mode toggle, chosen from the login screen.
+   Independent of actual screen size — lets someone on a real desktop force
+   the phone-frame preview, or someone on a real phone force the wide
+   desktop layout, and remembers the choice (localStorage: jsjc_view_mode).
+   Default (no class on body) = automatic/responsive, exactly as before —
+   this is purely additive and changes nothing unless explicitly toggled. */
+body.force-mobile-view{align-items:stretch!important;justify-content:stretch!important;padding:0!important;}
+body.force-mobile-view .device{width:390px!important;height:844px!important;max-height:844px!important;border-radius:44px!important;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7)!important;flex:none!important;}
+body.force-desktop-view{align-items:center!important;justify-content:center!important;padding:24px!important;}
+body.force-desktop-view .device{width:min(900px,94vw)!important;height:min(900px,92vh)!important;max-height:92vh!important;border-radius:20px!important;box-shadow:0 0 0 1px #2d2d3e,0 20px 60px rgba(0,0,0,.5)!important;flex:none!important;}
 /* v80.3 MOBILE VIEWPORT BOTTOM-CLIPPING FIX — ROOT CAUSE:
    Every full-height rule here (body, .device, and the two breakpoints below)
    was locked to 100vh — including inside the mobile breakpoint that makes
@@ -1384,6 +1394,10 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <span class="lic">🎚️</span>
           <span class="lic">💡</span>
         </div>
+        <div id="login-view-toggle" style="display:flex;justify-content:center;gap:6px;margin-top:10px;">
+          <button type="button" class="login-view-btn" id="login-view-btn-mobile" onclick="setAppViewMode('mobile')" title="Mobile view" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">📱 Mobile</button>
+          <button type="button" class="login-view-btn" id="login-view-btn-desktop" onclick="setAppViewMode('desktop')" title="Desktop view" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">🖥️ Desktop</button>
+        </div>
       </div>
       <div class="login-body">
         <div class="sec-lbl" style="margin-top:4px;" id="login-title-tap" onclick="(function(){window._tapCount=(window._tapCount||0)+1;if(window._tapCount>=3){window._tapCount=0;console.table(adminData.managers.map(function(m){return{name:m.name,email:m.email,pin:m.pin,role:'Manager'};}));console.table(adminData.professors.map(function(p){return{name:p.name,email:p.email,pin:p.pin,role:'Professor'};}));console.table((window.allStudents?window.allStudents():adminData.students).map(function(s){return{name:s.name,email:s.email,pin:s.pin,role:'Student'};}));toast('📋 All credentials logged to console');}})();">Sign in to your account</div>
@@ -2195,6 +2209,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div class="num-row"><input class="num-inp" id="eq-issued" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces issued this shift"/><span class="num-hint">pieces issued this shift</span></div>
           <label class="flabel">Equipment Returned</label>
           <div class="num-row"><input class="num-inp" id="eq-returned" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces returned this shift"/><span class="num-hint">pieces returned this shift</span></div>
+          <div id="eq-autofill-hint" style="font-size:9.5px;color:#0891b2;margin:2px 0 4px;"></div>
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:11.5px;color:#374151;display:flex;justify-content:space-between;margin-top:4px;">
             <span>Calculated Time</span><strong id="equipment-fixed-preview" style="font-family:monospace;">0 hrs 0 mins</strong>
           </div>
@@ -2648,7 +2663,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.28</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.34</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3481,6 +3496,13 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.34 &middot; &#128230; Equipment Issued/Returned Now Auto-Filled From Real Booking Data</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Asked:</strong> can each manager's actual equipment issuing/receiving numbers forward directly into the Work Report's Equipment Issuing blanks, instead of being manually typed. <strong>Confirmed possible and worth doing:</strong> those two fields (<code>#eq-issued</code>/<code>#eq-returned</code>) were pure manual-entry blanks — the manager had to count, by memory or by scrolling back through their day, a number the app already tracks precisely on every booking (<code>issuedBy</code>/<code>issuedAt</code>, <code>receivedBy</code>/<code>returnedAt</code>). <strong>Fix:</strong> new <code>autofillEquipmentCounts()</code>, called the moment "📦 Equipment Issuing" is selected as the activity type — counts every booking in <code>S.bookings</code> where <code>issuedBy</code>/<code>receivedBy</code> matches the current manager's name AND the timestamp's date matches the selected Shift Date, and pre-fills both blanks with those real counts (Calculated Time preview updates automatically to match). A small status line under the fields confirms what was auto-filled and from which date, or says plainly when nothing was found for that manager/date so it's never mistaken for a silent zero. <strong>Deliberately still editable, not locked:</strong> a manager who handled something off-app, or needs to correct a count, can still type over the auto-filled value — this replaces re-typing-from-memory with a verified starting point, not a forced value that could itself be wrong if the underlying booking data has a gap. <strong>Scope:</strong> touches only the Equipment Issuing block's two input fields at the moment they become visible — no change to how <code>recordActivity()</code>/<code>submitLog()</code> consume those values afterward, the fixed 10-min/5-min time calculation, or any other activity type.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.33 &middot; &#128337; Cancelled Timestamp Missing From Process Timeline — Root Cause Fixed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Cancelled bookings weren't showing a timestamp on the Process Timeline. <strong>Investigation:</strong> confirmed <code>pipelineRecordHTML()</code>'s Cancelled row (added v78) genuinely does render <code>b.cancelledAt</code> when present, and <code>b.cancelledAt</code> genuinely does get written on the <code>cancelBooking()</code> path (student self-cancel, line ~6443) and PATCHed to Supabase via <code>rejectBooking()</code>'s shared <code>cancelled_at</code> column — that route was already correct. <strong>Actual root cause, found in the Manager Operations Desk's direct-cancel path</strong> (<code>setKS()</code>'s <code>'cancelled'</code> branch): it wrote <code>b.cancelledAt</code> with a real timestamp, but never set <code>b.status</code> to <code>'cancelled'</code> — and the Cancelled row is deliberately gated on <code>b.status==='cancelled'</code> (v78's fix for history-preservation depends on that exact status check). So a Manager cancelling a booking directly from their desk produced a booking with a correct, real cancellation timestamp that the Timeline had no way to know it should display — the row was skipped entirely, not just missing its time. <strong>Fix:</strong> one line — that branch now sets <code>b.status = 'cancelled'; b.ks = 'cancelled';</code> alongside the timestamp, matching what <code>cancelBooking()</code> already does. <strong>Scope:</strong> this only affects bookings cancelled directly from the Manager desk going forward — Supabase already had the correct <code>cancelled_at</code> value for every past cancellation via this path (it was written locally and reaches <code>rejectBooking()</code>'s PATCH separately), so once this version is deployed, past cancellations through this specific path should also start showing their timestamp correctly on next render, no data migration needed.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.32 &middot; &#128241; Mobile / Desktop View Toggle — Login Screen</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> the mobile/desktop toggle only existed in the separate Platform Control dashboard tool — nothing equivalent existed in the JSJC app itself, and Mukesh wanted one on the login screen next to the existing resource-type icons. <strong>Shipped:</strong> two small buttons ("📱 Mobile" / "🖥️ Desktop") under the login-screen icon row, calling <code>setAppViewMode()</code>. Implementation is a pure body-class swap — <code>force-mobile-view</code> pins <code>.device</code> to a 390&times;844 phone frame regardless of actual screen size; <code>force-desktop-view</code> widens it to a large centered panel (up to 900px) instead of the app's normal responsive breakpoints. No class = unchanged automatic/responsive behavior exactly as before v80.32, so this is purely additive. Choice persists via <code>localStorage</code> (<code>jsjc_view_mode</code>) and re-applies automatically on next load/login, same UX pattern as the Platform Control dashboard's own toggle. <strong>Scope:</strong> the toggle affects only the outer <code>.device</code> frame sizing — none of the internal screen layouts, breakpoint-specific CSS, or component logic were touched, so this cannot introduce a regression in how any existing screen renders at its normal size.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0891b2;"><div style="font-size:10px;font-weight:800;color:#0891b2;margin-bottom:3px;">v80.31 &middot; &#128203; Platform Control Split Into Its Own Dedicated Supabase Project</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Confirmed:</strong> JSJC and future schools each get their OWN separate Supabase project — not the shared-project model v80.30 was built for. Reassured separately: this has zero effect on any data already entered (equipment, bookings, etc.) — deploying a new HTML file only swaps the frontend; it never touches, migrates, or resets the Supabase project behind it, and <code>SUPABASE_URL</code>/<code>SUPABASE_KEY</code> for JSJC's own operational data haven't changed in any version of this thread. <strong>Fix:</strong> split the license check onto its own dedicated pair of credentials — <code>PLATFORM_SUPABASE_URL</code>/<code>PLATFORM_SUPABASE_KEY</code> — separate from the operational <code>SUPABASE_URL</code>/<code>SUPABASE_KEY</code> above them. <code>checkPlatformLicense()</code> now fetches from the platform pair, not the operational one, so a different school's project can share the same control point without ever being able to see JSJC's actual data (the dedicated project holds nothing but license flags). <strong>Deferred, by explicit choice</strong> ("will work on this later" — no new Supabase project created yet): both new constants ship as empty strings on purpose. <code>checkPlatformLicense()</code> detects that and logs an info line, then returns immediately — app runs completely normally, gate is inert, nothing breaks. <code>platform_control_dashboard.html</code> updated the same way, with its own on-screen "not set up yet" message instead of a raw fetch error. <strong>Remaining setup, whenever ready (no further code changes needed):</strong> (1) create the new project, (2) run <code>v80.30_platform_licenses.sql</code> in it, (3) paste its URL + anon key into the two app constants, (4) paste its URL + a key with UPDATE rights (service_role — keep private, never embed in anything public) into the dashboard file. That's the entire remaining step.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.30 &middot; &#127760; Platform Control ("Thanos Gateway") — Cross-School Kill Switch</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Context:</strong> Mukesh intends to rework this app for other schools/universities and wants one platform-level control point to deactivate any single school's access entirely — e.g. a lapsed subscription or broken agreement — including locking out that school's own Admin, since the whole point is a decision made above the app, not something a school-level PIN can route around. <strong>Architecture decision, stated up front:</strong> this only works as ONE central switchboard if every future school's deployment shares this same Supabase project (distinguished by a new <code>SCHOOL_ID</code> constant per deployment) — built for that case since it's simpler and works immediately. If a future school instead gets a fully separate Supabase project, this exact mechanism can't reach it and would need to become a small shared lookup service instead; flagged rather than silently assumed. <strong>Shipped:</strong> (1) <code>v80.30_platform_licenses.sql</code> — one row per school (<code>school_id</code>, <code>school_name</code>, <code>active</code>, <code>reason</code>), RLS grants anon SELECT only — no UPDATE, on purpose, so the app itself can never flip its own switch. (2) <code>checkPlatformLicense()</code> — the very first thing the boot sequence does, before any other fetch, login restore, or render. If this deployment's row has <code>active=false</code>, <code>renderPlatformLockScreen()</code> replaces the ENTIRE page body with a suspension notice (school name + optional reason) and every other boot step is skipped — this reaches Admin too, since <code>document.body.innerHTML</code> is wiped wholesale rather than gating individual screens. <strong>Fails OPEN</strong> if the check errors or no row exists yet for this <code>SCHOOL_ID</code> — a network hiccup or an not-yet-onboarded school never accidentally locks real users out; only an explicit <code>active=false</code> does. (3) <code>platform_control_dashboard.html</code> — a separate lightweight tool (not part of the school-facing app) listing every school with a one-tap toggle and an optional reason field shown to that school's suspended users, plus an "Add School" form for onboarding. <strong>Honest gap flagged in that file's own source:</strong> it currently uses the same public anon key every school's app uses, which the SQL above deliberately does NOT grant UPDATE rights to — so as shipped, the dashboard's toggle will fail until either RLS is loosened for anon (weakens the boundary, not recommended) or a properly-scoped key (service_role, kept private, never embedded in a public page) is swapped in for that one file. Treating this file's URL as a secret in the meantime is not a real substitute for that fix — noted plainly rather than glossed over.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.29 &middot; &#128274; Security/RLS Audit &amp; Hardening (Phase 1 of 2)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audited:</strong> the app has no server-side auth — login is a client-side PIN comparison against Supabase data, and the Supabase anon key is embedded in page source (as it must be for a client-only app). This means <strong>Row Level Security is the only real security boundary</strong>, and several tables carried blanket <code>USING (true)</code> policies added in earlier versions specifically because stricter policies broke real app actions — meaning anyone with the anon key could act on those tables directly, completely bypassing the UI and every <code>currentRole==='Admin'</code> check in the code. <strong>Full picture given to Mukesh before acting</strong> (client-side role checks are UX, not security; PINs were unhashed; sessions never expired) — decision: hold off on a full Supabase Auth migration (correct long-term fix, but a genuinely separate, larger project) and instead close the concrete holes now. <strong>Shipped this pass:</strong> (1) <code>v80.29_rls_hardening.sql</code> — explicit, reviewed, per-action policies for every table the app actually touches (enumerated directly from the code's REST calls, not guessed) replacing the old blanket-true policies; audit-log tables (<code>booking_audit_log</code>, <code>booking_return_events</code>, <code>resource_audit_log</code>) deliberately get NO update/delete policy at all — an audit log editable via the anon key isn't an audit log. (2) Admin PIN is now stored as a SHA-256 hash in <code>localStorage</code>, not plaintext — <code>_getStoredAdminPinHash()</code> auto-migrates any existing plaintext value (including the old <code>'1234'</code> default) to a hash transparently, no PIN reset forced on anyone. (3) Sessions now expire after 7 days of inactivity (<code>doLogin()</code> stamps <code>expiresAt</code>; a lost/shared device no longer stays logged in forever) — refreshed on every active login, so it never interrupts real use. (4) Login brute-force throttle — 5 failed attempts locks further attempts for 60s, applied to both the role-PIN login (<code>attemptLogin()</code>) and the separate Admin PIN overlay (<code>adminPinCheck()</code>); explicitly documented in-code as a UI deterrent, not the real boundary (the RLS SQL is). <strong>Explicitly NOT done, and why:</strong> per-role RLS (Admin vs Student at the database level) is impossible without the app knowing, server-side, who's actually logged in — that requires real Supabase Auth (JWTs/sessions), which is Phase 2 if wanted; not built silently into this "hardening" pass since it changes the login flow entirely. <strong>Action needed from Mukesh:</strong> run <code>v80.29_rls_hardening.sql</code> in the Supabase SQL editor — nothing above takes effect on the database side until then.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.28.1 &middot; &#127183; Kit Contents &amp; Manager Note Now Surfaced (Booking + Manager Ops Desk)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Kit Contents and Manager Note, entered on the Admin equipment form, weren't showing anywhere a student or manager could actually see them — Visual Card Grid kit cards showed only serial + location, and the Manager Operations Desk equipment box showed only the kit name, no way to verify a kit is complete during hand-over. <strong>Root cause:</strong> both fields were correctly captured and persisted (<code>kit_contents</code> is a live Supabase column since v80.25; <code>note</code> lives in local-extras) — but nothing downstream of data entry ever read them. Not a data bug, a display gap. <strong>Surgical fix, two call sites:</strong> (1) <code>_vcgKitCardHTML()</code> — the student-facing kit card (Visual Card Grid, screenshot 1) now shows a "🎒 Contains:" line pulled from the matching <code>adminData.equipment</code> record's <code>kitContents</code>. Manager Note deliberately stays off this card — it's labeled "internal only" on the Admin form, so it isn't meant for students. (2) <code>canonicalRecordHTML()</code>'s equipment box — used by the Manager Operations Desk (screenshot 3) and every other card built from it — now shows both Kit Contents and Manager Note (as a distinct amber alert block) looked up from the same equipment record the booking's kit name resolves to. <strong>Not touched:</strong> the plain kit-selection radio list (screenshot 4) — that's a fast picker, not a review surface, so it was left as a bare list rather than adding content that would push most options off-screen; the Visual Card Grid (already the richer booking view) is where that detail now lives. No schema changes, no new Supabase fields — both fields already existed and are simply read where they were missing.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.28 &middot; &#128247; Admin Equipment List — Icon Now Follows Category, Not a Stale Stored Field</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin ▸ Equipment list showing a camera icon on multiple TASCAM DR-05 kits whose category is correctly "Audio Recorder Kit" — mismatched icon looks unpolished on a screen visitors/reviewers see. <strong>Root cause:</strong> the list card rendered <code>e.icon</code> — a field written ONCE, at the moment each equipment row was originally added, from whatever the category→icon lookup produced at that time. v80.20 made that lookup deterministic going forward, but never touched rows created earlier under the old free-form icon-chip picker (which defaulted to 📷 unless a different chip was manually clicked — see v80.20 journal entry). So <code>itemCategory</code> (correctly "Audio Recorder Kit", confirmed reliably rehydrated on every refetch via <code>equipment_type</code> since v80.26.1) and <code>icon</code> (frozen at creation time, never re-derived) had quietly drifted apart on any pre-v80.20 row — exactly what the screenshot showed. <strong>Surgical fix:</strong> one line in <code>renderAdminEquipment()</code> — the card now looks up the icon from <code>EQUIPMENT_CATEGORY_ICONS[e.itemCategory]</code> first (the live, trustworthy source), falling back to the stored <code>e.icon</code> only if <code>itemCategory</code> is empty, and to 📷 only if both are missing. <strong>Effect:</strong> every existing item self-corrects immediately on next render — no data migration, no re-saving each kit, no Supabase write at all. New equipment adds are unaffected (their <code>icon</code> and <code>itemCategory</code> already agreed). <strong>Scope check, per "surgical fix":</strong> touched exactly the one render line responsible for the mismatch; the Admin Control Panel toggles from the original request in this thread were left as-is since they don't perform equipment-icon logic and this pass didn't re-examine them.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0ea5e9;"><div style="font-size:10px;font-weight:800;color:#0ea5e9;margin-bottom:3px;">v80.27.1 &middot; &#128269; Business-Code Fallback Diagnostics</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> production still writing id-derived codes (<code>EQ-BK-000024</code>) with no new rows in <code>business_code_counters</code>, despite the Supabase-side function/table/grants all auditing as correct and a manual <code>SELECT public.next_business_code('EQ-BK-JUL26')</code> succeeding. <strong>Code-path audit (no defect found):</strong> traced <code>handleBookingSubmit()</code> → the single <code>window.submitBooking</code> wrapper (V53 LIVE MODE, captures and calls the one and only <code>submitBooking()</code> declaration — confirmed no duplicate/shadowing declaration exists anywhere in the file) → <code>submitBooking()</code>'s post-insert code block → <code>buildBusinessCode()</code> → <code>nextBusinessSeq()</code> → the RPC fetch. Every hop wires correctly on paper, so the discrepancy between "works when tested directly" and "fails from the app" has to be something only visible at actual runtime — a role/permission difference between the SQL-editor session and the app's anon key, a response-shape mismatch, or (unverifiable from here) the deployed file/service-worker cache not actually being v80.27 yet. <strong>Fix — unconditional diagnostic logging, not a behavior change:</strong> <code>nextBusinessSeq()</code> and <code>buildBusinessCode()</code> now log the exact request URL/body, raw HTTP status, raw response body, and the parsed value at every call — success or failure — instead of only warning on the fallback path; call-site logs added in <code>submitBooking()</code> and <code>setKS()</code> immediately before/after invoking <code>buildBusinessCode()</code> to confirm the code is actually reached during a real booking/issue. No numbering logic changed. Next real booking's console output will show, hop by hop, exactly where it diverges from the working manual SQL test.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.27 &middot; &#128197; Monthly Business Codes (EQ-BK-JUL26-0001 / EQ-IS-JUL26-0001) — DB id Retired From Visible Numbering</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Why this changed:</strong> v80.26 made booking codes and issue numbers derive from the Supabase row <code>id</code> (e.g. <code>EQ-BK-000047</code>), which fixed uniqueness but tied a business-facing number to an internal primary key — no monthly reset was possible without touching <code>id</code> itself, which would have meant resetting the Postgres identity sequence or deleting rows, both explicitly ruled out. <strong>Fix — a genuinely separate business-code series, decoupled from <code>id</code> entirely:</strong> a new Postgres table <code>business_code_counters(series text primary key, seq int, updated_at timestamptz)</code> plus an atomic RPC function <code>next_business_code(p_series text)</code> (single UPSERT, <code>seq = seq + 1 RETURNING seq</code> — atomic under Postgres's own row lock, no client-side race possible even with concurrent submissions) — SQL provided separately for manual execution, per standing instruction against unrequested schema changes. Client-side, <code>buildBusinessCode(catCode, type, dbId)</code> calls this RPC with a series key of <code>&lt;EQ|STU|SYS&gt;-&lt;BK|IS&gt;-&lt;MMMYY&gt;</code> (e.g. <code>EQ-BK-JUL26</code>) and formats the result as <code>EQ-BK-JUL26-0001</code>. <strong>Guarantees:</strong> (1) the sequence restarts at 0001 automatically the moment the calendar month rolls over — no manual reset action, no admin button, no risk of an accidental resequence; (2) Booking and Issue series are fully independent of each other (different series key) and independent per category; (3) <code>id</code> is never touched, never shown, and stays the sole primary key — Analytics and every internal join continue to use it exactly as before; (4) no rows are ever deleted and no sequence is ever reset to satisfy this feature. <strong>Fallback:</strong> until the SQL below is run, <code>buildBusinessCode()</code> catches the RPC 404 and falls back to the v80.26 id-derived 6-digit code with a clear console warning, so the app keeps working through the migration window — once the SQL is applied, the very next booking/issue picks up the new format with zero further code changes. <strong>Wired into:</strong> <code>submitBooking()</code> (booking_code), <code>setKS()</code>'s issued branch and <code>issueBooking()</code>'s fallback (issue_number) — the same <code>booking_code</code>/<code>issue_number</code>/<code>bkNum</code>/<code>issueNum</code> fields every card, receipt, export, and report already reads, so no display-layer changes were needed anywhere. <strong>Untouched:</strong> Return numbers, seed/demo data, Analytics' use of raw <code>id</code>, and every other workflow.</div></div>
@@ -4043,19 +4065,33 @@ function canonicalRecordHTML(b, rightBadgeHTML){
   // v80.26.1: equipment type badge — shown for Equipment bookings only.
   // Source: b.itemCategory (set at creation) or looked up from adminData.
   var _eqTypeBadge = '';
+  var _eqKitContentsHTML = '';
+  var _eqNoteHTML = '';
   if(b.cat === 'Equipment' || b.resource_category === 'Equipment'){
     var _eqTypeVal = b.itemCategory || '';
-    if(!_eqTypeVal && eqList[0] && window.adminData && window.adminData.equipment){
-      var _eqRec = window.adminData.equipment.find(function(e){ return e.name===eqList[0]; });
-      if(_eqRec) _eqTypeVal = _eqRec.itemCategory || '';
+    var _eqRec = null;
+    if(eqList[0] && window.adminData && window.adminData.equipment){
+      _eqRec = window.adminData.equipment.find(function(e){ return e.name===eqList[0]; });
     }
+    if(!_eqTypeVal && _eqRec) _eqTypeVal = _eqRec.itemCategory || '';
     if(_eqTypeVal && typeof eqTypeBadgeHTML === 'function'){
       _eqTypeBadge = '<div style="margin-bottom:6px;">' + eqTypeBadgeHTML(_eqTypeVal) + '</div>';
+    }
+    // v80.28.1: Kit Contents & Manager Note were captured on the Admin
+    // equipment form but never surfaced anywhere a manager could see them
+    // while physically handing over/receiving a kit — no quick way to
+    // verify the kit is complete. Both now pulled straight from the same
+    // adminData.equipment record the booking's kit name resolves to.
+    if(_eqRec && _eqRec.kitContents){
+      _eqKitContentsHTML = '<div style="font-size:10px;color:#374151;background:#fff;border:1px solid #e5e7eb;border-radius:7px;padding:6px 8px;margin-top:7px;">🎒 <strong>Kit Contents:</strong> ' + esc(_eqRec.kitContents) + '</div>';
+    }
+    if(_eqRec && _eqRec.note){
+      _eqNoteHTML = '<div style="font-size:10px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:6px 8px;margin-top:7px;">🔒 <strong>Manager Note:</strong> ' + esc(_eqRec.note) + '</div>';
     }
   }
   var equipmentHTML = '<div style="background:#f8f5ff;border:1px solid #e9d5ff;border-radius:10px;padding:10px 12px;margin-bottom:10px;">'
     + '<div style="font-size:9px;font-weight:800;color:#7c3aed;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px;">Equipment / System / Studio</div>'
-    + _eqTypeBadge + eqInner + '</div>';
+    + _eqTypeBadge + eqInner + _eqKitContentsHTML + _eqNoteHTML + '</div>';
 
   // Purpose
   var purposeLabelsMap = {general:'General Practice',classhour:'Class Hour Practice',assignment:'Assignment',jsjci:'JSJC Initiatives',radio:'Radio JSJC',jsjc:'JSJC Event',jgu:'JGU Event'};
@@ -4407,6 +4443,51 @@ function loginClearErr() {
   if (errBox) errBox.textContent = "";
 }
 
+// v80.29: simple client-side brute-force throttle. This is a deterrent, not
+// a real security boundary (see the RLS section below for the boundary that
+// actually matters) — it stops casual PIN-guessing in the UI, nothing more,
+// since it's trivially bypassed by anyone hitting Supabase directly. Still
+// worth having: it's the difference between a curious student trying 20
+// PINs in a row and the same thing needing real effort to script around.
+function _loginThrottleCheck(){
+  var raw; try{ raw = JSON.parse(localStorage.getItem('jsjc_login_throttle')||'{}'); }catch(e){ raw = {}; }
+  var now = Date.now();
+  if(raw.lockedUntil && now < raw.lockedUntil){
+    var secsLeft = Math.ceil((raw.lockedUntil - now)/1000);
+    return { blocked:true, secsLeft: secsLeft };
+  }
+  return { blocked:false, fails: raw.fails||0 };
+}
+function _loginThrottleRecordFail(){
+  var raw; try{ raw = JSON.parse(localStorage.getItem('jsjc_login_throttle')||'{}'); }catch(e){ raw = {}; }
+  raw.fails = (raw.fails||0) + 1;
+  if(raw.fails >= 5){ raw.lockedUntil = Date.now() + 60000; raw.fails = 0; }
+  try{ localStorage.setItem('jsjc_login_throttle', JSON.stringify(raw)); }catch(e){}
+}
+function _loginThrottleReset(){
+  try{ localStorage.removeItem('jsjc_login_throttle'); }catch(e){}
+}
+
+// v80.32: mobile/desktop view-mode toggle, selectable from the login
+// screen icons. Purely a CSS class swap on body (see force-mobile-view /
+// force-desktop-view rules) — no layout logic duplicated, remembers choice.
+function setAppViewMode(mode){
+  document.body.classList.remove('force-mobile-view','force-desktop-view');
+  if(mode === 'mobile') document.body.classList.add('force-mobile-view');
+  else if(mode === 'desktop') document.body.classList.add('force-desktop-view');
+  var mBtn = document.getElementById('login-view-btn-mobile');
+  var dBtn = document.getElementById('login-view-btn-desktop');
+  if(mBtn) mBtn.style.background = (mode==='mobile') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.12)';
+  if(dBtn) dBtn.style.background = (mode==='desktop') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.12)';
+  try{ localStorage.setItem('jsjc_view_mode', mode); }catch(e){}
+}
+window.setAppViewMode = setAppViewMode;
+(function initAppViewMode(){
+  var saved = null;
+  try{ saved = localStorage.getItem('jsjc_view_mode'); }catch(e){}
+  if(saved === 'mobile' || saved === 'desktop') setAppViewMode(saved);
+})();
+
 async function attemptLogin() {
   const emailEl = document.getElementById('login-email');
   const pinEl   = document.getElementById('login-pin');
@@ -4414,6 +4495,9 @@ async function attemptLogin() {
   // Aggressive clean: trim, lowercase, remove accidental spaces
   const email   = (emailEl ? emailEl.value.trim().toLowerCase().replace(/\s+/g,'') : '');
   const pin     = (pinEl   ? pinEl.value.trim() : '');
+
+  var _throttle = _loginThrottleCheck();
+  if(_throttle.blocked){ if(errEl) errEl.textContent = '⛔ Too many failed attempts. Try again in ' + _throttle.secsLeft + 's.'; return; }
 
   if (!email) { if(errEl) errEl.textContent = '⚠️ Please enter your email address.'; return; }
   if (!pin || pin.length < 4) { if(errEl) errEl.textContent = '⚠️ Please enter your 4-digit PIN.'; return; }
@@ -4485,11 +4569,17 @@ function doLogin(role, nameFromRecord) {
   window.currentUser = nameFromRecord || role;
 
   // ── Persist session so a page refresh on Netlify keeps the user logged in ──
+  // v80.29: sessions now expire after 7 days of inactivity — previously
+  // persisted forever, so a lost/shared/stolen device stayed logged in as
+  // that role indefinitely. Every doLogin() call (fresh login OR restored
+  // session) refreshes the expiry, so an actively-used session never
+  // interrupts someone mid-use; only a genuinely abandoned session expires.
   try {
     localStorage.setItem('jsjc_session', JSON.stringify({
       role: role,
       name: nameFromRecord || role,
-      studentDbId: window.currentStudentDbId || null
+      studentDbId: window.currentStudentDbId || null,
+      expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000)
     }));
   } catch(e) { /* localStorage unavailable — session simply won't persist */ }
 
@@ -7817,6 +7907,14 @@ function _vcgKitCardHTML(name){
   var _kitTypeBadge = (_kitTypeVal && typeof eqTypeBadgeHTML==='function')
     ? '<div style="margin-bottom:4px;">' + eqTypeBadgeHTML(_kitTypeVal) + '</div>'
     : '';
+  // v80.28.1: surface Kit Contents to the student at booking time — this was
+  // captured on the Admin equipment form (kitContents) but never displayed
+  // anywhere a student could see it before now. Manager Note stays hidden
+  // here on purpose (labeled "internal only" on the Admin form) — it's
+  // surfaced instead on the Manager Operations Desk card below.
+  var _kitContentsHTML = (rec && rec.kitContents)
+    ? '<div style="font-size:9.5px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:5px 7px;margin-top:5px;">🎒 <strong>Contains:</strong> '+rec.kitContents+'</div>'
+    : '';
   return '<div class="vcg-bk-kit-card'+(isSelected?' selected':'')+(isMaint?' disabled':'')+'">'
     + '<div class="vcg-bk-kit-row">'
     +   '<div>'
@@ -7824,6 +7922,7 @@ function _vcgKitCardHTML(name){
     +     '<div class="vcg-bk-kit-serial">'+name+'</div>'
     +     '<div class="vcg-bk-kit-meta">Serial '+serial+' &middot; 📍 '+loc+'</div>'
     +     '<div class="vcg-bk-kit-meta"><span class="vcg-dot" style="background:'+dotColor+';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>'+statusLbl+'</div>'
+    +     _kitContentsHTML
     +   '</div>'
     +   '<button type="button" class="vcg-btn '+btnCls+'" style="width:auto;padding:7px 12px;"'+(isMaint?' disabled':'')+' onclick="'+(isMaint?'':'vcgToggle(\''+name.replace(/'/g,"\\'")+'\')')+'">'+btnTxt+'</button>'
     + '</div>'
@@ -8413,6 +8512,13 @@ async function setKS(id,s){
       if(typeof window.logReturnEvent==='function') window.logReturnEvent(b.id, 'completed', 'Final receipt confirmed by '+(window.currentUser||'Manager'));
     }
     if(s==='cancelled'){
+      // v80.33 FIX: this branch wrote b.cancelledAt but never set b.status —
+      // pipelineRecordHTML()'s Cancelled row is gated on b.status==='cancelled'
+      // (by design, since v78 — see that journal entry), so the row was
+      // silently skipped even though a real timestamp existed. b.ks is set
+      // for consistency with the cancelBooking() path (line ~6443), which
+      // already sets both.
+      b.status = 'cancelled'; b.ks = 'cancelled';
       b.cancelledAt = new Date().toISOString();
       if(!b.cancelReason) b.cancelReason = 'Cancelled by Studio Manager';
       if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'cancelled', window.currentUser);
@@ -8665,6 +8771,36 @@ function updateLoggedAsManagerLabel(){
 }
 window.updateLoggedAsManagerLabel = updateLoggedAsManagerLabel;
 
+// v80.34: Equipment Issued/Returned were pure manual-entry blanks — the
+// manager had to count and re-type numbers the app already tracks exactly
+// (b.issuedBy/b.issuedAt, b.receivedBy/b.returnedAt on every booking).
+// This forwards that real data in as the default value the moment
+// "Equipment Issuing" is selected (or the Shift Date changes while it's
+// selected) — counting every booking THIS manager issued/received on the
+// selected date. Still editable afterward: a manager who issued something
+// off-app, or needs to correct a count, isn't locked out of adjusting it —
+// this replaces re-typing from memory with a verified starting point, not
+// a forced value.
+function autofillEquipmentCounts(){
+  var dateVal = document.getElementById('report-date') ? document.getElementById('report-date').value : '';
+  if(!dateVal) return;
+  var mgr = currentManagerName();
+  var issuedCount = 0, returnedCount = 0;
+  (S.bookings||[]).forEach(function(b){
+    if(b.issuedBy === mgr && b.issuedAt && String(b.issuedAt).slice(0,10) === dateVal) issuedCount++;
+    if(b.receivedBy === mgr && b.returnedAt && String(b.returnedAt).slice(0,10) === dateVal) returnedCount++;
+  });
+  var issuedEl = document.getElementById('eq-issued'), returnedEl = document.getElementById('eq-returned');
+  if(issuedEl) issuedEl.value = issuedCount;
+  if(returnedEl) returnedEl.value = returnedCount;
+  updateEquipmentFixedPreview();
+  var hint = document.getElementById('eq-autofill-hint');
+  if(hint) hint.textContent = (issuedCount || returnedCount)
+    ? '✓ Auto-filled from your actual Issue/Return activity on ' + dateVal + ' — adjust if needed.'
+    : 'No Issue/Return activity found for you on ' + dateVal + ' yet — enter manually if this session isn\'t reflected here.';
+}
+window.autofillEquipmentCounts = autofillEquipmentCounts;
+
 // ── Activity Type change: toggle Equipment Issuing's fixed-time block vs normal manual-time block ──
 function onActivityTypeChange(){
   const actEl=document.getElementById('act-select');
@@ -8680,7 +8816,7 @@ function onActivityTypeChange(){
   var noteEl = document.getElementById('task-desc');
   if(noteStar) { noteStar.textContent = isEquip ? '(optional)' : '*mandatory'; noteStar.style.color = isEquip ? '#9ca3af' : '#dc2626'; noteStar.style.fontWeight = isEquip ? '500' : '700'; noteStar.style.fontSize = isEquip ? '9px' : ''; }
   if(noteEl) noteEl.placeholder = isEquip ? 'Optional notes for this equipment session…' : 'Describe activities, incidents, or notes from this shift…';
-  if(isEquip) updateEquipmentFixedPreview();
+  if(isEquip){ autofillEquipmentCounts(); } // v80.34: pulls real counts in the moment this block becomes visible
 }
 window.onActivityTypeChange = onActivityTypeChange;
 
@@ -12023,7 +12159,27 @@ populateKit();renderCalendar();updateTimeLabels();
 // ═══════════════════════════════════════════════════
 //  ADMIN PIN
 // ═══════════════════════════════════════════════════
-const ADMIN_PIN = '1234'; // Change as needed
+// v80.29: Admin PIN is now stored as a SHA-256 hash, not plaintext, so a
+// stolen device / localStorage dump doesn't hand over the Admin PIN itself.
+// Backward-compatible: if the stored value isn't a 64-char hex hash yet
+// (i.e. it's the old plaintext default), it's transparently migrated to a
+// hash on first check — no action needed, no PIN reset forced on anyone.
+const ADMIN_PIN_DEFAULT = '1234';
+async function _sha256Hex(str){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+function _isHash(v){ return typeof v === 'string' && /^[0-9a-f]{64}$/.test(v); }
+async function _getStoredAdminPinHash(){
+  var stored = localStorage.getItem('tou_admin_pin');
+  if(stored && _isHash(stored)) return stored;
+  // migrate plaintext (old default '1234' or a legacy plaintext PIN) → hash
+  var plain = stored || ADMIN_PIN_DEFAULT;
+  var hash = await _sha256Hex(plain);
+  try{ localStorage.setItem('tou_admin_pin', hash); }catch(e){}
+  return hash;
+}
+const ADMIN_PIN = '1234'; // v80.29: legacy constant kept ONLY as a display/reference default — actual verification always goes through _getStoredAdminPinHash(), never compares against this directly.
 function showAdminPin(){
   const ov=document.getElementById('admin-pin-overlay');
   ov.style.display='flex';
@@ -12031,10 +12187,14 @@ function showAdminPin(){
   document.getElementById('admin-pin-error').textContent='';
 }
 function closeAdminPin(){document.getElementById('admin-pin-overlay').style.display='none';}
-function adminPinCheck(val){
+async function adminPinCheck(val){
   if(val.length<4)return;
-  if(val===ADMIN_PIN){closeAdminPin();doLogin('Admin');}
-  else{document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.';document.getElementById('admin-pin-input').value='';}
+  var _throttle = _loginThrottleCheck();
+  if(_throttle.blocked){ document.getElementById('admin-pin-error').textContent='⛔ Too many attempts. Try again in '+_throttle.secsLeft+'s.'; document.getElementById('admin-pin-input').value=''; return; }
+  var enteredHash = await _sha256Hex(val);
+  var storedHash = await _getStoredAdminPinHash();
+  if(enteredHash===storedHash){ _loginThrottleReset(); closeAdminPin(); doLogin('Admin'); }
+  else{ _loginThrottleRecordFail(); document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.'; document.getElementById('admin-pin-input').value=''; }
 }
 // Expose to onclick
 window.showAdminLogin=showAdminPin;
@@ -14427,6 +14587,34 @@ const HEADERS = {
   "Prefer"       : "return=representation"
 };
 
+// v80.30: identifies THIS deployment to the shared platform_licenses table
+// (see checkPlatformLicense() below). When this app is copied/reworked for
+// a different school or university, this is the one line that needs to
+// change — everything else in the gate mechanism is shared/reusable as-is.
+const SCHOOL_ID = "jsjc";
+
+// v80.31: JSJC and future schools each get their OWN, separate Supabase
+// project (confirmed — not a shared one, which is what v80.30 originally
+// assumed). That means the platform license check can't live in the same
+// project as JSJC's operational data (SUPABASE_URL above) — a different
+// school's project would have no way to see it. It needs its own small,
+// dedicated Supabase project used for nothing except license flags — no
+// student/booking/equipment data in it at all — shared by every school's
+// app via these two constants.
+//
+// STATUS: not set up yet (Mukesh: "will work on this later"). Left as
+// empty placeholders on purpose — checkPlatformLicense() below detects
+// this and skips the check entirely (fails open, app works normally,
+// nothing breaks) rather than trying to fetch an empty URL. When the
+// dedicated project exists:
+//   1. Run v80.30_platform_licenses.sql in that NEW project (not the
+//      operational one above).
+//   2. Paste that project's URL/anon key into the two constants below.
+//   3. Do the same in platform_control_dashboard.html.
+// That's the entire remaining setup — no other code changes needed.
+const PLATFORM_SUPABASE_URL = "";  // ← paste the dedicated Platform Control project's URL here
+const PLATFORM_SUPABASE_KEY = "";  // ← paste that project's anon/publishable key here
+
 // ═══════════════════════════════════════════════════
 //  SUPABASE STUDENTS (new students going forward)
 //  Existing localStorage students (adminData.students)
@@ -14950,7 +15138,58 @@ window.getManagerRatingSummary = function(managerName) {
 };
 
 // ── Startup fetch for all modules (best-effort) ──
+// v80.30: "Thanos Gateway" — platform-level kill switch. Checks this
+// deployment's row in the shared platform_licenses table (see
+// v80.30_platform_licenses.sql). If active=false — e.g. a lapsed
+// subscription or a broken agreement with a school — this replaces the
+// ENTIRE page with a block screen before anything else runs, for every
+// role including Admin. That's the point: a PIN inside the app can't route
+// around a decision made above the app. Fails OPEN (app works normally) if
+// the fetch errors or the table/row doesn't exist yet, so this never
+// accidentally locks out a school that simply hasn't been onboarded into
+// platform_licenses — it only blocks a school explicitly marked inactive.
+async function checkPlatformLicense(){
+  // v80.31: not yet configured (see PLATFORM_SUPABASE_URL/KEY comment
+  // above) — skip cleanly rather than firing a fetch at an empty URL.
+  // This is the expected, safe state until the dedicated Platform Control
+  // Supabase project is created and its credentials pasted in.
+  if(!PLATFORM_SUPABASE_URL || !PLATFORM_SUPABASE_KEY){
+    console.log('ℹ️ Platform license check skipped — PLATFORM_SUPABASE_URL/KEY not yet configured. App runs normally. See v80.31 journal entry for setup steps.');
+    return true;
+  }
+  var platformHeaders = { "apikey": PLATFORM_SUPABASE_KEY, "Authorization": "Bearer " + PLATFORM_SUPABASE_KEY };
+  try{
+    var res = await fetch(PLATFORM_SUPABASE_URL + '/rest/v1/platform_licenses?school_id=eq.' + encodeURIComponent(SCHOOL_ID) + '&select=active,reason,school_name', { headers: platformHeaders });
+    if(!res.ok){ console.warn('⚠️ platform_licenses check failed (status ' + res.status + ') — failing open, app continues normally.'); return true; }
+    var rows = await res.json();
+    if(!rows || !rows.length){ console.warn('⚠️ No platform_licenses row for school_id="' + SCHOOL_ID + '" — failing open. Add a row to gate this deployment.'); return true; }
+    var lic = rows[0];
+    if(lic.active === false){
+      renderPlatformLockScreen(lic.school_name || SCHOOL_ID, lic.reason);
+      return false;
+    }
+    return true;
+  } catch(e){
+    console.warn('⚠️ platform_licenses check threw — failing open, app continues normally:', e.message);
+    return true;
+  }
+}
+function renderPlatformLockScreen(schoolName, reason){
+  document.body.innerHTML =
+    '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#7b1a1a,#4a1010);padding:24px;font-family:inherit;">'
+    + '<div style="background:#fff;border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);">'
+    +   '<div style="font-size:40px;margin-bottom:12px;">🔒</div>'
+    +   '<div style="font-size:16px;font-weight:900;color:#7b1a1a;margin-bottom:8px;">Access Temporarily Suspended</div>'
+    +   '<div style="font-size:12.5px;color:#374151;line-height:1.6;margin-bottom:14px;">' + (schoolName ? ('<strong>' + schoolName + '</strong><br/>') : '') + 'This application is not currently active.</div>'
+    +   (reason ? ('<div style="font-size:11.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-bottom:6px;">' + reason + '</div>') : '')
+    +   '<div style="font-size:10.5px;color:#9ca3af;margin-top:14px;">Please contact your platform administrator to restore access.</div>'
+    + '</div></div>';
+}
+window.checkPlatformLicense = checkPlatformLicense;
+
 (async function initSupaModules() {
+  var _licensed = await checkPlatformLicense();
+  if(!_licensed) return; // block screen already rendered — do not fetch/render anything else
   await Promise.allSettled([
     window.fetchSupaEquipment(),
     window.fetchSupaEditing(),
