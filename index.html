@@ -131,10 +131,33 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-heig
    desktop layout, and remembers the choice (localStorage: jsjc_view_mode).
    Default (no class on body) = automatic/responsive, exactly as before —
    this is purely additive and changes nothing unless explicitly toggled. */
+/* v80.35: FIX — force-mobile-view previously used invented fixed dimensions
+   (390x844) that didn't match the app's own existing PWA-tuned mobile fit
+   (the @media(max-width:480px) rule below, which the app already uses on
+   real phones — full-bleed, no border-radius, no shadow). That mismatch is
+   exactly why switching back to Mobile after Desktop looked "messy" — it
+   was snapping to a size Claude invented, not the app's real native fit.
+   Fixed: force-mobile-view now reproduces that EXACT existing rule instead
+   of a new one. force-desktop-view is deliberately just "a bit wider than
+   mobile" per the request — extends the existing 481–1024px tablet rule's
+   approach (centered, capped width, rounded frame) up to a genuinely
+   desktop-appropriate width, rather than inventing an unrelated size. */
+/* v80.35: FIX — force-mobile-view previously only replicated the .device
+   sizing half of the app's real @media(max-width:480px) mobile rule. That
+   rule ALSO locks html's height/overflow (see the real media block below:
+   `html,body{height:100%;height:100dvh;overflow:hidden}`) — a body-only
+   class can't reach <html> via CSS, so that half silently never applied
+   under the forced class, even though .device looked visually identical.
+   That's what was still causing "messy" height/scroll behavior — the
+   PWA-accurate fit needs BOTH halves. Fixed by applying the mode class to
+   <html> as well as <body> (see setAppViewMode() JS) and targeting both
+   elements here, exactly mirroring the real media query's own selectors. */
+html.force-mobile-view,html.force-mobile-view body{height:100%!important;height:100dvh!important;overflow:hidden!important;}
 body.force-mobile-view{align-items:stretch!important;justify-content:stretch!important;padding:0!important;}
-body.force-mobile-view .device{width:390px!important;height:844px!important;max-height:844px!important;border-radius:44px!important;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7)!important;flex:none!important;}
-body.force-desktop-view{align-items:center!important;justify-content:center!important;padding:24px!important;}
-body.force-desktop-view .device{width:min(900px,94vw)!important;height:min(900px,92vh)!important;max-height:92vh!important;border-radius:20px!important;box-shadow:0 0 0 1px #2d2d3e,0 20px 60px rgba(0,0,0,.5)!important;flex:none!important;}
+body.force-mobile-view .device{width:100%!important;height:100%!important;height:100dvh!important;max-height:100%!important;max-height:100dvh!important;border-radius:0!important;box-shadow:none!important;flex:1!important;}
+html.force-desktop-view,html.force-desktop-view body{height:100%!important;height:100dvh!important;overflow:hidden!important;}
+body.force-desktop-view{align-items:center!important;justify-content:center!important;padding:16px!important;}
+body.force-desktop-view .device{width:min(560px,92vw)!important;height:min(920px,92vh)!important;max-height:92vh!important;border-radius:36px!important;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7)!important;flex:none!important;}
 /* v80.3 MOBILE VIEWPORT BOTTOM-CLIPPING FIX — ROOT CAUSE:
    Every full-height rule here (body, .device, and the two breakpoints below)
    was locked to 100vh — including inside the mobile breakpoint that makes
@@ -4473,8 +4496,9 @@ function _loginThrottleReset(){
 // force-desktop-view rules) — no layout logic duplicated, remembers choice.
 function setAppViewMode(mode){
   document.body.classList.remove('force-mobile-view','force-desktop-view');
-  if(mode === 'mobile') document.body.classList.add('force-mobile-view');
-  else if(mode === 'desktop') document.body.classList.add('force-desktop-view');
+  document.documentElement.classList.remove('force-mobile-view','force-desktop-view');
+  if(mode === 'mobile'){ document.body.classList.add('force-mobile-view'); document.documentElement.classList.add('force-mobile-view'); }
+  else if(mode === 'desktop'){ document.body.classList.add('force-desktop-view'); document.documentElement.classList.add('force-desktop-view'); }
   var mBtn = document.getElementById('login-view-btn-mobile');
   var dBtn = document.getElementById('login-view-btn-desktop');
   if(mBtn) mBtn.style.background = (mode==='mobile') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.12)';
