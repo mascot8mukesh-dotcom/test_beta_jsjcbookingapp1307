@@ -303,7 +303,7 @@ body.force-desktop-view .device{width:min(560px,92vw);height:100%;height:100dvh;
 .vcg-bk-left-search-wrap{padding:7px 6px;border-bottom:1px solid #eef0f3;background:#fff;flex-shrink:0;}
 .vcg-bk-left-search{width:100%;box-sizing:border-box;border:1px solid #e5e7eb;border-radius:7px;padding:6px 8px;font-size:10.5px;font-family:inherit;outline:none;background:#fff;}
 .vcg-bk-left-search:focus{border-color:#7b1a1a;}
-.vcg-bk-left-list{overflow-y:auto;max-height:190px;}
+.vcg-bk-left-list{flex:1;min-height:0;overflow-y:auto;}
 .vcg-bk-left-empty{padding:14px 8px;text-align:center;font-size:10px;color:#9ca3af;font-style:italic;}
 .vcg-bk-left-item{padding:11px 8px;text-align:center;cursor:pointer;border-bottom:1px solid #eef0f3;font-size:10.5px;font-weight:700;color:#374151;line-height:1.35;}
 .vcg-bk-left-item.active{background:#fff;color:#7b1a1a;border-left:3px solid #7b1a1a;font-weight:800;}
@@ -2682,7 +2682,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.43</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.44</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3516,6 +3516,7 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80V &middot; &#128241; Mobile/Desktop Toggle — Reverted from Iframe Back to CSS-Class Swap</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> the v80.42/43 iframe approach broke in practice — clicking "Desktop" hid the app-bar buttons themselves (they're rendered inside the nested iframe's own DOM), leaving no way to click back to "Mobile" from within that view. <strong>Decision:</strong> restore the v80.35 <code>setAppViewMode()</code> approach — a plain CSS-class swap on <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code> (<code>force-mobile-view</code>/<code>force-desktop-view</code>), reusing the app's real <code>@media(max-width:480px)</code> sizing exactly rather than an invented fixed size, per v80.35's original fix. This trades the iframe's guarantee of native <code>@media</code> evaluation for a toggle that keeps the app-bar (and its own buttons) visible and clickable in both modes, works identically on hosted and local/downloaded files (no <code>location.protocol</code> dependency), and needs no <code>?_devframe=1</code> self-detection since nothing is nested anymore. Icons unchanged and correctly assigned: 📱 = mobile (full-bleed), 🖥️ = desktop (wide panel, <code>min(560px,92vw)</code>). <strong>Scope:</strong> the toggle's CSS block and JS only (<code>setAppViewMode()</code> replaces <code>toggleDeviceView()</code>; the two buttons' <code>onclick</code> updated to match) — no other screen touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.44 &middot; &#128269; Searchable Equipment Picker, Natural Kit Sort, Weather Restored, Cancellation Diagnostics + One Confirmed Extra Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Search box added to the equipment dropdown:</strong> confirmed the native <code>&lt;select&gt;</code> is genuine browser/OS chrome — not app-controllable HTML — so a search box can't be injected into its native picker directly. Replaced the VISIBLE control with a custom button + searchable bottom-sheet overlay (same pattern as the Approving Professor picker), while the real <code>&lt;select&gt;</code> stays in the DOM, just hidden — every existing consumer (<code>getSelectedEquipment()</code>, <code>checkEquipmentConflicts()</code>, <code>getCalendarSelectedItems()</code>, the booking payload builder) still reads it exactly as before; selecting an option in the new overlay just sets the hidden select's value and fires its existing <code>change</code> event, so zero downstream logic was duplicated or touched. <strong>2. Equipment/kit lists sorted numerically:</strong> lists were left in raw Supabase fetch order (Kit 8, Kit 4, Kit 11, Kit 2...) — added a natural-sort helper applied once where <code>kitDB</code> is built, which is the single shared source feeding the native select, the Visual Card Grid, AND the plain picker modal — fixing all three consistently. <strong>3. Visual Card Grid's left column no longer leaves a large blank area:</strong> the list was hard-capped at 190px inside its 520px-tall parent — with only 3-4 models, most of that height sat empty below the list. Changed to <code>flex:1</code> so it fills all available space naturally, with scroll only appearing once content genuinely exceeds it — same fill-then-scroll behavior the calendar already used successfully. <strong>4. Weather stamp restored:</strong> the SQL column was added and confirmed (v80.37 migration), but the code-side write was never actually re-enabled after v80.11 disabled it — that was the real remaining gap. Re-enabled the cross-device PATCH now that the column genuinely exists; same safe fallback pattern as the rest of this file if anything about it ever fails again. <strong>5. Cancellation timestamp — traced thoroughly, found no code defect this time:</strong> re-checked the write path (<code>rejectBooking()</code>, correct), the read-back mapper (correct), and <code>applyLocalExtras()</code> (doesn't touch this field at all, ruled out as a clobber). Unlike the earlier v80.33 bug, this one shows no identifiable defect on static review — added targeted console logging to both the PATCH attempt and the post-refetch verification instead of guessing a further blind fix, so the next live reproduction gives real evidence rather than another guess. <strong>Bonus, found while tracing #5:</strong> a separate "Reject" button (a secondary live-booking-card widget) was calling <code>rejectBooking(bid)</code> with no <code>action</code>/<code>reason</code>/actor arguments at all — meaning every rejection through that specific button silently recorded as a CANCELLATION instead of a rejection, with no reason attached. Fixed to pass all five arguments correctly.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.43 &middot; &#128683; Mobile/Desktop Toggle Broke When File Opened Locally — Guarded</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> tapping the toggle produced a blank page with "It may have been moved, edited or deleted", URL bar reading <code>content://downloads/all_downloads/2231</code>. <strong>Root cause:</strong> that URL confirms the HTML file was opened directly from the phone's Downloads app rather than visited as a hosted web page. v80.42's iframe approach needs a genuinely reloadable URL to point its <code>src</code> at — appending <code>?_devframe=1</code> to an opaque Android <code>content://</code> identifier isn't a valid link, so the browser tried to re-open it via the downloads content-provider instead of embedding it inline, producing exactly this broken result. <strong>Fix:</strong> <code>toggleDeviceView()</code> now checks <code>location.protocol</code> first — if it isn't <code>http:</code>/<code>https:</code> (covers <code>content:</code>, <code>file:</code>, and any other local-open scheme), it shows a clear explanatory toast and does nothing further, instead of attempting the iframe at all. The buttons are also dimmed with an explanatory tooltip up front on load in that case, and the saved-mode auto-restore is skipped too — so a "Mobile" preference saved while using the real hosted link doesn't silently break the very next time the file happens to be opened locally. <strong>Scope:</strong> guard clauses only, in <code>toggleDeviceView()</code> and <code>initDeviceView()</code> — the working iframe behavior on the real hosted URL (confirmed working architecture from v80.42) is completely unchanged.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.42 &middot; &#128241; Mobile/Desktop Toggle, Rebuilt on a Different Architecture + Manager Note at Booking Time + App Info Stats Refreshed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Mobile/Desktop toggle — rebuilt from scratch, not re-patched:</strong> three straight prior attempts (v80.32 → v80.35 → v80.37 removal) all tried to approximate a real phone viewport with CSS classes/<code>!important</code> overrides on <code>body</code>/<code>html</code> — and kept drifting out of sync, confirmed by live testing each time, because <code>@media</code> queries always evaluate against the REAL browser viewport; no class can make a genuinely wide window satisfy <code>@media(max-width:480px)</code>. This version does something categorically different instead of a fourth CSS approximation: "Mobile" mode now opens a same-page <code>&lt;iframe&gt;</code> sized to a real phone viewport (390&times;844) via <code>toggleDeviceView('mobile')</code> — an iframe has its OWN independent viewport, so the app's existing real <code>@media</code> rules evaluate correctly and natively inside it, automatically, with no hand-copied CSS and no possible drift, because it's not an approximation anymore — it's the same code genuinely running in a smaller real viewport. The nested instance detects itself via a <code>?_devframe=1</code> URL flag and hides its own toggle buttons, so Mobile-inside-Mobile can't happen. Buttons moved off the login screen entirely, per explicit request, into the persistent app-bar next to the notification bell — visible on every screen, not just login. Choice persists via <code>localStorage</code> and restores automatically on next load. <strong>2. Manager Note now visible when RAISING a booking, not just on the Manager Ops Desk afterward:</strong> the kit card's Manager Note (v80.28.1 deliberately hid it from students — "internal only") now also shows for Admin/Manager roles specifically, right below Kit Contents, at the actual point of picking a kit — using the same substring role check from v80.36 so both "Admin" and "Studio Manager" are covered. Students still never see it; that original privacy intent is unchanged. <strong>3. App Info stats corrected:</strong> the Versions/Lines counters had gone stale (showing 80/17K+ from an earlier point) — now reflect the actual current counts (99 distinct version entries, ~18.8K lines). <strong>Scope:</strong> app-bar markup, the new <code>toggleDeviceView()</code>/<code>_onDomReady()</code> functions, <code>_vcgKitCardHTML()</code>'s note block, and the App Info stat strip only — no change to any other screen or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
@@ -6430,20 +6431,29 @@ async function handleBookingSubmit(){
     };
     cacheLocalExtra(String(booking_id), {weatherSnapshot: snap});
     if(freshBk) freshBk.weatherSnapshot = snap;
-    // V80.11 FIX: removed the cross-device weather_snapshot PATCH added in v73.4.
-    // It was always written as best-effort (silent console.warn on failure, no
-    // functional regression), but the weather_snapshot column was never actually
-    // added to the Supabase schema — confirmed by "Could not find the
-    // weather_snapshot column of bookings in the schema cache" firing on every
-    // single booking submission. That's a 400 on every booking, permanently,
-    // for a feature that was never wired up server-side. Weather snapshot stays
-    // session-local only (cacheLocalExtra above), exactly as it behaved before
-    // v73.4 attempted the cross-device write. To restore cross-device weather
-    // visibility (Manager/Analytics on a different login seeing the same
-    // snapshot), add the column in Supabase first:
-    //   ALTER TABLE bookings ADD COLUMN weather_snapshot jsonb;
-    // then reinstate the PATCH block that used to sit here (see git history /
-    // this changelog entry for the exact code).
+    // v80.44 RESTORE: the weather_snapshot column was confirmed added to
+    // Supabase (v80.37_weather_snapshot_column.sql, run and verified) —
+    // re-enabling the cross-device write that v80.11 disabled because that
+    // column didn't exist yet. Best-effort, same safe pattern as the rest
+    // of this file: if this PATCH ever fails for any reason (column
+    // renamed, RLS change, network hiccup), it warns to console and the
+    // booking itself is completely unaffected — weather just stays
+    // session-local for that one booking, exactly like before this
+    // restore, instead of anything breaking.
+    (async function(){
+      try{
+        var _wRes = await fetch(SUPABASE_URL + '/rest/v1/bookings?id=eq.' + encodeURIComponent(booking_id), {
+          method : 'PATCH',
+          headers: HEADERS,
+          body   : JSON.stringify({ weather_snapshot: snap })
+        });
+        if(!_wRes.ok){
+          console.warn('⚠️ weather_snapshot PATCH failed (booking stays with session-local weather only):', await _wRes.text());
+        }
+      } catch(wErr){
+        console.warn('⚠️ weather_snapshot PATCH threw (booking stays with session-local weather only):', wErr.message);
+      }
+    })();
   }
 
   // ── RE-FETCH + RENDER ────────────────────────────────────────────────────────
@@ -7797,12 +7807,94 @@ function addEqRow() {
   div.id = rowId;
   div.innerHTML =
     '<div style="display:flex;flex-direction:column;gap:5px;width:100%;">' +
-    '<select class="fselect" style="margin-bottom:0;" onchange="inferFacilityFromItem(this.value);renderCalendar();checkEquipmentConflicts();" aria-label="Select Equipment">' + optHtml + '</select>' +
+    // v80.44: the real <select> stays in the DOM (hidden) so every existing
+    // consumer that reads row.querySelector('select') — getSelectedEquipment(),
+    // checkEquipmentConflicts(), getCalendarSelectedItems(), submitBooking's
+    // payload builder — keeps working completely untouched. A new visible
+    // button + searchable overlay drives it instead of the native OS picker,
+    // which had no way to add a search box (confirmed: it's native browser
+    // chrome, not app-controllable HTML) — same searchable pattern already
+    // used successfully for the Approving Professor picker.
+    '<select class="fselect" id="'+rowId+'-native" style="display:none;" onchange="inferFacilityFromItem(this.value);renderCalendar();checkEquipmentConflicts();updateEqPickerBtnLabel(\''+rowId+'\');" aria-label="Select Equipment">' + optHtml + '</select>' +
+    '<button type="button" class="fselect eq-picker-btn" id="'+rowId+'-btn" onclick="openEqPicker(\''+rowId+'\')" style="margin-bottom:0;text-align:left;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">' +
+      '<span id="'+rowId+'-btn-label" style="color:#9ca3af;">— Select Equipment —</span><span style="color:#9ca3af;">▾</span>' +
+    '</button>' +
     '<input class="finput" placeholder="Kit No. / Note (optional, e.g. Kit 4)" style="margin-bottom:0;font-size:11.5px;" data-kit-note="1"/>' +
     '</div>' +
     (idx > 0 ? '<button class="eq-row-btn eq-rem" onclick="removeEqRow(\''+rowId+'\')" style="margin-top:4px;align-self:flex-start;">−</button>' : '<span style="width:32px;"></span>');
   document.getElementById('eq-rows').appendChild(div);
+  updateEqPickerBtnLabel(rowId);
 }
+
+// v80.44: syncs the visible button's label with the hidden native select's
+// current value — called after any change so the button never shows stale text.
+function updateEqPickerBtnLabel(rowId){
+  var sel = document.getElementById(rowId+'-native');
+  var lbl = document.getElementById(rowId+'-btn-label');
+  if(!sel || !lbl) return;
+  if(sel.value){ lbl.textContent = sel.value; lbl.style.color = '#1f2937'; }
+  else { lbl.textContent = '— Select Equipment —'; lbl.style.color = '#9ca3af'; }
+}
+window.updateEqPickerBtnLabel = updateEqPickerBtnLabel;
+
+// v80.44: the searchable overlay itself — built fresh each open from the
+// hidden select's own <option> list, so it's always in sync with whatever
+// filtering (icon filter, status/maintenance, retired) already went into
+// building that select — no separate/duplicate data source to drift.
+function openEqPicker(rowId){
+  var sel = document.getElementById(rowId+'-native');
+  if(!sel) return;
+  var opts = Array.prototype.slice.call(sel.options).filter(function(o){ return o.value !== ''; });
+  var overlay = document.getElementById('eq-picker-overlay');
+  if(overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = 'eq-picker-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML =
+    '<div style="background:#fff;width:100%;max-width:480px;max-height:75vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;">' +
+      '<div style="padding:12px 14px 8px;border-bottom:1px solid #f3f4f6;">' +
+        '<input type="text" id="eq-picker-search" placeholder="🔍 Search equipment..." class="finput" style="margin-bottom:0;" oninput="filterEqPicker(this.value)"/>' +
+      '</div>' +
+      '<div id="eq-picker-list" style="overflow-y:auto;flex:1;"></div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  window._eqPickerRowId = rowId;
+  window._eqPickerOpts = opts.map(function(o){ return { value:o.value, label:o.textContent, disabled:o.disabled, selected:(o.value===sel.value) }; });
+  renderEqPickerList(window._eqPickerOpts);
+  setTimeout(function(){ var s=document.getElementById('eq-picker-search'); if(s) s.focus(); }, 50);
+}
+window.openEqPicker = openEqPicker;
+
+function renderEqPickerList(opts){
+  var listEl = document.getElementById('eq-picker-list');
+  if(!listEl) return;
+  if(!opts.length){ listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:12px;">No matches</div>'; return; }
+  listEl.innerHTML = opts.map(function(o){
+    return '<div onclick="'+(o.disabled?'':'selectEqPickerOption(\''+o.value.replace(/'/g,"\\'")+'\')')+'" style="padding:13px 16px;border-bottom:1px solid #f3f4f6;font-size:13.5px;cursor:'+(o.disabled?'default':'pointer')+';color:'+(o.disabled?'#c4b5a0':'#1f2937')+';display:flex;justify-content:space-between;align-items:center;'+(o.selected?'background:#fdf4ef;':'')+'">' +
+      '<span>'+o.label+'</span>' + (o.selected?'<span style="color:#7b1a1a;">✓</span>':'') +
+    '</div>';
+  }).join('');
+}
+
+function filterEqPicker(q){
+  q = (q||'').trim().toLowerCase();
+  var filtered = !q ? window._eqPickerOpts : window._eqPickerOpts.filter(function(o){ return o.label.toLowerCase().indexOf(q)>-1; });
+  renderEqPickerList(filtered);
+}
+window.filterEqPicker = filterEqPicker;
+
+function selectEqPickerOption(value){
+  var rowId = window._eqPickerRowId;
+  var sel = document.getElementById(rowId+'-native');
+  if(sel){
+    sel.value = value;
+    sel.dispatchEvent(new Event('change')); // fires the existing onchange — no downstream logic duplicated
+  }
+  var overlay = document.getElementById('eq-picker-overlay');
+  if(overlay) overlay.remove();
+}
+window.selectEqPickerOption = selectEqPickerOption;
 
 function removeEqRow(rowId) {
   _eqRows = _eqRows.filter(function(r){ return r !== rowId; });
@@ -16411,6 +16503,12 @@ window.rejectBooking = async function(bookingId, reason, action, actorName, acto
     rejected_by: who, rejected_by_role: role
   };
   if(finalStatus === 'rejected') fullBody.rejected_at = nowIso; else fullBody.cancelled_at = nowIso;
+  // v80.44: diagnostic logging — write and read paths both checked correct
+  // on static review this time (unlike the v80.33 bug), so rather than
+  // guess a further fix blind, log the exact PATCH body sent and the exact
+  // row read back afterward, to catch this with real evidence next time it
+  // reproduces live.
+  console.log('🔎 [rejectBooking] bookingId=' + bookingId + ' finalStatus=' + finalStatus + ' PATCH body=', JSON.stringify(fullBody));
 
   async function attemptPatch(body){
     return fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + bookingId, {
@@ -16446,6 +16544,15 @@ window.rejectBooking = async function(bookingId, reason, action, actorName, acto
     }
     console.log("✅ Reject patch — booking", bookingId, "marked", finalStatus, "by", who, "reason:", rejReason);
     await window.fetchAndRenderBookings();
+    // v80.44: verify what actually landed, immediately after the refetch —
+    // this is the exact moment that decides what the Process Timeline will
+    // show, so log it directly rather than infer.
+    var _verifyBooking = (S.bookings||[]).find(function(x){ return String(x.id)===String(bookingId); });
+    if(_verifyBooking){
+      console.log('🔎 [rejectBooking] POST-REFETCH — id=' + bookingId + ' status=' + _verifyBooking.status + ' cancelledAt=' + _verifyBooking.cancelledAt + ' rejected_at=' + _verifyBooking.rejected_at + ' rejected_by=' + _verifyBooking.rejected_by + ' rejected_by_role=' + _verifyBooking.rejected_by_role);
+    } else {
+      console.warn('🔎 [rejectBooking] POST-REFETCH — booking id ' + bookingId + ' not found in S.bookings after refetch (unexpected).');
+    }
     return { ok: true };
   } catch(err) {
     console.error("❌ Reject error:", err.message);
@@ -17280,7 +17387,12 @@ function renderLiveBookingsList(data) {
       var acts = document.createElement('div'); acts.style.cssText = 'display:flex;gap:8px;margin-top:8px;';
       var appBtn = document.createElement('button'); appBtn.textContent='Approve'; appBtn.style.cssText='flex:1;padding:7px;background:#dcfce7;color:#16a34a;border:none;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;';
       var rejBtn = document.createElement('button'); rejBtn.textContent='Reject';  rejBtn.style.cssText='flex:1;padding:7px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;';
-      (function(bid){ appBtn.onclick=function(){ window.admApproveBooking(bid); }; rejBtn.onclick=function(){ window.rejectBooking(bid); }; })(b.id);
+      // v80.44 FIX: was window.rejectBooking(bid) — with no `action` argument,
+      // rejectBooking()'s finalStatus defaults to 'cancelled' (action !== 'rejected'),
+      // so a Professor clicking "Reject" here was silently recording it as a
+      // CANCELLATION instead of a rejection, with no reason and no explicit actor
+      // role passed either. Now passes all five arguments correctly.
+      (function(bid){ appBtn.onclick=function(){ window.admApproveBooking(bid); }; rejBtn.onclick=function(){ window.rejectBooking(bid, 'Rejected by Professor', 'rejected', window.currentUser, window.currentRole); }; })(b.id);
       acts.appendChild(appBtn); acts.appendChild(rejBtn); card.appendChild(acts);
     }
     el.appendChild(card);
@@ -18258,6 +18370,29 @@ function rebuildKitDBFromSupabase() {
       if(!s || !s.name || s.status === 'Retired') return;
       var facKey = (s.fac === 'Film & TV' || s.fac === 'film') ? 'film' : 't1';
       fresh[facKey]['Studio Booking'].push(s.name);
+    });
+
+    // v80.44: sort every category's list numerically by trailing kit number
+    // (natural sort) before it becomes kitDB — previously left in raw
+    // Supabase fetch order, which is essentially random and looked
+    // unprofessional (Kit 8, Kit 4, Kit 11, Kit 2...) everywhere that reads
+    // kitDB: the native <select> dropdown, the Visual Card Grid's kit
+    // cards, AND the plain picker modal — all three pull from this same
+    // array, so sorting it once here fixes all three consistently instead
+    // of patching each display separately.
+    function _naturalKitSort(arr){
+      return arr.slice().sort(function(a,b){
+        var na = (a.match(/(\d+)(?!.*\d)/) || [])[1];
+        var nb = (b.match(/(\d+)(?!.*\d)/) || [])[1];
+        if(na != null && nb != null && parseInt(na,10) !== parseInt(nb,10)){
+          return parseInt(na,10) - parseInt(nb,10);
+        }
+        return a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'});
+      });
+    }
+    ['Equipment','Editing Systems','Studio Booking'].forEach(function(cat){
+      fresh.t1[cat]   = _naturalKitSort(fresh.t1[cat]);
+      fresh.film[cat] = _naturalKitSort(fresh.film[cat]);
     });
 
     // Update kitDB in-place so all existing references still work
