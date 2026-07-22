@@ -1342,7 +1342,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 </style>
 </head>
 <body>
-<div class="device">
+<div class="device" id="device-root">
   <div class="app-bar">
     <div class="app-bar-left">
       <div class="app-bar-title">JSJC Smart Booking App</div>
@@ -1358,6 +1358,12 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       </div>
     </div>
     <div class="app-bar-right">
+      <!-- v80.42: Mobile/Desktop view toggle — placed here per explicit
+           request ("near the bell, always"), NOT the login screen this
+           time. See toggleDeviceView() for why this is architecturally
+           different from the three prior (failed) attempts. -->
+      <button class="ab-btn" id="devview-mobile-btn" onclick="toggleDeviceView('mobile')" aria-label="Mobile view" title="Mobile view" style="font-size:13px;">📱</button>
+      <button class="ab-btn" id="devview-desktop-btn" onclick="toggleDeviceView('desktop')" aria-label="Desktop view" title="Desktop view" style="font-size:13px;">🖥️</button>
       <!-- Notification bell -->
       <button class="ab-btn" id="notif-btn" onclick="toggleNotifPanel()" aria-label="Notifications">
         🔔
@@ -2664,7 +2670,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.41</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.43</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -2674,7 +2680,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <!-- 4-stat strip -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px;">
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
-            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">80</div>
+            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">99</div>
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Versions</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
@@ -2682,7 +2688,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Roles</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
-            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">17K+</div>
+            <div style="font-size:19px;font-weight:900;font-family:monospace;color:#7b1a1a;line-height:1;">18K+</div>
             <div style="font-size:7px;color:#a07060;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-top:3px;">Lines</div>
           </div>
           <div style="background:#fff8f3;border:1.5px solid #e8d5c4;border-radius:13px;padding:11px 4px;text-align:center;">
@@ -3497,6 +3503,8 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.43 &middot; &#128683; Mobile/Desktop Toggle Broke When File Opened Locally — Guarded</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> tapping the toggle produced a blank page with "It may have been moved, edited or deleted", URL bar reading <code>content://downloads/all_downloads/2231</code>. <strong>Root cause:</strong> that URL confirms the HTML file was opened directly from the phone's Downloads app rather than visited as a hosted web page. v80.42's iframe approach needs a genuinely reloadable URL to point its <code>src</code> at — appending <code>?_devframe=1</code> to an opaque Android <code>content://</code> identifier isn't a valid link, so the browser tried to re-open it via the downloads content-provider instead of embedding it inline, producing exactly this broken result. <strong>Fix:</strong> <code>toggleDeviceView()</code> now checks <code>location.protocol</code> first — if it isn't <code>http:</code>/<code>https:</code> (covers <code>content:</code>, <code>file:</code>, and any other local-open scheme), it shows a clear explanatory toast and does nothing further, instead of attempting the iframe at all. The buttons are also dimmed with an explanatory tooltip up front on load in that case, and the saved-mode auto-restore is skipped too — so a "Mobile" preference saved while using the real hosted link doesn't silently break the very next time the file happens to be opened locally. <strong>Scope:</strong> guard clauses only, in <code>toggleDeviceView()</code> and <code>initDeviceView()</code> — the working iframe behavior on the real hosted URL (confirmed working architecture from v80.42) is completely unchanged.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.42 &middot; &#128241; Mobile/Desktop Toggle, Rebuilt on a Different Architecture + Manager Note at Booking Time + App Info Stats Refreshed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Mobile/Desktop toggle — rebuilt from scratch, not re-patched:</strong> three straight prior attempts (v80.32 → v80.35 → v80.37 removal) all tried to approximate a real phone viewport with CSS classes/<code>!important</code> overrides on <code>body</code>/<code>html</code> — and kept drifting out of sync, confirmed by live testing each time, because <code>@media</code> queries always evaluate against the REAL browser viewport; no class can make a genuinely wide window satisfy <code>@media(max-width:480px)</code>. This version does something categorically different instead of a fourth CSS approximation: "Mobile" mode now opens a same-page <code>&lt;iframe&gt;</code> sized to a real phone viewport (390&times;844) via <code>toggleDeviceView('mobile')</code> — an iframe has its OWN independent viewport, so the app's existing real <code>@media</code> rules evaluate correctly and natively inside it, automatically, with no hand-copied CSS and no possible drift, because it's not an approximation anymore — it's the same code genuinely running in a smaller real viewport. The nested instance detects itself via a <code>?_devframe=1</code> URL flag and hides its own toggle buttons, so Mobile-inside-Mobile can't happen. Buttons moved off the login screen entirely, per explicit request, into the persistent app-bar next to the notification bell — visible on every screen, not just login. Choice persists via <code>localStorage</code> and restores automatically on next load. <strong>2. Manager Note now visible when RAISING a booking, not just on the Manager Ops Desk afterward:</strong> the kit card's Manager Note (v80.28.1 deliberately hid it from students — "internal only") now also shows for Admin/Manager roles specifically, right below Kit Contents, at the actual point of picking a kit — using the same substring role check from v80.36 so both "Admin" and "Studio Manager" are covered. Students still never see it; that original privacy intent is unchanged. <strong>3. App Info stats corrected:</strong> the Versions/Lines counters had gone stale (showing 80/17K+ from an earlier point) — now reflect the actual current counts (99 distinct version entries, ~18.8K lines). <strong>Scope:</strong> app-bar markup, the new <code>toggleDeviceView()</code>/<code>_onDomReady()</code> functions, <code>_vcgKitCardHTML()</code>'s note block, and the App Info stat strip only — no change to any other screen or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.40 &middot; &#127183; Zoom F6 Kits Not Grouping + Manager Note Reading From Wrong Column</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Zoom F6 kits each showing as their own "model" (1 Kit Available) instead of grouping like TASCAM (7 Kits Available):</strong> <code>algBaseName()</code>'s suffix-stripping regex only matched a trailing <code>"– Kit 8"</code> pattern (dash, "Kit", then digits) — TASCAM's kit names fit that exactly, but the Zoom F6 kits are named <code>"… Kit – Kit No 5"</code>, with "No" between "Kit" and the number, which the regex didn't account for, so each Zoom F6 kit kept its full name as its own base and never grouped with its siblings in the Visual Card Grid's left-column model list. <strong>Fix:</strong> regex now also matches an optional "No"/"No." before the trailing digits, so "Kit No 5", "Kit No. 5", and the existing "Kit 5" form all strip correctly. <strong>2. Manager Note still invisible after being confirmed live in Supabase:</strong> traced with a live COUNT/NULL check — <code>equipment.manager_note</code> is a real column, but <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call never included it in the insert payload (only <code>kit_contents</code>/<code>equipment_type</code> were ever sent), so every row's <code>manager_note</code> stayed NULL regardless of what was typed on the form. Separately, <code>rebuildKitDBFromSupabase()</code>'s read-back mapper was looking for a column literally named <code>note</code> (which doesn't exist) instead of <code>manager_note</code> — a second, independent reason it would have stayed invisible even after the insert was fixed. Both now corrected: the insert sends <code>manager_note</code>, and the mapper reads <code>e.manager_note</code> first, falling back to the local-extras cache and the old wrong key for any pre-existing rows. <strong>Scope:</strong> <code>algBaseName()</code>, <code>admAddEquipment()</code>'s Supabase payload, and <code>rebuildKitDBFromSupabase()</code>'s equipment mapper only — no change to who can add/delete equipment (Admin/Manager add access and Admin-only delete are untouched), the kit-card display logic itself, or any other field.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.39 &middot; &#128683; Real Double-Booking Prevention + Kit Contents/Note Lookup Fix + Live Auto-Refresh</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Kit Contents/Manager Note not showing — root cause found, not role-specific:</strong> reported as a Studio Manager visibility issue, but traced to <code>canonicalRecordHTML()</code>'s equipment lookup using an EXACT string match against <code>adminData.equipment</code>. Any booking made with the optional "Kit No. / Note" field filled in stores its resource name WITH the bracket baked in (e.g. <code>"TASCAM DR 05 – Kit 8 [Test]"</code> — see <code>_vcgKitCardHTML</code>), which can never exact-match the equipment record's real name — so Kit Contents/Manager Note silently never rendered for ANY viewer on that booking, not specifically Manager. Fixed to strip the bracket suffix before matching, reusing the exact same pattern already used correctly in three other places in this file (<code>getCalendarSelectedItems</code>, <code>checkEquipmentConflicts</code>). <strong>2. Double-booking was only ever a soft warning, never actually blocked:</strong> <code>checkEquipmentConflicts()</code> (live, as the time picker changes) has existed since earlier versions and correctly detects overlaps — but only ever shows a dismissible toast; nothing stopped <code>submitBooking()</code> itself from inserting a genuinely conflicting booking. <code>submitBooking()</code> now queries Supabase DIRECTLY for just the requested resource(s) immediately before insert (not the local <code>S.bookings</code> cache, which is exactly what was stale in the reported "showed booked only after a refresh" case) and refuses the insert outright — clear error, no booking created — if any active, non-cancelled/rejected booking already overlaps the requested window. Applies uniformly to Equipment, Editing Systems, and Studio Booking, since <code>resource_name</code> isn't category-specific — not equipment-only. Fails OPEN only if the check itself can't reach Supabase (network hiccup), never silently blocking a legitimate booking. <strong>Calendar color-coding itself was already correct</strong> — confirmed <code>approved</code> status already maps to the yellow "Booked/Pending" bucket in <code>renderCalendar()</code>'s <code>statusMap</code>; the visible gap was purely the stale-data problem #2 addresses, not a missing color rule. <strong>3. Auto-refresh added:</strong> Book and Manager screens now silently re-fetch bookings and re-render every 10 seconds via the same functions every other action already calls — skips the cycle entirely whenever an input/select/textarea is currently focused, so a user mid-pick or mid-typing is never interrupted. <strong>Scope:</strong> <code>canonicalRecordHTML()</code>'s equipment lookup, <code>submitBooking()</code>'s pre-insert check, <code>handleBookingSubmit()</code>'s error display, and one new interval — no change to the existing soft-warning conflict toast, the calendar's color/status logic, or the booking/approval pipeline itself.</div></div>
@@ -4487,12 +4495,121 @@ function _loginThrottleReset(){
   try{ localStorage.removeItem('jsjc_login_throttle'); }catch(e){}
 }
 
-// v80.36 REMOVAL: setAppViewMode()/force-mobile-view/force-desktop-view
-// removed — see the CSS comment near .device for why. Also clears any
-// leftover jsjc_view_mode from earlier versions so a device that had
-// "Mobile" or "Desktop" saved doesn't carry forward a class that no
-// longer has matching CSS (harmless either way, but cleaner).
-try{ localStorage.removeItem('jsjc_view_mode'); }catch(e){}
+// v80.42: Mobile/Desktop toggle, REBUILT from scratch after three straight
+// failed attempts (v80.32 → v80.35 → v80.37 removal) at approximating a
+// real phone viewport with CSS classes/!important overrides. Root problem
+// with every prior attempt: @media queries ALWAYS evaluate against the
+// real browser viewport — no class on <body>/<html> can make a real
+// 1600px-wide desktop window actually satisfy `@media(max-width:480px)`.
+// Every previous version was hand-copying what that rule LOOKS like, which
+// is exactly why it kept drifting out of sync with the real thing.
+//
+// This version does something categorically different: "Mobile" mode
+// swaps the real page content for a same-page IFRAME sized to a real phone
+// viewport (390x844). An iframe has its OWN independent viewport — the
+// SAME @media rules the app already ships evaluate correctly and natively
+// inside it, automatically, with zero hand-copied CSS and zero drift ever
+// possible again, because it's not an approximation of the real behavior —
+// it IS the real behavior, just inside a smaller real viewport.
+//
+// The nested page detects it's inside that iframe (via a URL flag) and
+// hides its own toggle buttons, so there's no way to recursively nest.
+try{ localStorage.removeItem('jsjc_view_mode'); }catch(e){} // v80.36-era key, no longer used
+
+// v80.42: small helper — DOMContentLoaded may have ALREADY fired by the
+// time this script block runs (it's not at the very top of the page), so
+// using addEventListener alone would silently never fire. This runs the
+// callback immediately if the DOM is already ready, or waits if not.
+function _onDomReady(fn){
+  if(document.readyState === 'interactive' || document.readyState === 'complete') fn();
+  else document.addEventListener('DOMContentLoaded', fn);
+}
+
+(function(){
+  var params = new URLSearchParams(location.search);
+  if(params.get('_devframe') === '1'){
+    // This instance IS the nested mobile preview — hide the toggle buttons
+    // so there's no way to open Mobile-inside-Mobile.
+    _onDomReady(function(){
+      var mb = document.getElementById('devview-mobile-btn');
+      var db = document.getElementById('devview-desktop-btn');
+      if(mb) mb.style.display = 'none';
+      if(db) db.style.display = 'none';
+    });
+  }
+})();
+
+function toggleDeviceView(mode){
+  var deviceRoot = document.getElementById('device-root');
+  var existingFrame = document.getElementById('devview-mobile-frame');
+  // v80.43 FIX: reported live — clicking the toggle while the file was
+  // opened directly from Downloads (URL bar showing
+  // content://downloads/all_downloads/2231) produced a broken "moved,
+  // edited or deleted" page instead of switching views. Root cause: the
+  // iframe approach needs a genuinely reloadable URL to point its src at —
+  // appending "?_devframe=1" to an opaque content:// identifier isn't a
+  // valid link, so the browser tried to re-open it as a downloaded file
+  // rather than embed it as a page. This can ONLY happen for http(s) pages
+  // (visiting the real GitHub Pages URL) — guard against every other
+  // scheme (content:, file:, etc.) so it fails with a clear explanation
+  // instead of a broken blank screen.
+  if(location.protocol !== 'http:' && location.protocol !== 'https:'){
+    if(typeof toast === 'function'){
+      toast('📱 Mobile/Desktop preview needs the live hosted link — open the app via its real web URL (not a downloaded file) to use this toggle.', 4500);
+    }
+    return;
+  }
+  if(mode === 'mobile'){
+    if(existingFrame) return; // already in mobile preview
+    var baseUrl = location.href.split('?')[0].split('#')[0];
+    var frame = document.createElement('iframe');
+    frame.id = 'devview-mobile-frame';
+    frame.src = baseUrl + '?_devframe=1';
+    frame.style.cssText = 'width:390px;height:844px;max-height:92vh;border:10px solid #0a0a14;border-radius:44px;box-shadow:0 0 0 2px #2d2d3e,0 30px 80px rgba(0,0,0,.7);display:block;';
+    var overlay = document.createElement('div');
+    overlay.id = 'devview-mobile-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:#1a1a1a;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    overlay.appendChild(frame);
+    document.body.appendChild(overlay);
+    if(deviceRoot) deviceRoot.style.display = 'none';
+  } else {
+    var overlayEl = document.getElementById('devview-mobile-overlay');
+    if(overlayEl) overlayEl.remove();
+    if(deviceRoot) deviceRoot.style.display = '';
+  }
+  try{ localStorage.setItem('jsjc_devview_mode', mode); }catch(e){}
+  var mBtn = document.getElementById('devview-mobile-btn');
+  var dBtn = document.getElementById('devview-desktop-btn');
+  if(mBtn) mBtn.style.background = (mode==='mobile') ? 'rgba(255,255,255,.35)' : '';
+  if(dBtn) dBtn.style.background = (mode==='desktop') ? 'rgba(255,255,255,.35)' : '';
+}
+window.toggleDeviceView = toggleDeviceView;
+(function initDeviceView(){
+  var params = new URLSearchParams(location.search);
+  if(params.get('_devframe') === '1') return; // nested preview — never auto-re-nest itself
+  var isHttpProtocol = (location.protocol === 'http:' || location.protocol === 'https:');
+  if(!isHttpProtocol){
+    // v80.43: dim + disable the buttons up front when opened as a local
+    // file (content://, file://, etc.) rather than letting a click fail
+    // with a toast — makes the "why can't I use this" answer visible
+    // immediately instead of only after trying.
+    _onDomReady(function(){
+      var mBtn = document.getElementById('devview-mobile-btn');
+      var dBtn = document.getElementById('devview-desktop-btn');
+      [mBtn, dBtn].forEach(function(b){
+        if(!b) return;
+        b.style.opacity = '.35';
+        b.title = 'Preview needs the live hosted link — unavailable when opened as a local file';
+      });
+    });
+    return; // don't attempt the saved-mode auto-restore either — see toggleDeviceView's own guard for why
+  }
+  var saved = null;
+  try{ saved = localStorage.getItem('jsjc_devview_mode'); }catch(e){}
+  if(saved === 'mobile'){
+    _onDomReady(function(){ toggleDeviceView('mobile'); });
+  }
+})();
 
 async function attemptLogin() {
   const emailEl = document.getElementById('login-email');
@@ -7960,11 +8077,25 @@ function _vcgKitCardHTML(name){
     : '';
   // v80.28.1: surface Kit Contents to the student at booking time — this was
   // captured on the Admin equipment form (kitContents) but never displayed
-  // anywhere a student could see it before now. Manager Note stays hidden
-  // here on purpose (labeled "internal only" on the Admin form) — it's
-  // surfaced instead on the Manager Operations Desk card below.
+  // anywhere a student could see it before now.
+  // v80.42: Manager Note is now ALSO shown here, but only when an
+  // Admin/Manager is doing the raising — see _managerNoteHTML below.
+  // Students still never see it — that "internal only" intent is preserved.
   var _kitContentsHTML = (rec && rec.kitContents)
     ? '<div style="font-size:9.5px;color:#374151;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:5px 7px;margin-top:5px;">🎒 <strong>Contains:</strong> '+rec.kitContents+'</div>'
+    : '';
+  // v80.42: Manager Note now shown here too, but ONLY for Admin/Manager
+  // roles raising a booking on someone's behalf — students still never see
+  // it (the "internal only" intent from v80.28.1 is preserved for them).
+  // Uses the same substring role check established in v80.36 (handles
+  // both 'Admin' and 'Studio Manager' correctly). rec.note is the same
+  // field canonicalRecordHTML() already reads on the Manager Ops Desk —
+  // this just adds the same information one screen earlier, at the point
+  // of actually picking the kit, per explicit request.
+  var _roleForNote = (window.currentRole || '').toLowerCase();
+  var _isPrivilegedViewer = _roleForNote === 'admin' || _roleForNote.indexOf('manager') !== -1;
+  var _managerNoteHTML = (rec && rec.note && _isPrivilegedViewer)
+    ? '<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:5px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> '+rec.note+'</div>'
     : '';
   return '<div class="vcg-bk-kit-card'+(isSelected?' selected':'')+(isMaint?' disabled':'')+'">'
     + '<div class="vcg-bk-kit-row">'
@@ -7974,6 +8105,7 @@ function _vcgKitCardHTML(name){
     +     '<div class="vcg-bk-kit-meta">Serial '+serial+' &middot; 📍 '+loc+'</div>'
     +     '<div class="vcg-bk-kit-meta"><span class="vcg-dot" style="background:'+dotColor+';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>'+statusLbl+'</div>'
     +     _kitContentsHTML
+    +     _managerNoteHTML
     +   '</div>'
     +   '<button type="button" class="vcg-btn '+btnCls+'" style="width:auto;padding:7px 12px;"'+(isMaint?' disabled':'')+' onclick="'+(isMaint?'':'vcgToggle(\''+name.replace(/'/g,"\\'")+'\')')+'">'+btnTxt+'</button>'
     + '</div>'
