@@ -168,6 +168,18 @@ body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-heig
   .device{width:100%;max-width:480px;height:100%;height:100dvh;max-height:900px;flex:1;}
 
 }
+/* v80V RESTORE: back to the v80.35 setAppViewMode() CSS-class swap,
+   replacing the v80.42/43 iframe approach. Mirrors the real mobile rule
+   above exactly (full-bleed, no radius/shadow) on both html and body per
+   v80.35's fix, and widens desktop proportionally instead of an invented
+   fixed size. Icons: 📱 mobile-btn / 🖥️ desktop-btn (unchanged, already
+   correct in the app-bar markup). */
+html.force-mobile-view,body.force-mobile-view{height:100%;height:100dvh;overflow:hidden;}
+body.force-mobile-view{align-items:stretch;justify-content:stretch;padding:0;}
+body.force-mobile-view .device{width:100%;height:100%;height:100dvh;max-height:100%;max-height:100dvh;border-radius:0;box-shadow:none;flex:1;}
+html.force-desktop-view,body.force-desktop-view{height:100%;height:100dvh;overflow:hidden;}
+body.force-desktop-view{align-items:center;justify-content:center;padding:16px;}
+body.force-desktop-view .device{width:min(560px,92vw);height:100%;height:100dvh;max-height:900px;flex:1;}
 .app-bar{background:linear-gradient(135deg,#3d0000,#7b1a1a);color:#fff;padding:14px 16px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.3);}
 .app-bar-left{display:flex;flex-direction:column;gap:1px;}
 .app-bar-title{font-size:13px;font-weight:800;letter-spacing:.4px;color:#fff;line-height:1.2;}
@@ -1358,12 +1370,12 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       </div>
     </div>
     <div class="app-bar-right">
-      <!-- v80.42: Mobile/Desktop view toggle — placed here per explicit
-           request ("near the bell, always"), NOT the login screen this
-           time. See toggleDeviceView() for why this is architecturally
-           different from the three prior (failed) attempts. -->
-      <button class="ab-btn" id="devview-mobile-btn" onclick="toggleDeviceView('mobile')" aria-label="Mobile view" title="Mobile view" style="font-size:13px;">📱</button>
-      <button class="ab-btn" id="devview-desktop-btn" onclick="toggleDeviceView('desktop')" aria-label="Desktop view" title="Desktop view" style="font-size:13px;">🖥️</button>
+      <!-- v80V: Mobile/Desktop view toggle — restored to the v80.35
+           setAppViewMode() CSS-class swap (no iframe). Kept in the app-bar
+           next to the bell per v80.42's placement. Icons correctly
+           assigned: 📱 = mobile, 🖥️ = desktop. -->
+      <button class="ab-btn" id="devview-mobile-btn" onclick="setAppViewMode('mobile')" aria-label="Mobile view" title="Mobile view" style="font-size:13px;">📱</button>
+      <button class="ab-btn" id="devview-desktop-btn" onclick="setAppViewMode('desktop')" aria-label="Desktop view" title="Desktop view" style="font-size:13px;">🖥️</button>
       <!-- Notification bell -->
       <button class="ab-btn" id="notif-btn" onclick="toggleNotifPanel()" aria-label="Notifications">
         🔔
@@ -3503,6 +3515,7 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80V &middot; &#128241; Mobile/Desktop Toggle — Reverted from Iframe Back to CSS-Class Swap</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> the v80.42/43 iframe approach broke in practice — clicking "Desktop" hid the app-bar buttons themselves (they're rendered inside the nested iframe's own DOM), leaving no way to click back to "Mobile" from within that view. <strong>Decision:</strong> restore the v80.35 <code>setAppViewMode()</code> approach — a plain CSS-class swap on <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code> (<code>force-mobile-view</code>/<code>force-desktop-view</code>), reusing the app's real <code>@media(max-width:480px)</code> sizing exactly rather than an invented fixed size, per v80.35's original fix. This trades the iframe's guarantee of native <code>@media</code> evaluation for a toggle that keeps the app-bar (and its own buttons) visible and clickable in both modes, works identically on hosted and local/downloaded files (no <code>location.protocol</code> dependency), and needs no <code>?_devframe=1</code> self-detection since nothing is nested anymore. Icons unchanged and correctly assigned: 📱 = mobile (full-bleed), 🖥️ = desktop (wide panel, <code>min(560px,92vw)</code>). <strong>Scope:</strong> the toggle's CSS block and JS only (<code>setAppViewMode()</code> replaces <code>toggleDeviceView()</code>; the two buttons' <code>onclick</code> updated to match) — no other screen touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.43 &middot; &#128683; Mobile/Desktop Toggle Broke When File Opened Locally — Guarded</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> tapping the toggle produced a blank page with "It may have been moved, edited or deleted", URL bar reading <code>content://downloads/all_downloads/2231</code>. <strong>Root cause:</strong> that URL confirms the HTML file was opened directly from the phone's Downloads app rather than visited as a hosted web page. v80.42's iframe approach needs a genuinely reloadable URL to point its <code>src</code> at — appending <code>?_devframe=1</code> to an opaque Android <code>content://</code> identifier isn't a valid link, so the browser tried to re-open it via the downloads content-provider instead of embedding it inline, producing exactly this broken result. <strong>Fix:</strong> <code>toggleDeviceView()</code> now checks <code>location.protocol</code> first — if it isn't <code>http:</code>/<code>https:</code> (covers <code>content:</code>, <code>file:</code>, and any other local-open scheme), it shows a clear explanatory toast and does nothing further, instead of attempting the iframe at all. The buttons are also dimmed with an explanatory tooltip up front on load in that case, and the saved-mode auto-restore is skipped too — so a "Mobile" preference saved while using the real hosted link doesn't silently break the very next time the file happens to be opened locally. <strong>Scope:</strong> guard clauses only, in <code>toggleDeviceView()</code> and <code>initDeviceView()</code> — the working iframe behavior on the real hosted URL (confirmed working architecture from v80.42) is completely unchanged.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.42 &middot; &#128241; Mobile/Desktop Toggle, Rebuilt on a Different Architecture + Manager Note at Booking Time + App Info Stats Refreshed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Mobile/Desktop toggle — rebuilt from scratch, not re-patched:</strong> three straight prior attempts (v80.32 → v80.35 → v80.37 removal) all tried to approximate a real phone viewport with CSS classes/<code>!important</code> overrides on <code>body</code>/<code>html</code> — and kept drifting out of sync, confirmed by live testing each time, because <code>@media</code> queries always evaluate against the REAL browser viewport; no class can make a genuinely wide window satisfy <code>@media(max-width:480px)</code>. This version does something categorically different instead of a fourth CSS approximation: "Mobile" mode now opens a same-page <code>&lt;iframe&gt;</code> sized to a real phone viewport (390&times;844) via <code>toggleDeviceView('mobile')</code> — an iframe has its OWN independent viewport, so the app's existing real <code>@media</code> rules evaluate correctly and natively inside it, automatically, with no hand-copied CSS and no possible drift, because it's not an approximation anymore — it's the same code genuinely running in a smaller real viewport. The nested instance detects itself via a <code>?_devframe=1</code> URL flag and hides its own toggle buttons, so Mobile-inside-Mobile can't happen. Buttons moved off the login screen entirely, per explicit request, into the persistent app-bar next to the notification bell — visible on every screen, not just login. Choice persists via <code>localStorage</code> and restores automatically on next load. <strong>2. Manager Note now visible when RAISING a booking, not just on the Manager Ops Desk afterward:</strong> the kit card's Manager Note (v80.28.1 deliberately hid it from students — "internal only") now also shows for Admin/Manager roles specifically, right below Kit Contents, at the actual point of picking a kit — using the same substring role check from v80.36 so both "Admin" and "Studio Manager" are covered. Students still never see it; that original privacy intent is unchanged. <strong>3. App Info stats corrected:</strong> the Versions/Lines counters had gone stale (showing 80/17K+ from an earlier point) — now reflect the actual current counts (99 distinct version entries, ~18.8K lines). <strong>Scope:</strong> app-bar markup, the new <code>toggleDeviceView()</code>/<code>_onDomReady()</code> functions, <code>_vcgKitCardHTML()</code>'s note block, and the App Info stat strip only — no change to any other screen or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
@@ -4495,119 +4508,39 @@ function _loginThrottleReset(){
   try{ localStorage.removeItem('jsjc_login_throttle'); }catch(e){}
 }
 
-// v80.42: Mobile/Desktop toggle, REBUILT from scratch after three straight
-// failed attempts (v80.32 → v80.35 → v80.37 removal) at approximating a
-// real phone viewport with CSS classes/!important overrides. Root problem
-// with every prior attempt: @media queries ALWAYS evaluate against the
-// real browser viewport — no class on <body>/<html> can make a real
-// 1600px-wide desktop window actually satisfy `@media(max-width:480px)`.
-// Every previous version was hand-copying what that rule LOOKS like, which
-// is exactly why it kept drifting out of sync with the real thing.
-//
-// This version does something categorically different: "Mobile" mode
-// swaps the real page content for a same-page IFRAME sized to a real phone
-// viewport (390x844). An iframe has its OWN independent viewport — the
-// SAME @media rules the app already ships evaluate correctly and natively
-// inside it, automatically, with zero hand-copied CSS and zero drift ever
-// possible again, because it's not an approximation of the real behavior —
-// it IS the real behavior, just inside a smaller real viewport.
-//
-// The nested page detects it's inside that iframe (via a URL flag) and
-// hides its own toggle buttons, so there's no way to recursively nest.
-try{ localStorage.removeItem('jsjc_view_mode'); }catch(e){} // v80.36-era key, no longer used
+// v80V RESTORE: back to the v80.35 CSS-class swap (setAppViewMode), in
+// place of the v80.42/43 iframe approach — works identically whether the
+// file is opened via a hosted URL or a local/downloaded file (no
+// location.protocol dependency, since no iframe src reload is involved),
+// and needs no _devframe URL-flag/self-hiding logic since there's nothing
+// to recursively nest. Mode persists via localStorage and re-applies on
+// next load, same UX as before.
+try{ localStorage.removeItem('jsjc_devview_mode'); }catch(e){} // v80.42-era key, no longer used
 
-// v80.42: small helper — DOMContentLoaded may have ALREADY fired by the
-// time this script block runs (it's not at the very top of the page), so
-// using addEventListener alone would silently never fire. This runs the
-// callback immediately if the DOM is already ready, or waits if not.
 function _onDomReady(fn){
   if(document.readyState === 'interactive' || document.readyState === 'complete') fn();
   else document.addEventListener('DOMContentLoaded', fn);
 }
 
-(function(){
-  var params = new URLSearchParams(location.search);
-  if(params.get('_devframe') === '1'){
-    // This instance IS the nested mobile preview — hide the toggle buttons
-    // so there's no way to open Mobile-inside-Mobile.
-    _onDomReady(function(){
-      var mb = document.getElementById('devview-mobile-btn');
-      var db = document.getElementById('devview-desktop-btn');
-      if(mb) mb.style.display = 'none';
-      if(db) db.style.display = 'none';
-    });
+function setAppViewMode(mode){
+  document.documentElement.classList.remove('force-mobile-view','force-desktop-view');
+  document.body.classList.remove('force-mobile-view','force-desktop-view');
+  if(mode === 'mobile' || mode === 'desktop'){
+    document.documentElement.classList.add('force-'+mode+'-view');
+    document.body.classList.add('force-'+mode+'-view');
   }
-})();
-
-function toggleDeviceView(mode){
-  var deviceRoot = document.getElementById('device-root');
-  var existingFrame = document.getElementById('devview-mobile-frame');
-  // v80.43 FIX: reported live — clicking the toggle while the file was
-  // opened directly from Downloads (URL bar showing
-  // content://downloads/all_downloads/2231) produced a broken "moved,
-  // edited or deleted" page instead of switching views. Root cause: the
-  // iframe approach needs a genuinely reloadable URL to point its src at —
-  // appending "?_devframe=1" to an opaque content:// identifier isn't a
-  // valid link, so the browser tried to re-open it as a downloaded file
-  // rather than embed it as a page. This can ONLY happen for http(s) pages
-  // (visiting the real GitHub Pages URL) — guard against every other
-  // scheme (content:, file:, etc.) so it fails with a clear explanation
-  // instead of a broken blank screen.
-  if(location.protocol !== 'http:' && location.protocol !== 'https:'){
-    if(typeof toast === 'function'){
-      toast('📱 Mobile/Desktop preview needs the live hosted link — open the app via its real web URL (not a downloaded file) to use this toggle.', 4500);
-    }
-    return;
-  }
-  if(mode === 'mobile'){
-    if(existingFrame) return; // already in mobile preview
-    var baseUrl = location.href.split('?')[0].split('#')[0];
-    var frame = document.createElement('iframe');
-    frame.id = 'devview-mobile-frame';
-    frame.src = baseUrl + '?_devframe=1';
-    frame.style.cssText = 'width:390px;height:844px;max-height:92vh;border:10px solid #0a0a14;border-radius:44px;box-shadow:0 0 0 2px #2d2d3e,0 30px 80px rgba(0,0,0,.7);display:block;';
-    var overlay = document.createElement('div');
-    overlay.id = 'devview-mobile-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:#1a1a1a;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
-    overlay.appendChild(frame);
-    document.body.appendChild(overlay);
-    if(deviceRoot) deviceRoot.style.display = 'none';
-  } else {
-    var overlayEl = document.getElementById('devview-mobile-overlay');
-    if(overlayEl) overlayEl.remove();
-    if(deviceRoot) deviceRoot.style.display = '';
-  }
-  try{ localStorage.setItem('jsjc_devview_mode', mode); }catch(e){}
+  try{ localStorage.setItem('jsjc_view_mode', mode); }catch(e){}
   var mBtn = document.getElementById('devview-mobile-btn');
   var dBtn = document.getElementById('devview-desktop-btn');
   if(mBtn) mBtn.style.background = (mode==='mobile') ? 'rgba(255,255,255,.35)' : '';
   if(dBtn) dBtn.style.background = (mode==='desktop') ? 'rgba(255,255,255,.35)' : '';
 }
-window.toggleDeviceView = toggleDeviceView;
+window.setAppViewMode = setAppViewMode;
 (function initDeviceView(){
-  var params = new URLSearchParams(location.search);
-  if(params.get('_devframe') === '1') return; // nested preview — never auto-re-nest itself
-  var isHttpProtocol = (location.protocol === 'http:' || location.protocol === 'https:');
-  if(!isHttpProtocol){
-    // v80.43: dim + disable the buttons up front when opened as a local
-    // file (content://, file://, etc.) rather than letting a click fail
-    // with a toast — makes the "why can't I use this" answer visible
-    // immediately instead of only after trying.
-    _onDomReady(function(){
-      var mBtn = document.getElementById('devview-mobile-btn');
-      var dBtn = document.getElementById('devview-desktop-btn');
-      [mBtn, dBtn].forEach(function(b){
-        if(!b) return;
-        b.style.opacity = '.35';
-        b.title = 'Preview needs the live hosted link — unavailable when opened as a local file';
-      });
-    });
-    return; // don't attempt the saved-mode auto-restore either — see toggleDeviceView's own guard for why
-  }
   var saved = null;
-  try{ saved = localStorage.getItem('jsjc_devview_mode'); }catch(e){}
-  if(saved === 'mobile'){
-    _onDomReady(function(){ toggleDeviceView('mobile'); });
+  try{ saved = localStorage.getItem('jsjc_view_mode'); }catch(e){}
+  if(saved === 'mobile' || saved === 'desktop'){
+    _onDomReady(function(){ setAppViewMode(saved); });
   }
 })();
 
