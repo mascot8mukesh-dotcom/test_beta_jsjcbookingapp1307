@@ -125,39 +125,16 @@ Before writing any code in this file, re-read this note once. That's it.
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'Segoe UI',sans-serif;background:#111827;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(ellipse at 20% 60%,rgba(123,26,26,.15),transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(37,99,235,.1),transparent 50%);}
 .device{width:375px;height:812px;max-height:100vh;max-height:100dvh;background:#f5f5f7;border-radius:44px;overflow:hidden;position:relative;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7);display:flex;flex-direction:column;}
-/* v80.32: Mobile/Desktop view-mode toggle, chosen from the login screen.
-   Independent of actual screen size — lets someone on a real desktop force
-   the phone-frame preview, or someone on a real phone force the wide
-   desktop layout, and remembers the choice (localStorage: jsjc_view_mode).
-   Default (no class on body) = automatic/responsive, exactly as before —
-   this is purely additive and changes nothing unless explicitly toggled. */
-/* v80.35: FIX — force-mobile-view previously used invented fixed dimensions
-   (390x844) that didn't match the app's own existing PWA-tuned mobile fit
-   (the @media(max-width:480px) rule below, which the app already uses on
-   real phones — full-bleed, no border-radius, no shadow). That mismatch is
-   exactly why switching back to Mobile after Desktop looked "messy" — it
-   was snapping to a size Claude invented, not the app's real native fit.
-   Fixed: force-mobile-view now reproduces that EXACT existing rule instead
-   of a new one. force-desktop-view is deliberately just "a bit wider than
-   mobile" per the request — extends the existing 481–1024px tablet rule's
-   approach (centered, capped width, rounded frame) up to a genuinely
-   desktop-appropriate width, rather than inventing an unrelated size. */
-/* v80.35: FIX — force-mobile-view previously only replicated the .device
-   sizing half of the app's real @media(max-width:480px) mobile rule. That
-   rule ALSO locks html's height/overflow (see the real media block below:
-   `html,body{height:100%;height:100dvh;overflow:hidden}`) — a body-only
-   class can't reach <html> via CSS, so that half silently never applied
-   under the forced class, even though .device looked visually identical.
-   That's what was still causing "messy" height/scroll behavior — the
-   PWA-accurate fit needs BOTH halves. Fixed by applying the mode class to
-   <html> as well as <body> (see setAppViewMode() JS) and targeting both
-   elements here, exactly mirroring the real media query's own selectors. */
-html.force-mobile-view,html.force-mobile-view body{height:100%!important;height:100dvh!important;overflow:hidden!important;}
-body.force-mobile-view{align-items:stretch!important;justify-content:stretch!important;padding:0!important;}
-body.force-mobile-view .device{width:100%!important;height:100%!important;height:100dvh!important;max-height:100%!important;max-height:100dvh!important;border-radius:0!important;box-shadow:none!important;flex:1!important;}
-html.force-desktop-view,html.force-desktop-view body{height:100%!important;height:100dvh!important;overflow:hidden!important;}
-body.force-desktop-view{align-items:center!important;justify-content:center!important;padding:16px!important;}
-body.force-desktop-view .device{width:min(560px,92vw)!important;height:min(920px,92vh)!important;max-height:92vh!important;border-radius:36px!important;box-shadow:0 0 0 2px #2d2d3e,0 0 0 7px #0a0a14,0 30px 80px rgba(0,0,0,.7)!important;flex:none!important;}
+/* v80.36 REMOVAL: the v80.32 manual Mobile/Desktop toggle (and its v80.35
+   fix attempt) was removed. Confirmed by direct testing that even after
+   matching the real PWA breakpoint rule exactly on both <html> and <body>,
+   the two modes still weren't reliably distinguishing themselves in
+   practice — the "Mobile" button was observed producing the full desktop
+   layout. Rather than chase a further edge case in a feature that had
+   already needed two prior fixes, removed it entirely: sizing is once
+   again driven ONLY by the real @media breakpoints below, exactly matching
+   the actual device's real viewport — which is what "accurate PWA fit"
+   means by definition. No manual override exists to drift out of sync. */
 /* v80.3 MOBILE VIEWPORT BOTTOM-CLIPPING FIX — ROOT CAUSE:
    Every full-height rule here (body, .device, and the two breakpoints below)
    was locked to 100vh — including inside the mobile breakpoint that makes
@@ -1417,10 +1394,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <span class="lic">🎚️</span>
           <span class="lic">💡</span>
         </div>
-        <div id="login-view-toggle" style="display:flex;justify-content:center;gap:6px;margin-top:10px;">
-          <button type="button" class="login-view-btn" id="login-view-btn-mobile" onclick="setAppViewMode('mobile')" title="Mobile view" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">📱 Mobile</button>
-          <button type="button" class="login-view-btn" id="login-view-btn-desktop" onclick="setAppViewMode('desktop')" title="Desktop view" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">🖥️ Desktop</button>
-        </div>
       </div>
       <div class="login-body">
         <div class="sec-lbl" style="margin-top:4px;" id="login-title-tap" onclick="(function(){window._tapCount=(window._tapCount||0)+1;if(window._tapCount>=3){window._tapCount=0;console.table(adminData.managers.map(function(m){return{name:m.name,email:m.email,pin:m.pin,role:'Manager'};}));console.table(adminData.professors.map(function(p){return{name:p.name,email:p.email,pin:p.pin,role:'Professor'};}));console.table((window.allStudents?window.allStudents():adminData.students).map(function(s){return{name:s.name,email:s.email,pin:s.pin,role:'Student'};}));toast('📋 All credentials logged to console');}})();">Sign in to your account</div>
@@ -2084,7 +2057,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <button class="mgr-filt-btn"        data-mgrf="approved"  onclick="setMgrFilter('approved',this)"  style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">✅ Approved by Manager</button>
         <button class="mgr-filt-btn"        data-mgrf="kitready"  onclick="setMgrFilter('kitready',this)"  style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">🎒 Kit Ready</button>
         <button class="mgr-filt-btn"        data-mgrf="issued"    onclick="setMgrFilter('issued',this)"    style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">📤 Issued</button>
-        <button class="mgr-filt-btn"        data-mgrf="rejected"  onclick="setMgrFilter('rejected',this)"  style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">🚫 Rejected</button>
+        <button class="mgr-filt-btn"        data-mgrf="rejected"  onclick="setMgrFilter('rejected',this)"  style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">🚫 Rejected / Cancelled</button>
         <button class="mgr-filt-btn"        data-mgrf="returned"  onclick="setMgrFilter('returned',this)"  style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">📥 Returned</button>
         <button class="mgr-filt-btn"        data-mgrf="partial"   onclick="setMgrFilter('partial',this)"   style="white-space:nowrap;padding:6px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:11px;font-weight:700;cursor:pointer;">📦 Partially Returned</button>
       </div>
@@ -2686,7 +2659,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.34</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.39</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3519,6 +3492,11 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.13 &middot; &#128268; Manager Filter Toggle, Timeline Timestamps, Manager Rating UUID Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Manager filter chips now toggle like Analytics chips:</strong> <code>setMgrFilter()</code> only ever added the active state and re-filtered &mdash; clicking an already-active chip did nothing, so there was no way back to "All" except reloading. It now detects a repeat click on the active (non-default) chip, reverts to the default "Latest Booking" view, moves the highlight back to that chip, and plays a distinct deselect tone (reusing the existing PIN-pop sound) instead of the normal select click &mdash; filtering logic itself (<code>renderManager()</code>'s branching) is untouched. <strong>2. Timeline "&mdash;" root cause found &mdash; two separate bugs, both about a timestamp being set in memory but never surviving a re-render:</strong> (a) <code>setKS()</code>'s issued-branch set <code>b.issuedAt</code> locally but the accompanying <code>cacheLocalExtra()</code> call never included it, so the very next <code>fetchAndRenderBookings()</code> refetch replaced the booking with a fresh object carrying only the DB's snake_case <code>issued_at</code> &mdash; which <code>pipelineRecordHTML()</code>'s "Issued by" and "Equipment handed over" rows never read. Fixed by caching <code>issuedAt</code>, restoring it in <code>applyLocalExtras()</code>, and adding an <code>issued_at</code> fallback in the timeline rows themselves so it's correct however the value arrives. (b) <code>rateManagerEmoji()</code> &mdash; the actual function wired to the student's rating buttons &mdash; set <code>b.managerRating</code> but never set or cached <code>ratedAt</code> at all, even though the "Student rated Manager" row has always read <code>b.ratedAt</code>; it now stamps and caches <code>ratedAt</code> alongside the rating. <strong>3. manager_ratings 400 "invalid input syntax for type uuid" &mdash; root cause confirmed:</strong> <code>rateManagerEmoji()</code> was sending <code>manager_id: mgrRec.id</code>, which is the app's own local synthetic id (e.g. <code>"M001"</code>) &mdash; never a real UUID &mdash; while the genuine Supabase managers-table UUID was sitting unused on <code>mgrRec.supa_id</code>. Now sends <code>mgrRec.supa_id</code> (or <code>null</code> if unavailable, which the nullable column accepts). Also stopped falling back to the roll-number string <code>b.sid</code> for <code>student_id</code>, using only the real student UUID (<code>stuRec.id</code>) or <code>null</code>. No booking workflow, issue/return workflow, archive logic, or status transitions were touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.39 &middot; &#128683; Real Double-Booking Prevention + Kit Contents/Note Lookup Fix + Live Auto-Refresh</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Kit Contents/Manager Note not showing — root cause found, not role-specific:</strong> reported as a Studio Manager visibility issue, but traced to <code>canonicalRecordHTML()</code>'s equipment lookup using an EXACT string match against <code>adminData.equipment</code>. Any booking made with the optional "Kit No. / Note" field filled in stores its resource name WITH the bracket baked in (e.g. <code>"TASCAM DR 05 – Kit 8 [Test]"</code> — see <code>_vcgKitCardHTML</code>), which can never exact-match the equipment record's real name — so Kit Contents/Manager Note silently never rendered for ANY viewer on that booking, not specifically Manager. Fixed to strip the bracket suffix before matching, reusing the exact same pattern already used correctly in three other places in this file (<code>getCalendarSelectedItems</code>, <code>checkEquipmentConflicts</code>). <strong>2. Double-booking was only ever a soft warning, never actually blocked:</strong> <code>checkEquipmentConflicts()</code> (live, as the time picker changes) has existed since earlier versions and correctly detects overlaps — but only ever shows a dismissible toast; nothing stopped <code>submitBooking()</code> itself from inserting a genuinely conflicting booking. <code>submitBooking()</code> now queries Supabase DIRECTLY for just the requested resource(s) immediately before insert (not the local <code>S.bookings</code> cache, which is exactly what was stale in the reported "showed booked only after a refresh" case) and refuses the insert outright — clear error, no booking created — if any active, non-cancelled/rejected booking already overlaps the requested window. Applies uniformly to Equipment, Editing Systems, and Studio Booking, since <code>resource_name</code> isn't category-specific — not equipment-only. Fails OPEN only if the check itself can't reach Supabase (network hiccup), never silently blocking a legitimate booking. <strong>Calendar color-coding itself was already correct</strong> — confirmed <code>approved</code> status already maps to the yellow "Booked/Pending" bucket in <code>renderCalendar()</code>'s <code>statusMap</code>; the visible gap was purely the stale-data problem #2 addresses, not a missing color rule. <strong>3. Auto-refresh added:</strong> Book and Manager screens now silently re-fetch bookings and re-render every 10 seconds via the same functions every other action already calls — skips the cycle entirely whenever an input/select/textarea is currently focused, so a user mid-pick or mid-typing is never interrupted. <strong>Scope:</strong> <code>canonicalRecordHTML()</code>'s equipment lookup, <code>submitBooking()</code>'s pre-insert check, <code>handleBookingSubmit()</code>'s error display, and one new interval — no change to the existing soft-warning conflict toast, the calendar's color/status logic, or the booking/approval pipeline itself.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.38 &middot; &#128221; Work Report Note &amp; Reported-To Not Surviving to Submitted Log — Two Root Causes Found</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> entered a Task Description and Reported-To for 3 separate activities on the Report screen — none of it showed up afterward, same class of symptom as the earlier equipment kit-contents/manager-note bug. <strong>Root cause 1 — Task Description, a real logic bug, not just missing display:</strong> the note box was read as ONE shared value only at final "Submit Work Log" time, applied identically to every pending activity in the batch — but <code>recordActivity()</code> clears that same box immediately after every "Record Activity" click, before Submit is ever reached. Typing a note for activity 1, recording it, then typing one for activity 2 wiped activity 1's note the instant "Record Activity" fired — only whatever was typed last (or nothing) ever reached Submit. <strong>Fix:</strong> the note is now captured into each pending activity's own <code>note</code> field at the moment it's recorded (mirroring the already-correct <code>reportingTo</code> pattern), and carried through per-activity at Submit instead of one shared value; the mandatory-note validation now checks each non-equipment activity individually instead of one shared flag. <strong>Root cause 2 — Reported To, pure display bug:</strong> this field was already being captured and saved correctly all along — <code>renderShiftLogs()</code>'s card template simply never had a row for it, so correct data was silently never shown. Added the missing row to both the pending (not-yet-submitted) and submitted card templates. <strong>Print/PDF report — investigated, found already correct, zero changes needed:</strong> traced <code>_wrBuildInnerHTML()</code>/<code>_wrBuildRows()</code> directly — the "Notes &amp; Reporting" column already reads <code>l.note</code>/<code>l.reportingTo</code> per log entry correctly; it was only ever starved of correct data by root cause 1 upstream. Once activities carry real per-entry notes, the printed report picks them up automatically with no template changes. <strong>Scope:</strong> <code>recordActivity()</code>, <code>submitLog()</code>, and <code>renderShiftLogs()</code> only — no change to the print template, hours/utilization calculations, or any other Report screen logic.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #6b7280;"><div style="font-size:10px;font-weight:800;color:#6b7280;margin-bottom:3px;">v80.37 &middot; &#128683; Mobile/Desktop Toggle Removed — Reverted to Pure Automatic PWA Fit</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Observed directly (screenshots):</strong> even after v80.35's fix matched the app's real <code>@media(max-width:480px)</code> mobile rule on both <code>html</code> and <code>body</code>, the "Mobile" button was still producing the full desktop-width layout in practice — the two modes weren't reliably distinguishing themselves. <strong>Decision:</strong> given this specific toggle had already needed two prior fixes (v80.32 → v80.35) and still wasn't behaving correctly on live testing, rather than chase a third edge case, removed the manual override entirely per the second option offered — "don't keep desktop choice, match the real device automatically." <strong>Removed:</strong> the two login-screen buttons, <code>setAppViewMode()</code>, and every <code>force-mobile-view</code>/<code>force-desktop-view</code> CSS rule — confirmed zero remaining references anywhere in the file. Also clears any <code>jsjc_view_mode</code> value already saved in a returning user's <code>localStorage</code> from v80.32–v80.35, so no device carries forward a class with no matching CSS. <strong>Net result:</strong> sizing is once again driven ONLY by the app's existing real <code>@media</code> breakpoints — exactly the actual device's real viewport, which is the accurate definition of "PWA fit" being asked for. No manual mode exists anymore to drift out of sync with it. <strong>Scope:</strong> touched only this toggle's own markup/CSS/JS — no other screen, breakpoint, or component was touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0891b2;"><div style="font-size:10px;font-weight:800;color:#0891b2;margin-bottom:3px;">v80.36 &middot; &#128683; Manager Cancellations Invisible on Manager Dashboard — Root Cause Fixed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Manager cancellations weren't appearing anywhere in the Manager dashboard's filters or history — looked archived/deleted. <strong>Root cause, confirmed in code (not guessed):</strong> the Rejected tab is the only place a cancelled booking could ever show, and its filter required <code>(b.rejected_by_role||'').toLowerCase()==='manager'</code> — an EXACT string match. But a real Manager login's role string in this app is <code>'Studio Manager'</code> (see <code>doLogin('Studio Manager', ...)</code>), and <code>'studio manager' !== 'manager'</code>. This exact-match check has never matched a single real Manager cancellation since the tab was added in v78 — not a filtering choice, a string mismatch. <strong>Fix:</strong> changed the comparison from exact-equals to a substring check (<code>indexOf('manager')!==-1</code>), so both <code>'Manager'</code> and <code>'Studio Manager'</code> now match correctly without narrowing back to one exact role string. Tab relabelled "🚫 Rejected / Cancelled" to reflect what it's always been intended to show. <strong>Scope:</strong> one filter condition and one button label — no change to <code>rejectBooking()</code>, cancellation writes, or any other tab's logic. <strong>Separately flagged, not yet fixed:</strong> the Process Timeline's missing cancellation timestamp (different bug — <code>rejectBooking()</code>'s silent fallback can drop <code>cancelled_at</code> on a failed first PATCH attempt) needs a live console trace before a safe fix; and cross-device weather visibility needs a Supabase column added first. Both discussed with Mukesh, pending his go-ahead/SQL.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.35 &middot; &#128241; Mobile View Toggle — Corrected to Match the App's Real PWA Fit</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> after v80.32's login-screen Mobile/Desktop toggle shipped, switching back to Mobile after Desktop looked wrong — not the app's real native phone fit. <strong>Root cause:</strong> the toggle's <code>force-mobile-view</code>/<code>force-desktop-view</code> rules used invented fixed pixel dimensions (390&times;844) instead of reusing the sizing the app already had tuned for real phones (the existing <code>@media(max-width:480px)</code> rule, full-bleed, no border-radius/shadow) — so Mobile mode was snapping to a size that never matched a genuine installed PWA. A second, subtler gap: that real mobile rule also locks <code>html</code>'s height/overflow, not just <code>.device</code>'s sizing — and a class applied only to <code>&lt;body&gt;</code> can't reach <code>&lt;html&gt;</code> via CSS, so that half silently never applied even after the first fix. <strong>Fix, two parts:</strong> (1) <code>force-mobile-view</code> now reproduces the app's real existing mobile rule exactly, full-bleed with no invented dimensions; <code>force-desktop-view</code> stays proportionally close but scaled up (<code>min(560px,92vw)</code>) rather than a disconnected desktop size. (2) <code>setAppViewMode()</code> now applies the mode class to <code>document.documentElement</code> as well as <code>document.body</code>, and the CSS targets both, mirroring the real media query's own selectors exactly. <strong>Scope:</strong> only the toggle's forced-mode CSS and its JS class application — the app's normal automatic/responsive behavior (no class applied) is untouched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.34 &middot; &#128230; Equipment Issued/Returned Now Auto-Filled From Real Booking Data</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Asked:</strong> can each manager's actual equipment issuing/receiving numbers forward directly into the Work Report's Equipment Issuing blanks, instead of being manually typed. <strong>Confirmed possible and worth doing:</strong> those two fields (<code>#eq-issued</code>/<code>#eq-returned</code>) were pure manual-entry blanks — the manager had to count, by memory or by scrolling back through their day, a number the app already tracks precisely on every booking (<code>issuedBy</code>/<code>issuedAt</code>, <code>receivedBy</code>/<code>returnedAt</code>). <strong>Fix:</strong> new <code>autofillEquipmentCounts()</code>, called the moment "📦 Equipment Issuing" is selected as the activity type — counts every booking in <code>S.bookings</code> where <code>issuedBy</code>/<code>receivedBy</code> matches the current manager's name AND the timestamp's date matches the selected Shift Date, and pre-fills both blanks with those real counts (Calculated Time preview updates automatically to match). A small status line under the fields confirms what was auto-filled and from which date, or says plainly when nothing was found for that manager/date so it's never mistaken for a silent zero. <strong>Deliberately still editable, not locked:</strong> a manager who handled something off-app, or needs to correct a count, can still type over the auto-filled value — this replaces re-typing-from-memory with a verified starting point, not a forced value that could itself be wrong if the underlying booking data has a gap. <strong>Scope:</strong> touches only the Equipment Issuing block's two input fields at the moment they become visible — no change to how <code>recordActivity()</code>/<code>submitLog()</code> consume those values afterward, the fixed 10-min/5-min time calculation, or any other activity type.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.33 &middot; &#128337; Cancelled Timestamp Missing From Process Timeline — Root Cause Fixed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Cancelled bookings weren't showing a timestamp on the Process Timeline. <strong>Investigation:</strong> confirmed <code>pipelineRecordHTML()</code>'s Cancelled row (added v78) genuinely does render <code>b.cancelledAt</code> when present, and <code>b.cancelledAt</code> genuinely does get written on the <code>cancelBooking()</code> path (student self-cancel, line ~6443) and PATCHed to Supabase via <code>rejectBooking()</code>'s shared <code>cancelled_at</code> column — that route was already correct. <strong>Actual root cause, found in the Manager Operations Desk's direct-cancel path</strong> (<code>setKS()</code>'s <code>'cancelled'</code> branch): it wrote <code>b.cancelledAt</code> with a real timestamp, but never set <code>b.status</code> to <code>'cancelled'</code> — and the Cancelled row is deliberately gated on <code>b.status==='cancelled'</code> (v78's fix for history-preservation depends on that exact status check). So a Manager cancelling a booking directly from their desk produced a booking with a correct, real cancellation timestamp that the Timeline had no way to know it should display — the row was skipped entirely, not just missing its time. <strong>Fix:</strong> one line — that branch now sets <code>b.status = 'cancelled'; b.ks = 'cancelled';</code> alongside the timestamp, matching what <code>cancelBooking()</code> already does. <strong>Scope:</strong> this only affects bookings cancelled directly from the Manager desk going forward — Supabase already had the correct <code>cancelled_at</code> value for every past cancellation via this path (it was written locally and reaches <code>rejectBooking()</code>'s PATCH separately), so once this version is deployed, past cancellations through this specific path should also start showing their timestamp correctly on next render, no data migration needed.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.32 &middot; &#128241; Mobile / Desktop View Toggle — Login Screen</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> the mobile/desktop toggle only existed in the separate Platform Control dashboard tool — nothing equivalent existed in the JSJC app itself, and Mukesh wanted one on the login screen next to the existing resource-type icons. <strong>Shipped:</strong> two small buttons ("📱 Mobile" / "🖥️ Desktop") under the login-screen icon row, calling <code>setAppViewMode()</code>. Implementation is a pure body-class swap — <code>force-mobile-view</code> pins <code>.device</code> to a 390&times;844 phone frame regardless of actual screen size; <code>force-desktop-view</code> widens it to a large centered panel (up to 900px) instead of the app's normal responsive breakpoints. No class = unchanged automatic/responsive behavior exactly as before v80.32, so this is purely additive. Choice persists via <code>localStorage</code> (<code>jsjc_view_mode</code>) and re-applies automatically on next load/login, same UX pattern as the Platform Control dashboard's own toggle. <strong>Scope:</strong> the toggle affects only the outer <code>.device</code> frame sizing — none of the internal screen layouts, breakpoint-specific CSS, or component logic were touched, so this cannot introduce a regression in how any existing screen renders at its normal size.</div></div>
@@ -4094,7 +4072,18 @@ function canonicalRecordHTML(b, rightBadgeHTML){
     var _eqTypeVal = b.itemCategory || '';
     var _eqRec = null;
     if(eqList[0] && window.adminData && window.adminData.equipment){
-      _eqRec = window.adminData.equipment.find(function(e){ return e.name===eqList[0]; });
+      // v80.39 FIX: was an exact `e.name===eqList[0]` match. Whenever a
+      // booking's optional "Kit No. / Note" field was used, the stored
+      // resource name becomes "TASCAM DR 05 – Kit 8 [Test]" (bracket
+      // appended at booking time — see _vcgKitCardHTML) while the real
+      // equipment record's name has no bracket — exact match then NEVER
+      // matched, permanently hiding Kit Contents/Manager Note for that
+      // booking for every viewer/role, not just one role as first reported.
+      // Now strips the bracket suffix before matching, same pattern already
+      // used correctly elsewhere (getCalendarSelectedItems, checkEquipmentConflicts).
+      _eqRec = window.adminData.equipment.find(function(e){
+        return e.name===eqList[0] || eqList[0].startsWith(e.name+' [');
+      });
     }
     if(!_eqTypeVal && _eqRec) _eqTypeVal = _eqRec.itemCategory || '';
     if(_eqTypeVal && typeof eqTypeBadgeHTML === 'function'){
@@ -4491,26 +4480,12 @@ function _loginThrottleReset(){
   try{ localStorage.removeItem('jsjc_login_throttle'); }catch(e){}
 }
 
-// v80.32: mobile/desktop view-mode toggle, selectable from the login
-// screen icons. Purely a CSS class swap on body (see force-mobile-view /
-// force-desktop-view rules) — no layout logic duplicated, remembers choice.
-function setAppViewMode(mode){
-  document.body.classList.remove('force-mobile-view','force-desktop-view');
-  document.documentElement.classList.remove('force-mobile-view','force-desktop-view');
-  if(mode === 'mobile'){ document.body.classList.add('force-mobile-view'); document.documentElement.classList.add('force-mobile-view'); }
-  else if(mode === 'desktop'){ document.body.classList.add('force-desktop-view'); document.documentElement.classList.add('force-desktop-view'); }
-  var mBtn = document.getElementById('login-view-btn-mobile');
-  var dBtn = document.getElementById('login-view-btn-desktop');
-  if(mBtn) mBtn.style.background = (mode==='mobile') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.12)';
-  if(dBtn) dBtn.style.background = (mode==='desktop') ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.12)';
-  try{ localStorage.setItem('jsjc_view_mode', mode); }catch(e){}
-}
-window.setAppViewMode = setAppViewMode;
-(function initAppViewMode(){
-  var saved = null;
-  try{ saved = localStorage.getItem('jsjc_view_mode'); }catch(e){}
-  if(saved === 'mobile' || saved === 'desktop') setAppViewMode(saved);
-})();
+// v80.36 REMOVAL: setAppViewMode()/force-mobile-view/force-desktop-view
+// removed — see the CSS comment near .device for why. Also clears any
+// leftover jsjc_view_mode from earlier versions so a device that had
+// "Mobile" or "Desktop" saved doesn't carry forward a class that no
+// longer has matching CSS (harmless either way, but cleaner).
+try{ localStorage.removeItem('jsjc_view_mode'); }catch(e){}
 
 async function attemptLogin() {
   const emailEl = document.getElementById('login-email');
@@ -6326,9 +6301,12 @@ async function handleBookingSubmit(){
     submitResult = await window.submitBooking(payloadRows);
   } catch(err){
     console.error('❌ handleBookingSubmit — submitBooking threw:', err.message);
+    // v80.39: slot-conflict errors carry a friendly err.userMessage — show
+    // that instead of the raw 'SLOT_CONFLICT' error code.
+    var displayMsg = (err && err.userMessage) ? err.userMessage : ('❌ Booking failed: ' + err.message);
     var errEl = document.getElementById('booking-error-msg');
-    if(errEl){ errEl.textContent = '❌ Booking failed: ' + err.message; errEl.style.display = ''; }
-    toast('❌ Booking failed: ' + err.message);
+    if(errEl){ errEl.textContent = displayMsg; errEl.style.display = ''; }
+    toast(displayMsg, 5000);
     return;
   }
 
@@ -6994,7 +6972,15 @@ function renderManager(){
   } else if(mgrFilter === 'rejected'){
     active = allBookings.filter(function(b){
       var st=(b.status||'').toLowerCase();
-      return st==='rejected' || (st==='cancelled' && (b.rejected_by_role||'').toLowerCase()==='manager');
+      // v80.36 FIX: real Manager logins carry role string 'Studio Manager'
+      // (see doLogin('Studio Manager', ...)) — this check compared against
+      // the literal string 'manager', which 'studio manager' never equals.
+      // Every Manager cancellation has been invisible on this tab since it
+      // was added (v78) as a result — not filtered out on purpose, just
+      // never matched. Now checks for 'manager' as a SUBSTRING (via
+      // indexOf), so both 'Manager' and 'Studio Manager' match correctly,
+      // without narrowing to only one exact role string again.
+      return st==='rejected' || (st==='cancelled' && (b.rejected_by_role||'').toLowerCase().indexOf('manager')!==-1);
     });
   } else if(mgrFilter === 'returned'){
     active = allBookings.filter(function(b){ return anWasReturned(b); });
@@ -8736,6 +8722,8 @@ function renderShiftLogs(){
         ${l.act==='equipment'?`<div class="wlog-row"><span>Equipment Issued</span><strong>${l.issued} pcs</strong></div>
         <div class="wlog-row"><span>Equipment Returned</span><strong>${l.received} pcs</strong></div>`:''}
         <div class="wlog-row"><span>Gross Hours</span><strong>${l.hrs.toFixed(1)} Hrs</strong></div>
+        ${l.reportingTo ? `<div class="wlog-row"><span>Reported To</span><strong>${l.reportingTo}</strong></div>` : ''}
+        ${l.note ? `<div class="wlog-note">📝 ${l.note}</div>` : ''}
         <button class="adm-del-btn" style="margin-top:6px;width:100%;" onclick="removePendingActivity(${l.id})">✕ Remove</button>
       </div>`;
     }).join('');
@@ -8755,6 +8743,7 @@ function renderShiftLogs(){
         ${l.act==='equipment'?`<div class="wlog-row"><span>Equipment Issued</span><strong>${l.issued} pcs</strong></div>
         <div class="wlog-row"><span>Equipment Returned</span><strong>${l.received} pcs</strong></div>`:''}
         <div class="wlog-row"><span>Logged Hours</span><strong>${l.hrs.toFixed(1)} Hrs</strong></div>
+        ${l.reportingTo ? `<div class="wlog-row"><span>Reported To</span><strong>${l.reportingTo}</strong></div>` : ''}
         ${l.note ? `<div class="wlog-note">📝 ${l.note}</div>` : ''}
       </div>`;
     }).join('');
@@ -8889,7 +8878,14 @@ function recordActivity(){
   S.pendingActivities.push({
     id:Date.now(), date:dateVal, from:from, till:till, act:act, label:label,
     hrs:hrs, issued:issued, received:received,
-    loggedBy: currentManagerName(), reportingTo: (document.getElementById('reporting-to') ? document.getElementById('reporting-to').value.trim() : '')
+    loggedBy: currentManagerName(), reportingTo: (document.getElementById('reporting-to') ? document.getElementById('reporting-to').value.trim() : ''),
+    // v80.38 FIX: note is now captured HERE, per-activity, at record time —
+    // previously only read once at final Submit as one shared value, AND
+    // this same box gets cleared below after every recordActivity() call,
+    // so a note typed for activity 1 was wiped before activity 2/3 were
+    // even recorded — only whatever was typed last (or nothing) survived
+    // to Submit. Each activity now carries its own note independently.
+    note: (document.getElementById('task-desc') ? document.getElementById('task-desc').value.trim() : '')
   });
   renderShiftLogs();
   workReportSaveToday();
@@ -8922,20 +8918,28 @@ function submitLog(){
   const descEl=document.getElementById('task-desc');
   const desc=descEl?descEl.value.trim():'';
   if(!S.pendingActivities.length){toast('⚠️ Record at least one activity before submitting');return;}
-  // Note mandatory unless ALL pending activities are equipment type
-  const allEquip = S.pendingActivities.every(function(p){ return p.act==='equipment'; });
-  if(!desc && !allEquip){toast('⚠️ Note is mandatory to submit the work log');return;}
+  // v80.38 FIX: Note mandatory check now looks at each activity's OWN
+  // captured note (or this box as a fallback for whichever activity was
+  // most recently recorded) instead of one shared value that only ever
+  // reflected the last thing typed.
+  const missingNote = S.pendingActivities.some(function(p){ return p.act!=='equipment' && !(p.note || desc); });
+  if(missingNote){toast('⚠️ Note is mandatory for every non-equipment activity before submitting');return;}
   const actColors={radio:'#7b1a1a',production:'#2563eb',post:'#7c3aed',classwork:'#16a34a',equipment:'#0ea5e9',mgmt:'#0d9488',others:'#ea580c'};
   let totalHrs=0;
   const mgr = currentManagerName();
   S.pendingActivities.forEach(function(p){
+    // v80.38 FIX: was `desc` (one shared value for every activity in this
+    // batch) — now p.note (each activity's own, captured at record time),
+    // falling back to the box's current content only if that particular
+    // activity somehow has none.
+    var pNote = p.note || desc || '';
     const ex=S.workLogs.find(l=>l.act===p.act);
-    if(ex){ex.hrs=parseFloat((ex.hrs+p.hrs).toFixed(2));ex.issued+=p.issued;ex.received+=p.received;if(desc && !ex.note) ex.note=desc; else if(desc && ex.note && ex.note!==desc) ex.note=ex.note+' / '+desc;}
-    else S.workLogs.push({act:p.act,label:p.label,hrs:p.hrs,issued:p.issued,received:p.received,note:desc||'',col:actColors[p.act]||'#6b7280',date:p.date});
+    if(ex){ex.hrs=parseFloat((ex.hrs+p.hrs).toFixed(2));ex.issued+=p.issued;ex.received+=p.received;if(pNote && !ex.note) ex.note=pNote; else if(pNote && ex.note && ex.note!==pNote) ex.note=ex.note+' / '+pNote;}
+    else S.workLogs.push({act:p.act,label:p.label,hrs:p.hrs,issued:p.issued,received:p.received,note:pNote,col:actColors[p.act]||'#6b7280',date:p.date});
     S.shiftLogs.unshift({
       id:p.id, date:p.date, from:p.from||'—', till:p.till||'—', act:p.act, label:p.label,
       hrs:p.hrs, issued:p.issued, received:p.received,
-      note:desc, loggedBy:mgr, reportingTo:p.reportingTo||''
+      note:pNote, loggedBy:mgr, reportingTo:p.reportingTo||''
     });
     totalHrs+=p.hrs;
   });
@@ -15254,6 +15258,50 @@ async function submitBooking(payload) {
   const rows = Array.isArray(payload) ? payload : [payload];
   if (!rows.length) throw new Error('No payload rows');
 
+  // v80.39: HARD conflict check — was previously only a soft toast warning
+  // (checkEquipmentConflicts(), still fires live as the user picks a time)
+  // that never actually stopped a genuinely conflicting submission from
+  // going through. This block queries Supabase DIRECTLY for just the
+  // resource(s) being requested — not the local S.bookings cache, which is
+  // exactly what was stale in the reported "booked, but calendar didn't
+  // show it until a refresh" case — and refuses the insert outright if any
+  // active (non-cancelled/rejected) booking already overlaps the requested
+  // window. Applies uniformly to Equipment, Editing Systems, and Studio
+  // Booking, since resource_name isn't category-specific.
+  try {
+    var _reqResources = rows.map(function(r){ return (r.resource_name||'').trim(); }).filter(Boolean);
+    var _reqStart = rows[0].start_time, _reqEnd = rows[0].end_time;
+    if (_reqResources.length && _reqStart && _reqEnd) {
+      var _orFilter = _reqResources.map(function(r){ return 'resource_name.eq.' + encodeURIComponent(r); }).join(',');
+      var _confRes = await fetch(
+        SUPABASE_URL + '/rest/v1/bookings?select=id,resource_name,start_time,end_time,status,student_name,booking_code&or=(' + _orFilter + ')&status=not.in.(cancelled,rejected)',
+        { headers: HEADERS }
+      );
+      if (_confRes.ok) {
+        var _existing = await _confRes.json() || [];
+        var _reqStartMs = new Date(_reqStart).getTime(), _reqEndMs = new Date(_reqEnd).getTime();
+        var _clash = _existing.find(function(b){
+          var bs = new Date(b.start_time).getTime(), be = new Date(b.end_time).getTime();
+          return _reqStartMs < be && bs < _reqEndMs; // real interval overlap
+        });
+        if (_clash) {
+          var _who = _clash.student_name || 'another user';
+          var err = new Error('SLOT_CONFLICT');
+          err.userMessage = '🚫 ' + (_clash.resource_name || 'This resource') + ' is already booked (' + (_clash.status||'active') + ') by ' + _who + ' for an overlapping time — pick a different slot.';
+          throw err;
+        }
+      }
+      // If the conflict check itself fails to reach Supabase, fail OPEN
+      // (allow submission to proceed to the normal insert) rather than
+      // blocking a legitimate booking on a network hiccup — the existing
+      // DB-side booking still won't be silently overwritten since this is
+      // an INSERT, not an update.
+    }
+  } catch (confErr) {
+    if (confErr && confErr.message === 'SLOT_CONFLICT') throw confErr; // real conflict — propagate to caller
+    console.warn('⚠️ Pre-submit conflict check failed to run — proceeding without a hard block:', confErr && confErr.message);
+  }
+
   // ── Build the single booking row from the first payload item ──
   // All items share the same student / time / code prefix — only resource_name differs.
   const first = rows[0];
@@ -15549,6 +15597,32 @@ async function safeParseJson(res){
 }
 
 // ── Task 5: fetchAndRenderBookings — central refresh (v26: joins booking_equipment) ──
+// v80.39: Auto-refresh — was entirely absent, which is why a slot booked by
+// someone else stayed showing as available on the calendar until a manual
+// page reload happened to run fetchAndRenderBookings again. Runs every 10s,
+// ONLY while the Book or Manager screen is actually visible, and SKIPS the
+// cycle entirely if the user is mid-interaction (an input/select/textarea
+// currently focused, e.g. typing into search or mid-pick on a time drum) —
+// so nothing gets silently pulled out from under an active action. Reuses
+// the exact same fetch+render functions every other action already calls,
+// so a refresh cycle looks identical to any other normal data update.
+window._autoRefreshTimer = setInterval(function(){
+  try{
+    var bookScreen = document.getElementById('screen-book');
+    var mgrScreen  = document.getElementById('screen-manager');
+    var onBook = bookScreen && bookScreen.classList.contains('active');
+    var onMgr  = mgrScreen  && mgrScreen.classList.contains('active');
+    if(!onBook && !onMgr) return; // not on a screen that needs live conflict data
+    var activeTag = (document.activeElement && document.activeElement.tagName) || '';
+    if(['INPUT','SELECT','TEXTAREA'].indexOf(activeTag) !== -1) return; // user mid-interaction — skip this cycle
+    if(window._fetchInProgress) return; // already refreshing
+    window.fetchAndRenderBookings().then(function(){
+      if(onBook && typeof window.renderCalendar==='function') window.renderCalendar();
+      if(onMgr  && typeof window.renderManager==='function')  window.renderManager();
+    }).catch(function(e){ console.warn('⚠️ auto-refresh cycle failed silently:', e && e.message); });
+  } catch(e){ console.warn('⚠️ auto-refresh guard error:', e && e.message); }
+}, 10000);
+
 window.fetchAndRenderBookings = async function() {
   // Guard: if a fetch is already in flight, skip — prevents double-render flicker
   if (window._fetchInProgress) return;
