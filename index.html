@@ -1462,8 +1462,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="background:#fff;border-radius:20px;padding:28px 24px;width:300px;max-width:90vw;text-align:center;">
             <div style="font-size:28px;margin-bottom:6px;">🔐</div>
             <div style="font-weight:800;font-size:14px;color:#1e3a8a;margin-bottom:4px;">Admin Access</div>
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:16px;">Enter 4-digit PIN to continue</div>
-            <input id="admin-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder="••••"
+            <div id="admin-pin-subtitle" style="font-size:11px;color:#9ca3af;margin-bottom:16px;">Enter 6-digit Admin PIN</div>
+            <input id="admin-pin-input" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
               style="width:100%;text-align:center;font-size:28px;letter-spacing:10px;padding:12px;border:2px solid #e5e7eb;border-radius:12px;outline:none;font-family:monospace;margin-bottom:12px;"
               oninput="adminPinCheck(this.value)"/>
             <div id="admin-pin-error" style="font-size:11px;color:#dc2626;min-height:16px;margin-bottom:8px;"></div>
@@ -3526,6 +3526,7 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.8W4 &middot; &#128205; Edit Suite Name in Kit Cards + Right-Panel Header (VCG Fix)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>_vcgKitCardHTML()</code> resolved <code>loc</code> from <code>rec.fac</code> (the two-value facility key mapped to "T1 Central Block") rather than <code>rec.location</code> (the specific edit suite name like "T1 Radio Edit"). So even after selecting a suite via the Browse-by-Location bar, the kit card still showed "T1 Central Block" underneath the serial. Similarly, the right-panel title always read "— Available Kits" regardless of which suite was selected. <strong>Fix (surgical, two lines):</strong> (1) <code>_vcgKitCardHTML()</code> now uses <code>rec.location</code> when <code>S.cat === 'Editing Systems'</code> and a location is present — falling back to the existing facility-label logic for Equipment/Studio Booking, which is completely untouched. (2) The right-panel title now suffixes the selected suite name (e.g. "— T1 Radio Edit") when a specific location is active, falling back to "— Available Kits" when All is selected or for non-Editing-Systems categories. <strong>Supabase:</strong> no schema change required — <code>rec.location</code> has been a real column on the <code>systems</code> table since v80.20. Added <code>edit_suite</code> column SQL for cleaner future separation if needed (see SQL in session notes). <strong>Scope:</strong> <code>_vcgKitCardHTML()</code> loc line + right-panel title var only. Zero change to the location-bar buttons, left-column model list, Equipment, Studio Booking, approval pipeline, or any other category.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.47 &middot; &#128205; Editing Systems — Browse-by-Location Picker (Both Booking Modes)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Asked:</strong> students booking an Editing System should choose a room/location first (Radio Edit, TV Edit, Preview Room Edit, F&amp;NM Edit, Smaller Suite Windows, Smaller Suite Mac, Film &amp; TV Studio) — either as a location grid on the Visual Card Grid's left column, or, if that's not feasible, as buttons plus a dropdown showing that location's system. <strong>Data confirmed already real, not guessed from names:</strong> every editing system record has carried a genuine <code>.location</code> field since v80.20 — one of the 7 canonical <code>EDITING_LOCATIONS</code> values, set directly on the Admin Add form. So this location filter reads structured data the app already collects, rather than parsing it out of a display name (which would've broken the moment two systems at different rooms happened to share similar names). <strong>Built for both booking modes, kept consistent:</strong> (1) Visual Card Grid path — a "Browse by Location" button row (same visual pattern as the existing "Browse by Type" icon filter) now sits above the left-column model list for Editing Systems specifically; selecting a location filters which systems appear on the left, each button showing a live count. (2) Fallback (Visual Card Grid toggled off) path — the same button row and same <code>.location</code> field now sit above the plain equipment picker too, filtering which systems the searchable dropdown offers. Both paths read the identical field, so a location picked in one mode means the same thing in the other. <strong>Scope:</strong> <code>renderVisualCardGrid()</code>, two new small functions (<code>vcgSelectEditLocation()</code>, <code>renderEqLocationBar()</code>/<code>selectEqRowsLocation()</code>), and the location-bar CSS — Equipment and Studio Booking categories are completely untouched, and existing Editing Systems bookings/data needed no migration since <code>.location</code> was already there.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1e40af;"><div style="font-size:10px;font-weight:800;color:#1e40af;margin-bottom:3px;">v80.46 &middot; &#128421;&#65039; Editing System Details/Manager Note Now Persist to Supabase</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported gap:</strong> the Add Editing System form has captured System Details (software) and Manager Note since v80.20/v80.21 and shows them correctly in the Admin list right after entry — but v80.20's changelog flagged both as local-only because their Supabase columns didn't exist yet. <code>specifications</code> is now confirmed live on <code>systems</code>, and <code>manager_note TEXT</code> was just added via <code>ALTER TABLE systems ADD COLUMN manager_note TEXT;</code> — this pass wires both through end-to-end using the existing column names (no new/renamed columns). <strong>Insert:</strong> <code>admAddEditing()</code>'s <code>addSupaEditing()</code> call now sends <code>specifications</code> and <code>manager_note</code> alongside the existing <code>system_name</code>/<code>location</code>/<code>os</code> fields. <strong>Load-back:</strong> <code>fetchSupaEditing()</code> now maps <code>specifications → .software</code> and <code>manager_note → .note</code>, the same remap pattern already used for <code>.name</code>/<code>.fac</code> just above it; <code>rebuildKitDBFromSupabase()</code>'s editing mapper now spells both out explicitly (matching the equipment mapper's pattern) so they can't silently drop on a future refetch. <strong>Display — no changes needed, already generic:</strong> the Admin Editing Systems list already renders <code>e.software</code>/<code>e.note</code> (was working locally, now works cross-device/cross-refresh too); the booking-side kit card (<code>_vcgKitCardHTML()</code>) already reads <code>rec.note</code> generically off whatever <code>adminData</code> record it resolves to — since that record now carries a real, Supabase-backed note for Editing Systems, the existing Admin/Manager-only Manager Note block from v80.42 starts showing it automatically with zero code change there. <strong>No Edit modal exists for Editing Systems</strong> (Add/Delete only, same as Equipment/Studios) — nothing to wire on that front; re-adding a system is the only way to change these fields today. <strong>Scope:</strong> <code>admAddEditing()</code>'s Supabase payload, <code>fetchSupaEditing()</code>'s mapper, and <code>rebuildKitDBFromSupabase()</code>'s editing mapper only — no change to the Add form's markup, Equipment/Studio handling, or any other page.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.32 &middot; &#128274; Two-Layer Admin PIN, Supabase-Backed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Change:</strong> Admin login now requires two sequential PINs — a 6-digit PIN, then a 4-digit PIN — instead of a single 4-digit PIN. Both are verified against SHA-256 hashes stored in a new Supabase table, <code>admin_pin_layers</code> (see <code>v80.32_admin_pin_layers.sql</code>, seeded with the defaults <code>123456</code> and <code>1234</code>), not in <code>localStorage</code> and not in plaintext. The overlay's subtitle and input length switch automatically between stages; entering the correct 6-digit PIN advances to the 4-digit prompt, entering the correct 4-digit PIN logs in as Admin. The existing brute-force throttle (5 fails → 60s lock) applies across both stages. If Supabase can't be reached, verification falls back to the hash of the same two defaults, matching the fail-open pattern already used elsewhere in this file, so a network hiccup never locks Admin out entirely. <strong>Bug found and fixed along the way:</strong> a leftover override further down the file was silently reassigning <code>window.adminPinCheck</code> to an old plaintext single-PIN comparison, running after the real (hashed) implementation and clobbering it — meaning Admin login had actually been running on the broken, unhashed logic despite the v80.29 hardening pass. That override is now deleted; only the one real implementation remains. <strong>Known gap flagged:</strong> the existing "Change Admin Password" panel (Admin → Password tab) still reads/writes a single plaintext 4-digit PIN in <code>localStorage</code> — it no longer matches how login actually verifies PINs and needs its own follow-up pass to become 2-layer and Supabase-backed; not touched in this change to keep this pass scoped to login verification only. <strong>Action needed:</strong> run <code>v80.32_admin_pin_layers.sql</code> in the Supabase SQL editor before this version goes live — until then, login falls back to the same 123456 / 1234 defaults via the hash fallback, so nothing breaks, but the real PINs aren't centrally stored yet.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.45 &middot; &#127909; Booking Screen Showed Only 3 of 5 Studios (Facility-Scoping Leak)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin's studio list correctly showed all 5 Supabase rows, but the Booking screen (dropdown, Visual Card Grid, and calendar) only ever showed 3. Confirmed first that this was not a database or RLS issue — Supabase's <code>studios</code> table genuinely has all 5 rows and the anon SELECT policy is open; traced instead through the actual frontend read path as instructed. <strong>Root cause:</strong> <code>rebuildKitDBFromSupabase()</code> correctly pulls all 5 studios, but then buckets every one of them into <code>kitDB.t1['Studio Booking']</code> or <code>kitDB.film['Studio Booking']</code> by its <code>fac</code> column — a split that's genuinely necessary for Equipment/Editing Systems (physical kit that really does sit in one facility or the other), but every booking-side picker (<code>populateKit()</code>, <code>renderIconCatRow()</code>, <code>renderCalendar()</code>'s item list, the multi-row picker in <code>addEqRow()</code>, and the Visual Card Grid's <code>renderVisualCardGrid()</code>) read that same split via <code>(kitDB[S.fac]||{})[S.cat]||[]</code> — so whichever facility happened to be selected (T1 Central, by default) silently hid every studio filed under Film & TV. 3 of the 5 studios are T1 Central; the other 2 are Film & TV — exactly the 3-vs-5 gap reported. Admin's list was unaffected because <code>adminData.studios</code> is rendered directly with no facility filter at all. <strong>Fix:</strong> added a single shared accessor, <code>getCatItems(cat)</code>, defined right next to <code>kitDB</code> itself. For Studio Booking it now always merges <code>kitDB.t1['Studio Booking']</code> and <code>kitDB.film['Studio Booking']</code> (de-duped) regardless of which facility chip is active — matching Admin's unfiltered view exactly. For Equipment and Editing Systems it's a pure passthrough to the existing <code>(kitDB[S.fac]||{})[cat]||[]</code> logic, so that facility-scoping behavior is completely unchanged. All 5 read-sites were repointed to call <code>getCatItems(S.cat)</code> instead of indexing <code>kitDB</code> directly, so the dropdown, icon-category row, calendar, plain picker, and Visual Card Grid all pull from the exact same merged list going forward — no more risk of one picker drifting out of sync with another. <strong>Scope:</strong> new <code>getCatItems()</code> helper plus its 5 call-sites only. No change to <code>rebuildKitDBFromSupabase()</code>'s fetch/mapping logic, Equipment/Editing Systems behavior, Admin's studio list, or any other page (Students, Approvals, Reports, Analytics don't read from <code>kitDB</code> at all — they read <code>adminData</code>/<code>S.bookings</code> directly and were already unaffected).</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.44 &middot; &#128269; Searchable Equipment Picker, Natural Kit Sort, Weather Restored, Cancellation Diagnostics + One Confirmed Extra Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Search box added to the equipment dropdown:</strong> confirmed the native <code>&lt;select&gt;</code> is genuine browser/OS chrome — not app-controllable HTML — so a search box can't be injected into its native picker directly. Replaced the VISIBLE control with a custom button + searchable bottom-sheet overlay (same pattern as the Approving Professor picker), while the real <code>&lt;select&gt;</code> stays in the DOM, just hidden — every existing consumer (<code>getSelectedEquipment()</code>, <code>checkEquipmentConflicts()</code>, <code>getCalendarSelectedItems()</code>, the booking payload builder) still reads it exactly as before; selecting an option in the new overlay just sets the hidden select's value and fires its existing <code>change</code> event, so zero downstream logic was duplicated or touched. <strong>2. Equipment/kit lists sorted numerically:</strong> lists were left in raw Supabase fetch order (Kit 8, Kit 4, Kit 11, Kit 2...) — added a natural-sort helper applied once where <code>kitDB</code> is built, which is the single shared source feeding the native select, the Visual Card Grid, AND the plain picker modal — fixing all three consistently. <strong>3. Visual Card Grid's left column no longer leaves a large blank area:</strong> the list was hard-capped at 190px inside its 520px-tall parent — with only 3-4 models, most of that height sat empty below the list. Changed to <code>flex:1</code> so it fills all available space naturally, with scroll only appearing once content genuinely exceeds it — same fill-then-scroll behavior the calendar already used successfully. <strong>4. Weather stamp restored:</strong> the SQL column was added and confirmed (v80.37 migration), but the code-side write was never actually re-enabled after v80.11 disabled it — that was the real remaining gap. Re-enabled the cross-device PATCH now that the column genuinely exists; same safe fallback pattern as the rest of this file if anything about it ever fails again. <strong>5. Cancellation timestamp — traced thoroughly, found no code defect this time:</strong> re-checked the write path (<code>rejectBooking()</code>, correct), the read-back mapper (correct), and <code>applyLocalExtras()</code> (doesn't touch this field at all, ruled out as a clobber). Unlike the earlier v80.33 bug, this one shows no identifiable defect on static review — added targeted console logging to both the PATCH attempt and the post-refetch verification instead of guessing a further blind fix, so the next live reproduction gives real evidence rather than another guess. <strong>Bonus, found while tracing #5:</strong> a separate "Reject" button (a secondary live-booking-card widget) was calling <code>rejectBooking(bid)</code> with no <code>action</code>/<code>reason</code>/actor arguments at all — meaning every rejection through that specific button silently recorded as a CANCELLATION instead of a rejection, with no reason attached. Fixed to pass all five arguments correctly.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.43 &middot; &#128683; Mobile/Desktop Toggle Broke When File Opened Locally — Guarded</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> tapping the toggle produced a blank page with "It may have been moved, edited or deleted", URL bar reading <code>content://downloads/all_downloads/2231</code>. <strong>Root cause:</strong> that URL confirms the HTML file was opened directly from the phone's Downloads app rather than visited as a hosted web page. v80.42's iframe approach needs a genuinely reloadable URL to point its <code>src</code> at — appending <code>?_devframe=1</code> to an opaque Android <code>content://</code> identifier isn't a valid link, so the browser tried to re-open it via the downloads content-provider instead of embedding it inline, producing exactly this broken result. <strong>Fix:</strong> <code>toggleDeviceView()</code> now checks <code>location.protocol</code> first — if it isn't <code>http:</code>/<code>https:</code> (covers <code>content:</code>, <code>file:</code>, and any other local-open scheme), it shows a clear explanatory toast and does nothing further, instead of attempting the iframe at all. The buttons are also dimmed with an explanatory tooltip up front on load in that case, and the saved-mode auto-restore is skipped too — so a "Mobile" preference saved while using the real hosted link doesn't silently break the very next time the file happens to be opened locally. <strong>Scope:</strong> guard clauses only, in <code>toggleDeviceView()</code> and <code>initDeviceView()</code> — the working iframe behavior on the real hosted URL (confirmed working architecture from v80.42) is completely unchanged.</div></div>
@@ -12539,44 +12540,86 @@ populateKit();renderCalendar();updateTimeLabels();
 })();
 
 // ═══════════════════════════════════════════════════
-//  ADMIN PIN
+//  ADMIN PIN — v80.32: 2-LAYER, SUPABASE-BACKED
 // ═══════════════════════════════════════════════════
-// v80.29: Admin PIN is now stored as a SHA-256 hash, not plaintext, so a
-// stolen device / localStorage dump doesn't hand over the Admin PIN itself.
-// Backward-compatible: if the stored value isn't a 64-char hex hash yet
-// (i.e. it's the old plaintext default), it's transparently migrated to a
-// hash on first check — no action needed, no PIN reset forced on anyone.
-const ADMIN_PIN_DEFAULT = '1234';
+// Two sequential PIN layers gate Admin access: a 6-digit PIN, then a 4-digit
+// PIN. Both are stored as SHA-256 hashes in the Supabase `admin_pin_layers`
+// table (see v80.32_admin_pin_layers.sql), not in localStorage and not in
+// plaintext anywhere. Defaults (matching the SQL seed) are 123456 / 1234.
+// If Supabase is unreachable, verification falls back to the hash of these
+// same defaults so a network hiccup never locks Admin out entirely — this
+// mirrors the existing fail-open pattern used elsewhere in this file
+// (checkPlatformLicense, etc.), not a new precedent.
+const ADMIN_PIN_LAYER_DEFAULTS = { 1: '123456', 2: '1234' };
 async function _sha256Hex(str){
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
 }
-function _isHash(v){ return typeof v === 'string' && /^[0-9a-f]{64}$/.test(v); }
-async function _getStoredAdminPinHash(){
-  var stored = localStorage.getItem('tou_admin_pin');
-  if(stored && _isHash(stored)) return stored;
-  // migrate plaintext (old default '1234' or a legacy plaintext PIN) → hash
-  var plain = stored || ADMIN_PIN_DEFAULT;
-  var hash = await _sha256Hex(plain);
-  try{ localStorage.setItem('tou_admin_pin', hash); }catch(e){}
-  return hash;
+let _adminPinHashCache = null; // {1:hash, 2:hash} — refetched each time the overlay opens
+async function _fetchAdminPinLayers(){
+  if(_adminPinHashCache) return _adminPinHashCache;
+  var out = {};
+  try{
+    var r = await fetch(SUPABASE_URL+'/rest/v1/admin_pin_layers?select=layer,pin_hash', {
+      headers:{ apikey: SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY }
+    });
+    if(r.ok){
+      var rows = await r.json();
+      rows.forEach(function(row){ out[row.layer] = row.pin_hash; });
+    }
+  }catch(e){}
+  for(const layer of [1,2]){
+    if(!out[layer]) out[layer] = await _sha256Hex(ADMIN_PIN_LAYER_DEFAULTS[layer]);
+  }
+  _adminPinHashCache = out;
+  return out;
 }
-const ADMIN_PIN = '1234'; // v80.29: legacy constant kept ONLY as a display/reference default — actual verification always goes through _getStoredAdminPinHash(), never compares against this directly.
+let _adminPinStage = 1; // 1 = 6-digit layer, 2 = 4-digit layer
+function _renderAdminPinStage(){
+  var sub=document.getElementById('admin-pin-subtitle');
+  var inp=document.getElementById('admin-pin-input');
+  if(_adminPinStage===1){
+    if(sub) sub.textContent='Enter 6-digit Admin PIN';
+    if(inp){ inp.maxLength=6; inp.placeholder='••••••'; }
+  } else {
+    if(sub) sub.textContent='Enter 4-digit Security PIN';
+    if(inp){ inp.maxLength=4; inp.placeholder='••••'; }
+  }
+}
 function showAdminPin(){
+  _adminPinStage=1;
+  _adminPinHashCache=null;
   const ov=document.getElementById('admin-pin-overlay');
   ov.style.display='flex';
+  _renderAdminPinStage();
   setTimeout(()=>{const inp=document.getElementById('admin-pin-input');if(inp){inp.value='';inp.focus();}},100);
   document.getElementById('admin-pin-error').textContent='';
 }
-function closeAdminPin(){document.getElementById('admin-pin-overlay').style.display='none';}
+function closeAdminPin(){document.getElementById('admin-pin-overlay').style.display='none';_adminPinStage=1;}
 async function adminPinCheck(val){
-  if(val.length<4)return;
+  var need=(_adminPinStage===1)?6:4;
+  if(val.length<need)return;
   var _throttle = _loginThrottleCheck();
   if(_throttle.blocked){ document.getElementById('admin-pin-error').textContent='⛔ Too many attempts. Try again in '+_throttle.secsLeft+'s.'; document.getElementById('admin-pin-input').value=''; return; }
+  var hashes = await _fetchAdminPinLayers();
   var enteredHash = await _sha256Hex(val);
-  var storedHash = await _getStoredAdminPinHash();
-  if(enteredHash===storedHash){ _loginThrottleReset(); closeAdminPin(); doLogin('Admin'); }
-  else{ _loginThrottleRecordFail(); document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.'; document.getElementById('admin-pin-input').value=''; }
+  var expected = hashes[_adminPinStage];
+  if(enteredHash===expected){
+    _loginThrottleReset();
+    if(_adminPinStage===1){
+      _adminPinStage=2;
+      document.getElementById('admin-pin-error').textContent='';
+      document.getElementById('admin-pin-input').value='';
+      _renderAdminPinStage();
+    } else {
+      closeAdminPin();
+      doLogin('Admin');
+    }
+  } else {
+    _loginThrottleRecordFail();
+    document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.';
+    document.getElementById('admin-pin-input').value='';
+  }
 }
 // Expose to onclick
 window.showAdminLogin=showAdminPin;
@@ -13728,13 +13771,13 @@ window.enterGuestMode = function(){
   toast('&#128065;&#65039; Guest mode active — browsing with anonymised demo data.');
 };
 window.enterGuestMode = enterGuestMode;
-var _origAdminPinCheck2=window.adminPinCheck;
-window.adminPinCheck=function(val){
-  if(val.length<4)return;
-  var stored=localStorage.getItem("tou_admin_pin")||"1234";
-  if(val===stored){closeAdminPin();doLogin("Admin");}
-  else{document.getElementById("admin-pin-error").textContent="❌ Incorrect PIN. Try again.";document.getElementById("admin-pin-input").value="";}
-};
+// v80.32: removed a stale override that used to reassign window.adminPinCheck
+// to a plaintext single-4-digit comparison against localStorage — it ran
+// AFTER the real (hashed, now 2-layer/Supabase) adminPinCheck was defined
+// and silently replaced it, so Admin login was actually running on this
+// broken plaintext logic the whole time, not the hardened one further up
+// the file. Deleted outright; the one true implementation lives with the
+// rest of the Admin PIN code above.
 
 function admPickIcon(prefix, el){
   var row = document.getElementById('adm-'+prefix+'-icon-row');
