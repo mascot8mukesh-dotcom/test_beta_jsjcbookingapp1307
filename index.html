@@ -10306,7 +10306,12 @@ window.an2UpdateInsights = an2UpdateInsights;
 function algBaseName(name){
   if(!name) return '';
   let s = name.trim();
-  s = s.replace(/[–-]\s*(Kit)\s*(No\.?)?\s*\d+\s*$/i,'').trim();
+  // v80.26.8W4c: expanded suffix-stripping to cover unit words beyond 'Kit' —
+  // Earphones/Headphones/Trolley/Cable/Charger/Battery/Unit/Lens/Light/Pack
+  // all follow the same '– Word N' counter pattern. Without this, items named
+  // 'SONY MDR – Earphones 1' and 'SONY MDR – Earphones 2' stayed as separate
+  // models instead of grouping under one base name.
+  s = s.replace(/[–-]\s*(Kit|Earphones?|Headphones?|Trolley|Cable|Charger|Battery|Unit|Lens|Light|Pack|Mic|Microphone|Accessory|Accessories)\s*(No\.?)?\s*\d*\s*$/i,'').trim();
   s = s.replace(/\s+(Suite|Rig|Floor)\s+[0-9A-Za-z]+$/i, function(m, word){ return ' '+word; });
   return s.trim();
 }
