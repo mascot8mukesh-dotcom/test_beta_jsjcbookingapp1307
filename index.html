@@ -304,6 +304,12 @@ body.force-desktop-view .device{width:min(560px,92vw);height:100%;height:100dvh;
 .vcg-bk-left-search{width:100%;box-sizing:border-box;border:1px solid #e5e7eb;border-radius:7px;padding:6px 8px;font-size:10.5px;font-family:inherit;outline:none;background:#fff;}
 .vcg-bk-left-search:focus{border-color:#7b1a1a;}
 .vcg-bk-left-list{flex:1;min-height:0;overflow-y:auto;}
+/* v80.47: Editing Systems location picker */
+.vcg-loc-bar-label{font-size:9.5px;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;margin:2px 0 6px;}
+.vcg-loc-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.vcg-loc-btn{font-family:inherit;font-size:11.5px;font-weight:700;border:1.5px solid #e5e7eb;background:#fff;color:#4b5563;border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.vcg-loc-btn.active{background:#7b1a1a;border-color:#7b1a1a;color:#fff;}
+.vcg-loc-count{font-size:9.5px;font-weight:800;opacity:.75;}
 .vcg-bk-left-empty{padding:14px 8px;text-align:center;font-size:10px;color:#9ca3af;font-style:italic;}
 .vcg-bk-left-item{padding:11px 8px;text-align:center;cursor:pointer;border-bottom:1px solid #eef0f3;font-size:10.5px;font-weight:700;color:#374151;line-height:1.35;}
 .vcg-bk-left-item.active{background:#fff;color:#7b1a1a;border-left:3px solid #7b1a1a;font-weight:800;}
@@ -1762,6 +1768,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </label>
       </div>
 
+      <div id="eq-loc-bar" style="display:none;margin-bottom:8px;"></div>
       <div id="eq-rows">
         <!-- rows injected by initEqRows() -->
       </div>
@@ -2682,7 +2689,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.44</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.47</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3516,6 +3523,8 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80V &middot; &#128241; Mobile/Desktop Toggle — Reverted from Iframe Back to CSS-Class Swap</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> the v80.42/43 iframe approach broke in practice — clicking "Desktop" hid the app-bar buttons themselves (they're rendered inside the nested iframe's own DOM), leaving no way to click back to "Mobile" from within that view. <strong>Decision:</strong> restore the v80.35 <code>setAppViewMode()</code> approach — a plain CSS-class swap on <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code> (<code>force-mobile-view</code>/<code>force-desktop-view</code>), reusing the app's real <code>@media(max-width:480px)</code> sizing exactly rather than an invented fixed size, per v80.35's original fix. This trades the iframe's guarantee of native <code>@media</code> evaluation for a toggle that keeps the app-bar (and its own buttons) visible and clickable in both modes, works identically on hosted and local/downloaded files (no <code>location.protocol</code> dependency), and needs no <code>?_devframe=1</code> self-detection since nothing is nested anymore. Icons unchanged and correctly assigned: 📱 = mobile (full-bleed), 🖥️ = desktop (wide panel, <code>min(560px,92vw)</code>). <strong>Scope:</strong> the toggle's CSS block and JS only (<code>setAppViewMode()</code> replaces <code>toggleDeviceView()</code>; the two buttons' <code>onclick</code> updated to match) — no other screen touched.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.8W4 &middot; &#128205; Edit Suite Name in Kit Cards + Right-Panel Header (VCG Fix)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>_vcgKitCardHTML()</code> resolved <code>loc</code> from <code>rec.fac</code> (the two-value facility key mapped to "T1 Central Block") rather than <code>rec.location</code> (the specific edit suite name like "T1 Radio Edit"). So even after selecting a suite via the Browse-by-Location bar, the kit card still showed "T1 Central Block" underneath the serial. Similarly, the right-panel title always read "— Available Kits" regardless of which suite was selected. <strong>Fix (surgical, two lines):</strong> (1) <code>_vcgKitCardHTML()</code> now uses <code>rec.location</code> when <code>S.cat === 'Editing Systems'</code> and a location is present — falling back to the existing facility-label logic for Equipment/Studio Booking, which is completely untouched. (2) The right-panel title now suffixes the selected suite name (e.g. "— T1 Radio Edit") when a specific location is active, falling back to "— Available Kits" when All is selected or for non-Editing-Systems categories. <strong>Supabase:</strong> no schema change required — <code>rec.location</code> has been a real column on the <code>systems</code> table since v80.20. Added <code>edit_suite</code> column SQL for cleaner future separation if needed (see SQL in session notes). <strong>Scope:</strong> <code>_vcgKitCardHTML()</code> loc line + right-panel title var only. Zero change to the location-bar buttons, left-column model list, Equipment, Studio Booking, approval pipeline, or any other category.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.47 &middot; &#128205; Editing Systems — Browse-by-Location Picker (Both Booking Modes)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Asked:</strong> students booking an Editing System should choose a room/location first (Radio Edit, TV Edit, Preview Room Edit, F&amp;NM Edit, Smaller Suite Windows, Smaller Suite Mac, Film &amp; TV Studio) — either as a location grid on the Visual Card Grid's left column, or, if that's not feasible, as buttons plus a dropdown showing that location's system. <strong>Data confirmed already real, not guessed from names:</strong> every editing system record has carried a genuine <code>.location</code> field since v80.20 — one of the 7 canonical <code>EDITING_LOCATIONS</code> values, set directly on the Admin Add form. So this location filter reads structured data the app already collects, rather than parsing it out of a display name (which would've broken the moment two systems at different rooms happened to share similar names). <strong>Built for both booking modes, kept consistent:</strong> (1) Visual Card Grid path — a "Browse by Location" button row (same visual pattern as the existing "Browse by Type" icon filter) now sits above the left-column model list for Editing Systems specifically; selecting a location filters which systems appear on the left, each button showing a live count. (2) Fallback (Visual Card Grid toggled off) path — the same button row and same <code>.location</code> field now sit above the plain equipment picker too, filtering which systems the searchable dropdown offers. Both paths read the identical field, so a location picked in one mode means the same thing in the other. <strong>Scope:</strong> <code>renderVisualCardGrid()</code>, two new small functions (<code>vcgSelectEditLocation()</code>, <code>renderEqLocationBar()</code>/<code>selectEqRowsLocation()</code>), and the location-bar CSS — Equipment and Studio Booking categories are completely untouched, and existing Editing Systems bookings/data needed no migration since <code>.location</code> was already there.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1e40af;"><div style="font-size:10px;font-weight:800;color:#1e40af;margin-bottom:3px;">v80.46 &middot; &#128421;&#65039; Editing System Details/Manager Note Now Persist to Supabase</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported gap:</strong> the Add Editing System form has captured System Details (software) and Manager Note since v80.20/v80.21 and shows them correctly in the Admin list right after entry — but v80.20's changelog flagged both as local-only because their Supabase columns didn't exist yet. <code>specifications</code> is now confirmed live on <code>systems</code>, and <code>manager_note TEXT</code> was just added via <code>ALTER TABLE systems ADD COLUMN manager_note TEXT;</code> — this pass wires both through end-to-end using the existing column names (no new/renamed columns). <strong>Insert:</strong> <code>admAddEditing()</code>'s <code>addSupaEditing()</code> call now sends <code>specifications</code> and <code>manager_note</code> alongside the existing <code>system_name</code>/<code>location</code>/<code>os</code> fields. <strong>Load-back:</strong> <code>fetchSupaEditing()</code> now maps <code>specifications → .software</code> and <code>manager_note → .note</code>, the same remap pattern already used for <code>.name</code>/<code>.fac</code> just above it; <code>rebuildKitDBFromSupabase()</code>'s editing mapper now spells both out explicitly (matching the equipment mapper's pattern) so they can't silently drop on a future refetch. <strong>Display — no changes needed, already generic:</strong> the Admin Editing Systems list already renders <code>e.software</code>/<code>e.note</code> (was working locally, now works cross-device/cross-refresh too); the booking-side kit card (<code>_vcgKitCardHTML()</code>) already reads <code>rec.note</code> generically off whatever <code>adminData</code> record it resolves to — since that record now carries a real, Supabase-backed note for Editing Systems, the existing Admin/Manager-only Manager Note block from v80.42 starts showing it automatically with zero code change there. <strong>No Edit modal exists for Editing Systems</strong> (Add/Delete only, same as Equipment/Studios) — nothing to wire on that front; re-adding a system is the only way to change these fields today. <strong>Scope:</strong> <code>admAddEditing()</code>'s Supabase payload, <code>fetchSupaEditing()</code>'s mapper, and <code>rebuildKitDBFromSupabase()</code>'s editing mapper only — no change to the Add form's markup, Equipment/Studio handling, or any other page.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.45 &middot; &#127909; Booking Screen Showed Only 3 of 5 Studios (Facility-Scoping Leak)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin's studio list correctly showed all 5 Supabase rows, but the Booking screen (dropdown, Visual Card Grid, and calendar) only ever showed 3. Confirmed first that this was not a database or RLS issue — Supabase's <code>studios</code> table genuinely has all 5 rows and the anon SELECT policy is open; traced instead through the actual frontend read path as instructed. <strong>Root cause:</strong> <code>rebuildKitDBFromSupabase()</code> correctly pulls all 5 studios, but then buckets every one of them into <code>kitDB.t1['Studio Booking']</code> or <code>kitDB.film['Studio Booking']</code> by its <code>fac</code> column — a split that's genuinely necessary for Equipment/Editing Systems (physical kit that really does sit in one facility or the other), but every booking-side picker (<code>populateKit()</code>, <code>renderIconCatRow()</code>, <code>renderCalendar()</code>'s item list, the multi-row picker in <code>addEqRow()</code>, and the Visual Card Grid's <code>renderVisualCardGrid()</code>) read that same split via <code>(kitDB[S.fac]||{})[S.cat]||[]</code> — so whichever facility happened to be selected (T1 Central, by default) silently hid every studio filed under Film & TV. 3 of the 5 studios are T1 Central; the other 2 are Film & TV — exactly the 3-vs-5 gap reported. Admin's list was unaffected because <code>adminData.studios</code> is rendered directly with no facility filter at all. <strong>Fix:</strong> added a single shared accessor, <code>getCatItems(cat)</code>, defined right next to <code>kitDB</code> itself. For Studio Booking it now always merges <code>kitDB.t1['Studio Booking']</code> and <code>kitDB.film['Studio Booking']</code> (de-duped) regardless of which facility chip is active — matching Admin's unfiltered view exactly. For Equipment and Editing Systems it's a pure passthrough to the existing <code>(kitDB[S.fac]||{})[cat]||[]</code> logic, so that facility-scoping behavior is completely unchanged. All 5 read-sites were repointed to call <code>getCatItems(S.cat)</code> instead of indexing <code>kitDB</code> directly, so the dropdown, icon-category row, calendar, plain picker, and Visual Card Grid all pull from the exact same merged list going forward — no more risk of one picker drifting out of sync with another. <strong>Scope:</strong> new <code>getCatItems()</code> helper plus its 5 call-sites only. No change to <code>rebuildKitDBFromSupabase()</code>'s fetch/mapping logic, Equipment/Editing Systems behavior, Admin's studio list, or any other page (Students, Approvals, Reports, Analytics don't read from <code>kitDB</code> at all — they read <code>adminData</code>/<code>S.bookings</code> directly and were already unaffected).</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.44 &middot; &#128269; Searchable Equipment Picker, Natural Kit Sort, Weather Restored, Cancellation Diagnostics + One Confirmed Extra Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Search box added to the equipment dropdown:</strong> confirmed the native <code>&lt;select&gt;</code> is genuine browser/OS chrome — not app-controllable HTML — so a search box can't be injected into its native picker directly. Replaced the VISIBLE control with a custom button + searchable bottom-sheet overlay (same pattern as the Approving Professor picker), while the real <code>&lt;select&gt;</code> stays in the DOM, just hidden — every existing consumer (<code>getSelectedEquipment()</code>, <code>checkEquipmentConflicts()</code>, <code>getCalendarSelectedItems()</code>, the booking payload builder) still reads it exactly as before; selecting an option in the new overlay just sets the hidden select's value and fires its existing <code>change</code> event, so zero downstream logic was duplicated or touched. <strong>2. Equipment/kit lists sorted numerically:</strong> lists were left in raw Supabase fetch order (Kit 8, Kit 4, Kit 11, Kit 2...) — added a natural-sort helper applied once where <code>kitDB</code> is built, which is the single shared source feeding the native select, the Visual Card Grid, AND the plain picker modal — fixing all three consistently. <strong>3. Visual Card Grid's left column no longer leaves a large blank area:</strong> the list was hard-capped at 190px inside its 520px-tall parent — with only 3-4 models, most of that height sat empty below the list. Changed to <code>flex:1</code> so it fills all available space naturally, with scroll only appearing once content genuinely exceeds it — same fill-then-scroll behavior the calendar already used successfully. <strong>4. Weather stamp restored:</strong> the SQL column was added and confirmed (v80.37 migration), but the code-side write was never actually re-enabled after v80.11 disabled it — that was the real remaining gap. Re-enabled the cross-device PATCH now that the column genuinely exists; same safe fallback pattern as the rest of this file if anything about it ever fails again. <strong>5. Cancellation timestamp — traced thoroughly, found no code defect this time:</strong> re-checked the write path (<code>rejectBooking()</code>, correct), the read-back mapper (correct), and <code>applyLocalExtras()</code> (doesn't touch this field at all, ruled out as a clobber). Unlike the earlier v80.33 bug, this one shows no identifiable defect on static review — added targeted console logging to both the PATCH attempt and the post-refetch verification instead of guessing a further blind fix, so the next live reproduction gives real evidence rather than another guess. <strong>Bonus, found while tracing #5:</strong> a separate "Reject" button (a secondary live-booking-card widget) was calling <code>rejectBooking(bid)</code> with no <code>action</code>/<code>reason</code>/actor arguments at all — meaning every rejection through that specific button silently recorded as a CANCELLATION instead of a rejection, with no reason attached. Fixed to pass all five arguments correctly.</div></div>
@@ -7781,12 +7790,60 @@ var _eqRows = [];
 function initEqRows() {
   _eqRows = [];
   document.getElementById('eq-rows').innerHTML = '';
+  renderEqLocationBar();
   addEqRow();
 }
+
+// v80.47: fallback (non-Visual-Card-Grid) location picker for Editing
+// Systems — same real .location field as the VCG path, same button
+// pattern, so both experiences stay consistent regardless of which one a
+// student sees. Renders nothing for Equipment/Studio Booking.
+window._eqRowsLocation = null;
+function renderEqLocationBar(){
+  var bar = document.getElementById('eq-loc-bar');
+  if(!bar) return;
+  if(S.cat !== 'Editing Systems'){ bar.innerHTML=''; bar.style.display='none'; return; }
+  var items = getCatItems(S.cat);
+  var editList = (window.adminData && window.adminData.editing) ? window.adminData.editing : [];
+  var presentLocations = [];
+  items.forEach(function(full){
+    var rec = editList.find(function(e){ return e.name===full; });
+    var loc = rec && rec.location;
+    if(loc && presentLocations.indexOf(loc) === -1) presentLocations.push(loc);
+  });
+  if(!presentLocations.length){ bar.innerHTML=''; bar.style.display='none'; return; }
+  if(!window._eqRowsLocation || (window._eqRowsLocation !== 'All' && presentLocations.indexOf(window._eqRowsLocation) === -1)){
+    window._eqRowsLocation = 'All';
+  }
+  bar.style.display = '';
+  bar.innerHTML = '<div class="vcg-loc-bar-label">Browse by Location</div><div class="vcg-loc-bar">' +
+    ['All'].concat(presentLocations).map(function(loc){
+      var isActive = (loc === window._eqRowsLocation);
+      var count = (loc==='All') ? items.length : items.filter(function(f){ var r=editList.find(function(e){return e.name===f;}); return r && r.location===loc; }).length;
+      return '<button type="button" class="vcg-loc-btn'+(isActive?' active':'')+'" onclick="selectEqRowsLocation(\''+loc.replace(/'/g,"\\'")+'\')">'+loc+' <span class="vcg-loc-count">'+count+'</span></button>';
+    }).join('') + '</div>';
+}
+window.renderEqLocationBar = renderEqLocationBar;
+
+function selectEqRowsLocation(loc){
+  window._eqRowsLocation = loc;
+  renderEqLocationBar();
+  initEqRows(); // rebuild rows so the picker only offers systems at this location
+}
+window.selectEqRowsLocation = selectEqRowsLocation;
 
 function addEqRow() {
   var idx = _eqRows.length;
   var items = getCatItems(S.cat);
+  // v80.47: apply the Editing Systems location filter (fallback path) —
+  // same real .location field the VCG path uses, so both stay consistent.
+  if(S.cat === 'Editing Systems' && window._eqRowsLocation && window._eqRowsLocation !== 'All'){
+    var _editListForFilter = (window.adminData && window.adminData.editing) ? window.adminData.editing : [];
+    items = items.filter(function(full){
+      var rec = _editListForFilter.find(function(e){ return e.name===full; });
+      return rec && rec.location === window._eqRowsLocation;
+    });
+  }
 
   // For Studio Booking: filter to show status from adminData, mark Maintenance/Retired
   if(S.cat === 'Studio Booking'){
@@ -7996,6 +8053,7 @@ function _vcgItemRec(name){
 }
 
 window._vcgLeftModel = null; // currently selected left-column model (Equipment/Editing Blinkit browser)
+window._vcgEditLocation = null; // v80.47: currently selected Editing Systems location filter ('All' or one of EDITING_LOCATIONS)
 
 function renderVisualCardGrid(){
   var grid = document.getElementById('vcg-grid');
@@ -8029,6 +8087,37 @@ function renderVisualCardGrid(){
     return;
   }
 
+  // v80.47: Editing Systems — location picker, sourced from each system's
+  // REAL .location field (set on the Admin form since v80.20, one of the
+  // 7 canonical EDITING_LOCATIONS — Radio Edit, TV Edit, Preview Room Edit,
+  // F&NM Edit, Smaller Suite Windows, Smaller Suite Mac, Film & TV Studio).
+  // This is real structured data already on every system record, not a
+  // guess parsed from the display name — so it can't drift out of sync
+  // with whatever an admin actually picked when adding the system.
+  var locationBarHTML = '';
+  if(S.cat === 'Editing Systems'){
+    var presentLocations = [];
+    items.forEach(function(full){
+      var rec = _vcgItemRec(full);
+      var loc = rec && rec.location;
+      if(loc && presentLocations.indexOf(loc) === -1) presentLocations.push(loc);
+    });
+    if(presentLocations.length){
+      if(!window._vcgEditLocation || (window._vcgEditLocation !== 'All' && presentLocations.indexOf(window._vcgEditLocation) === -1)){
+        window._vcgEditLocation = 'All';
+      }
+      var locBtns = ['All'].concat(presentLocations).map(function(loc){
+        var isActive = (loc === window._vcgEditLocation);
+        var count = (loc === 'All') ? items.length : items.filter(function(f){ var r=_vcgItemRec(f); return r && r.location===loc; }).length;
+        return '<button type="button" class="vcg-loc-btn'+(isActive?' active':'')+'" onclick="vcgSelectEditLocation(\''+loc.replace(/'/g,"\\'")+'\')">'+loc+' <span class="vcg-loc-count">'+count+'</span></button>';
+      }).join('');
+      locationBarHTML = '<div class="vcg-loc-bar-label">Browse by Location</div><div class="vcg-loc-bar">'+locBtns+'</div>';
+      if(window._vcgEditLocation !== 'All'){
+        items = items.filter(function(full){ var r=_vcgItemRec(full); return r && r.location===window._vcgEditLocation; });
+      }
+    }
+  }
+
   // ── V71.12: Equipment & Editing Systems — Blinkit-inspired two-column browser ──
   // Left: equipment/system model. Right: individual kit instances for the selected model.
   grid.className = 'vcg-blinkit-wrap';
@@ -8057,14 +8146,20 @@ function renderVisualCardGrid(){
     var isActive = (m.base===window._vcgLeftModel);
     return '<div class="vcg-bk-left-item'+(isActive?' active':'')+'" onclick="vcgSelectModel(\''+m.base.replace(/'/g,"\\'")+'\')">'
       + m.base
-      + '<span class="vcg-bk-count">'+m.kits.length+' Kit'+(m.kits.length!==1?'s':'')+' Available</span>'
+      + '<span class="vcg-bk-count">'+m.kits.length+(S.cat==='Editing Systems'?' System':' Kit')+(m.kits.length!==1?'s':'')+' Available</span>'
       + '</div>';
-  }).join('') : '<div class="vcg-bk-left-empty">No matches</div>';
+  }).join('') : (models.length ? '<div class="vcg-bk-left-empty">No matches</div>' : '<div class="vcg-bk-left-empty">No systems at this location.</div>');
 
-  var rightHTML = '<div class="vcg-bk-right-title">'+(activeModel?activeModel.base:'')+' — Available Kits</div>'
-    + (activeModel ? activeModel.kits.map(function(name){ return _vcgKitCardHTML(name); }).join('') : '');
+  // v80.26.8W4: for Editing Systems with a specific location selected, suffix
+  // right-panel title with the suite name instead of generic "Available Kits".
+  var _rightSuffix = (S.cat === 'Editing Systems' && window._vcgEditLocation && window._vcgEditLocation !== 'All')
+    ? window._vcgEditLocation
+    : (S.cat === 'Editing Systems' ? 'Available Systems' : 'Available Kits');
+  var rightHTML = activeModel
+    ? '<div class="vcg-bk-right-title">'+(activeModel.base)+' — '+_rightSuffix+'</div>' + activeModel.kits.map(function(name){ return _vcgKitCardHTML(name); }).join('')
+    : '<div class="vcg-bk-right-title">Select a system on the left</div>';
 
-  grid.innerHTML = '<div class="vcg-blinkit">'
+  grid.innerHTML = locationBarHTML + '<div class="vcg-blinkit">'
     + '<div class="vcg-bk-left">'
     +   '<div class="vcg-bk-left-search-wrap"><input type="text" class="vcg-bk-left-search" id="vcg-left-search" placeholder="🔍 Search equipment…" value="'+leftSearch.replace(/"/g,'&quot;')+'" oninput="vcgFilterLeftModels(this.value)"/></div>'
     +   '<div class="vcg-bk-left-list">'+leftHTML+'</div>'
@@ -8073,6 +8168,14 @@ function renderVisualCardGrid(){
     + '</div>';
 }
 window.renderVisualCardGrid = renderVisualCardGrid;
+
+function vcgSelectEditLocation(loc){
+  window._vcgEditLocation = loc;
+  window._vcgLeftModel = null; // reset so the left column re-picks a valid default within the new location
+  window._vcgLeftSearch = '';
+  renderVisualCardGrid();
+}
+window.vcgSelectEditLocation = vcgSelectEditLocation;
 
 function vcgFilterLeftModels(val){
   window._vcgLeftSearch = val;
@@ -8123,7 +8226,13 @@ function _vcgKitCardHTML(name){
   var rec = _vcgItemRec(name);
   var status = rec ? (rec.status || 'Active') : 'Active';
   if(status === 'Retired') return '';
-  var loc  = rec ? (rec.fac==='T1 Central' ? adminData.facilityLabels.t1 : adminData.facilityLabels.film) : (S.fac==='t1'?adminData.facilityLabels.t1:adminData.facilityLabels.film);
+  // v80.26.8W4: for Editing Systems, show the specific edit suite name
+  // (rec.location e.g. "T1 Radio Edit") rather than the generic facility
+  // label ("T1 Central Block") — the .location field has been real structured
+  // data on every system record since v80.20, so we read it directly here.
+  var loc = (S.cat === 'Editing Systems' && rec && rec.location)
+    ? rec.location
+    : (rec ? (rec.fac==='T1 Central' ? adminData.facilityLabels.t1 : adminData.facilityLabels.film) : (S.fac==='t1'?adminData.facilityLabels.t1:adminData.facilityLabels.film));
   var serial = rec && rec.id ? ('#'+String(rec.id).padStart(3,'0')) : name.replace(/^.*–\s*/,'');
   var isSelected = window._vcgSelected.some(function(s){ return s.name===name; });
   var isMaint = status === 'Maintenance';
