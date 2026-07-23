@@ -13858,7 +13858,11 @@ function admAddEditing(){
       // actually sent to Supabase, so they only ever survived locally
       // and were lost on refetch/cross-device. Sent as-is (blank string
       // when empty) so a later edit can also clear a previously-set value.
-      window.addSupaEditing({ system_name: fullName, location: fac, os: os, specifications: software, manager_note: note });
+      // v80.26.8W4b: edit_suite is the dedicated Supabase column (added via
+      // ALTER TABLE systems ADD COLUMN IF NOT EXISTS edit_suite text) that
+      // stores the specific suite name (e.g. 'T1 Radio Edit'). location
+      // stays as the legacy facility value ('T1 Central') for fac-bucketing.
+      window.addSupaEditing({ system_name: fullName, location: fac, edit_suite: location, os: os, specifications: software, manager_note: note });
     }
     addedNames.push(fullName);
   });
@@ -15291,10 +15295,14 @@ window.fetchSupaEditing = async function() {
     window.supaEditing = rows.map(function(s){
       if (!s.name && s.system_name) s.name = s.system_name;
       if (!s.fac  && s.location)    s.fac  = s.location;
-      // V80.26.8W2: specifications/manager_note are the live Supabase
-      // column names; every display site (admin list, booking kit cards)
-      // reads .software/.note, so map them here — same pattern already
-      // used above for .name/.fac.
+      // v80.26.8W4b: edit_suite is the dedicated column for the specific
+      // suite name ('T1 Radio Edit' etc). Map it onto .location so that
+      // every consumer — the Browse-by-Location bar, _vcgKitCardHTML(),
+      // the kit card's 📍 line, and the right-panel header — all read
+      // the suite name via rec.location exactly as they expect.
+      // Falls back to the legacy .location value (the facility string)
+      // for rows that predate the edit_suite column.
+      if (s.edit_suite) s.location = s.edit_suite;
       if (!s.software && s.specifications) s.software = s.specifications;
       if (!s.note && s.manager_note) s.note = s.manager_note;
       return s;
