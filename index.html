@@ -7802,7 +7802,10 @@ window._eqRowsLocation = null;
 function renderEqLocationBar(){
   var bar = document.getElementById('eq-loc-bar');
   if(!bar) return;
-  if(S.cat !== 'Editing Systems'){ bar.innerHTML=''; bar.style.display='none'; return; }
+  // v80.26.8W4d: hide the fallback bar entirely when VCG is active —
+  // VCG renders its own location bar inside the grid (locationBarHTML),
+  // so showing this one too produces two duplicate Browse by Location rows.
+  if(S.cat !== 'Editing Systems' || window._vcgActive){ bar.innerHTML=''; bar.style.display='none'; return; }
   var items = getCatItems(S.cat);
   var editList = (window.adminData && window.adminData.editing) ? window.adminData.editing : [];
   var presentLocations = [];
@@ -10306,11 +10309,13 @@ window.an2UpdateInsights = an2UpdateInsights;
 function algBaseName(name){
   if(!name) return '';
   let s = name.trim();
-  // v80.26.8W4c: expanded suffix-stripping to cover unit words beyond 'Kit' —
-  // Earphones/Headphones/Trolley/Cable/Charger/Battery/Unit/Lens/Light/Pack
-  // all follow the same '– Word N' counter pattern. Without this, items named
-  // 'SONY MDR – Earphones 1' and 'SONY MDR – Earphones 2' stayed as separate
-  // models instead of grouping under one base name.
+  // v80.26.8W4d: strip PC hostname from Editing System names so all units
+  // with the same system number group together in the left column.
+  // e.g. 'Windows OPJGUSNPD0357 – System 1' and 'Windows OPJGUSNPD0364 – System 1'
+  // both resolve to 'Windows – System 1', grouping by suite slot not machine ID.
+  // Matches 6+ char all-caps/digit hostnames between OS name and the dash.
+  s = s.replace(/^(Windows|Mac(?:OS|Book)?|iMac)\s+[A-Z0-9]{6,}\s*/, function(m){ return m.split(/\s+/)[0]+' '; });
+  // v80.26.8W4c: strip trailing unit-counter suffixes (Kit, Earphones, Charger etc.)
   s = s.replace(/[–-]\s*(Kit|Earphones?|Headphones?|Trolley|Cable|Charger|Battery|Unit|Lens|Light|Pack|Mic|Microphone|Accessory|Accessories)\s*(No\.?)?\s*\d*\s*$/i,'').trim();
   s = s.replace(/\s+(Suite|Rig|Floor)\s+[0-9A-Za-z]+$/i, function(m, word){ return ' '+word; });
   return s.trim();
