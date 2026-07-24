@@ -18872,6 +18872,17 @@ function rebuildKitDBFromSupabase() {
 
     console.log('🔄 kitDB rebuilt from Supabase:', eq.length,'eq |', sys.length,'sys |', stu.length,'studios');
     if(typeof populateKit === 'function') try { populateKit(); } catch(e){}
+    // v80.28G FIX: kitDB was refreshed above but neither the Equipment
+    // picker's native <select> (built by initEqRows()/addEqRow(), read by
+    // openEqPicker()/filterEqPicker() — the search overlay) nor the Visual
+    // Card Grid's model list (built by renderVisualCardGrid(), which sets
+    // _vcgLeftModel) were ever rebuilt after a Supabase refetch — only on
+    // manual category/screen switch. That's why fresh equipment (e.g. Sony
+    // Alpha A7 IV) reached kitDB/Available Types/Calendar but not the
+    // picker, search overlay, or VCG. Both calls are DOM-guarded (only run
+    // if their container is present) so this is safe on every screen.
+    if(typeof initEqRows === 'function') try { if(document.getElementById('eq-rows')) initEqRows(); } catch(e){}
+    if(typeof renderVisualCardGrid === 'function') try { if(document.getElementById('vcg-grid')) renderVisualCardGrid(); } catch(e){}
   } catch(err) {
     console.warn('rebuildKitDBFromSupabase error:', err.message);
   }
