@@ -3814,18 +3814,17 @@ const kitDB = {
 // kitDB directly, so every view of any category stays permanently in sync.
 function getCatItems(cat){
   cat = cat || S.cat;
-  // v80.26.8W5 FIX: Equipment/Editing Systems were still hard-split by facility
-  // (kitDB[S.fac]), silently hiding every item filed under the other facility —
-  // same root cause already fixed for Studio Booking in v80.45. Students don't
-  // pick up equipment based on which facility chip happens to be selected, so
-  // merge both buckets for every category, matching Admin's unfiltered view.
-  var t1Items   = (kitDB.t1   && kitDB.t1[cat])   || [];
-  var filmItems = (kitDB.film && kitDB.film[cat]) || [];
-  var seen = {}, merged = [];
-  t1Items.concat(filmItems).forEach(function(name){
-    if(!seen[name]){ seen[name] = true; merged.push(name); }
-  });
-  return merged;
+  if(cat === 'Studio Booking'){
+    var t1Studios   = (kitDB.t1   && kitDB.t1['Studio Booking'])   || [];
+    var filmStudios = (kitDB.film && kitDB.film['Studio Booking']) || [];
+    // de-dupe defensively in case a name ever exists in both buckets
+    var seen = {}, merged = [];
+    t1Studios.concat(filmStudios).forEach(function(name){
+      if(!seen[name]){ seen[name] = true; merged.push(name); }
+    });
+    return merged;
+  }
+  return (kitDB[S.fac] || {})[cat] || [];
 }
 window.getCatItems = getCatItems;
 
@@ -4820,15 +4819,6 @@ function _iconSourceArray(cat){
 // or records created before this feature existed). Never overrides a real Admin-picked icon.
 function _guessItemIcon(rec, cat){
   if(rec && rec.icon) return rec.icon;
-  // v80.26.8W5 FIX: a real, Admin-assigned itemCategory (e.g. "Accessories")
-  // is trustworthy ground truth and must win over keyword-guessing — the
-  // previous order let Accessories items with no .icon fall through to the
-  // keyword guesser below, which has no accessory keywords and was hard-
-  // defaulting everything unmatched to 📷 Camera Kit. That's what was
-  // inflating the "Cameras" browse-by-type count with accessory items.
-  if(cat === 'Equipment' && rec && rec.itemCategory && typeof EQUIPMENT_CATEGORY_ICONS !== 'undefined' && EQUIPMENT_CATEGORY_ICONS[rec.itemCategory]){
-    return EQUIPMENT_CATEGORY_ICONS[rec.itemCategory];
-  }
   var name = ((rec && rec.name) || '').toLowerCase();
   if(cat === 'Editing Systems'){
     if(rec && rec.os === 'Windows') return '🪟';
@@ -4840,13 +4830,12 @@ function _guessItemIcon(rec, cat){
     if(/radio|audio|podcast/.test(type) || /radio|audio|podcast/.test(name)) return '🎤';
     return '📷';
   }
-  // Equipment — keyword fallback only for items with no real itemCategory
+  // Equipment
   if(/mic|wireless|rode|shure|lapel/.test(name)) return '🎤';
   if(/light|aputure|godox|led\b/.test(name)) return '💡';
   if(/headphone|mdr|m50x|audio-technica/.test(name)) return '🎧';
   if(/recorder|zoom h|tascam|mixpre|sound devices|zaxcom|sonosax|nagra/.test(name)) return '🎙️';
-  if(/cable|charger|battery|mount|adapter|tripod|filter|case|bag|strap|plate/.test(name)) return '🔌';
-  return '🧰'; // truly unrecognized — "Other", not a silent camera default
+  return '📷'; // cameras, gimbals, camera-adjacent gear default
 }
 window._guessItemIcon = _guessItemIcon;
 
