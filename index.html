@@ -1462,8 +1462,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="background:#fff;border-radius:20px;padding:28px 24px;width:300px;max-width:90vw;text-align:center;">
             <div style="font-size:28px;margin-bottom:6px;">🔐</div>
             <div style="font-weight:800;font-size:14px;color:#1e3a8a;margin-bottom:4px;">Admin Access</div>
-            <div style="font-size:11px;color:#9ca3af;margin-bottom:16px;">Enter 4-digit PIN to continue</div>
-            <input id="admin-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder="••••"
+            <div id="admin-pin-subtitle" style="font-size:11px;color:#9ca3af;margin-bottom:16px;">Enter 6-digit Admin PIN</div>
+            <input id="admin-pin-input" type="password" maxlength="6" inputmode="numeric" placeholder="••••••"
               style="width:100%;text-align:center;font-size:28px;letter-spacing:10px;padding:12px;border:2px solid #e5e7eb;border-radius:12px;outline:none;font-family:monospace;margin-bottom:12px;"
               oninput="adminPinCheck(this.value)"/>
             <div id="admin-pin-error" style="font-size:11px;color:#dc2626;min-height:16px;margin-bottom:8px;"></div>
@@ -2689,7 +2689,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div style="font-size:19px;font-weight:900;letter-spacing:-.3px;margin-bottom:3px;">JSJC Smart Booking</div>
           <div style="font-size:10.5px;opacity:.7;margin-bottom:16px;line-height:1.6;">Jindal School of Journalism &amp; Communication<br/>O.P. Jindal Global University</div>
           <div style="display:flex;flex-wrap:wrap;gap:7px;">
-            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.48</span>
+            <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">v80.47</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Supabase</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">Single File</span>
             <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;letter-spacing:.3px;">July 2026</span>
@@ -3523,13 +3523,24 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.17 &middot; &#128737;&#65039; Offline/Guest UUID — Hard Guard Added at INSERT Boundary</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> console proof showing <code>POST .../bookings 400</code>, <code>invalid input syntax for type uuid: "GUEST-242185"</code>, with <code>student_id: "GUEST-242185"</code> in the outgoing payload. <strong>Investigation:</strong> traced the full offline/guest path — <code>handleBookingSubmit()</code> (student/staff lookup, ~line 5960) and <code>submitBooking()</code>'s <code>bookingRow</code> (~line 14280) — and confirmed both already compute <code>student_id</code> as <code>null</code> and route the guest identifier through the separate <code>guest_code</code> column, per the v80.15 fix. No second Offline Entry code path exists; the diagnostics panel's own "Test Booking" button uses an unrelated <code>TEST-DIAG-</code> id. The captured console proof reflects a build predating v80.15's fix reaching the browser under test, not a gap in this codebase. <strong>Fix (this version — belt-and-suspenders, surgical):</strong> added a hard guard right at <code>submitBooking()</code>'s INSERT boundary — immediately before <code>bookingRow</code> is built, <code>student_id</code> is re-checked with the existing <code>window.isUuidLike()</code> helper and forced to <code>null</code> if it is not UUID-shaped, so a <code>GUEST-xxxxx</code> (or any other non-uuid string) can never reach Supabase's <code>student_id</code> column even if a future edit reintroduces the bug upstream. <strong>Untouched:</strong> real student and staff bookings — their <code>student_id</code> is already a genuine uuid and passes the guard unchanged; <code>guest_code</code>, the UUID schema itself, and every other booking/approval/issue/return workflow are not touched.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.26.1 &middot; &#127991;&#65039; Equipment Type Badges — DB Column Wired, Surfaced in Booking UI</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>What's new:</strong> the <code>equipment_type</code> column (confirmed live in Supabase as of this version) is now fully wired end-to-end. <strong>Admin form → Supabase:</strong> <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call now includes <code>equipment_type: category</code>, so every kit added from the form is persisted server-side with its type — no longer session-local only. <strong>Supabase → client:</strong> <code>rebuildKitDBFromSupabase()</code>'s equipment mapper now reads <code>e.equipment_type</code> first (then falls back to <code>e.item_category</code> and the local-extras cache for rows created before this version), so the type badge survives cross-device refetches. <strong>Booking UI:</strong> (1) <em>Available Types card</em> — a compact "Available Types" panel appears below the Browse by Type filter row when Equipment is selected and more than one type exists; each badge shows the count of non-retired items of that type in the current facility. (2) <em>Kit picker cards</em> — each right-column kit card in the Blinkit-style browser now shows a colored type badge (<em>Camera Kit → Blue / Audio Recorder Kit → Purple / Lights Kit → Amber / Headphones → Teal / Accessories → Grey / Other → Neutral</em>) above the kit name. (3) <em>Booking summaries and receipts</em> — <code>canonicalRecordHTML()</code> now shows the type badge inside the Equipment box on every card that reads from <code>b.itemCategory</code> or can look it up from <code>adminData.equipment</code>. <strong>No new tables, no schema changes beyond what was already confirmed.</strong> Existing bookings without a type show no badge (no "Other" fallback forced on old data — cleaner than showing a wrong chip). The <code>eqTypeBadgeHTML()</code> helper and <code>EQUIPMENT_TYPE_COLORS</code> map are defined as globals so future callers (Analytics, Admin list, etc.) can reuse them without duplication.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80V &middot; &#128241; Mobile/Desktop Toggle — Reverted from Iframe Back to CSS-Class Swap</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> the v80.42/43 iframe approach broke in practice — clicking "Desktop" hid the app-bar buttons themselves (they're rendered inside the nested iframe's own DOM), leaving no way to click back to "Mobile" from within that view. <strong>Decision:</strong> restore the v80.35 <code>setAppViewMode()</code> approach — a plain CSS-class swap on <code>&lt;html&gt;</code>/<code>&lt;body&gt;</code> (<code>force-mobile-view</code>/<code>force-desktop-view</code>), reusing the app's real <code>@media(max-width:480px)</code> sizing exactly rather than an invented fixed size, per v80.35's original fix. This trades the iframe's guarantee of native <code>@media</code> evaluation for a toggle that keeps the app-bar (and its own buttons) visible and clickable in both modes, works identically on hosted and local/downloaded files (no <code>location.protocol</code> dependency), and needs no <code>?_devframe=1</code> self-detection since nothing is nested anymore. Icons unchanged and correctly assigned: 📱 = mobile (full-bleed), 🖥️ = desktop (wide panel, <code>min(560px,92vw)</code>). <strong>Scope:</strong> the toggle's CSS block and JS only (<code>setAppViewMode()</code> replaces <code>toggleDeviceView()</code>; the two buttons' <code>onclick</code> updated to match) — no other screen touched.</div></div>
-              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.48 &middot; &#9888;&#65039; Bulk Equipment/System Adds Silently Lost — Root Cause Fixed + Dedicated Edit Suite Column</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> 8 Panasonic camera kits added via the multi-block bulk-add form (one submit, 8 kit blocks) showed correctly in the local Admin list right after adding, but were missing from Supabase and from the app's own equipment inventory afterward. <strong>Root cause, confirmed in code:</strong> both <code>admAddEquipment()</code> and <code>admAddEditing()</code> looped over their kit/system blocks with a plain (non-async) <code>forEach</code>, calling <code>window.addSupaEquipment()</code>/<code>addSupaEditing()</code> WITHOUT <code>await</code> — for an 8-block batch, that fires 8 concurrent, unawaited POST requests and then immediately continues to <code>populateKit()</code>/<code>saveAdminData()</code>/<code>setAdminTab()</code> (navigates to a different screen) with zero guarantee any of those writes had actually finished. A still-in-flight request can be silently lost or race-overwritten by a subsequent fetch, with nothing surfaced to the user — exactly this symptom. <strong>Fix:</strong> both functions are now <code>async</code> and use a sequential <code>for...of</code> loop with <code>await</code> on each Supabase write — one completes (success or explicit failure, logged to console) before the next starts, and before the function does anything else. If any item's write genuinely fails, the toast now says so explicitly by name instead of a blanket "✅ added" that wasn't fully true. <strong>Separately, also fixed while in this code:</strong> the specific edit suite an admin picks ("T1 Radio Edit" etc.) was being silently discarded before reaching Supabase — <code>admAddEditing()</code> was sending the generic facility bucket ("T1 Central") under the existing <code>location</code> column instead of the specific suite. Added a dedicated <code>edit_suite</code> column (<code>v80.48_edit_suite_column.sql</code>) so the specific suite now persists correctly and survives a refetch/cross-device, without colliding with the existing <code>location</code> column's current meaning. Also renamed the "Film & TV Studio" location entry to "Film & TV Studio Edit Suite," matching the naming convention of the other six suites. <strong>Scope:</strong> <code>admAddEquipment()</code>, <code>admAddEditing()</code>, <code>fetchSupaEditing()</code>'s mapper, and <code>EDITING_LOCATIONS</code> — no change to who can add/delete equipment, the booking pipeline, or any other admin form.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.8W4 &middot; &#128205; Edit Suite Name in Kit Cards + Right-Panel Header (VCG Fix)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause:</strong> <code>_vcgKitCardHTML()</code> resolved <code>loc</code> from <code>rec.fac</code> (the two-value facility key mapped to "T1 Central Block") rather than <code>rec.location</code> (the specific edit suite name like "T1 Radio Edit"). So even after selecting a suite via the Browse-by-Location bar, the kit card still showed "T1 Central Block" underneath the serial. Similarly, the right-panel title always read "— Available Kits" regardless of which suite was selected. <strong>Fix (surgical, two lines):</strong> (1) <code>_vcgKitCardHTML()</code> now uses <code>rec.location</code> when <code>S.cat === 'Editing Systems'</code> and a location is present — falling back to the existing facility-label logic for Equipment/Studio Booking, which is completely untouched. (2) The right-panel title now suffixes the selected suite name (e.g. "— T1 Radio Edit") when a specific location is active, falling back to "— Available Kits" when All is selected or for non-Editing-Systems categories. <strong>Supabase:</strong> no schema change required — <code>rec.location</code> has been a real column on the <code>systems</code> table since v80.20. Added <code>edit_suite</code> column SQL for cleaner future separation if needed (see SQL in session notes). <strong>Scope:</strong> <code>_vcgKitCardHTML()</code> loc line + right-panel title var only. Zero change to the location-bar buttons, left-column model list, Equipment, Studio Booking, approval pipeline, or any other category.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.47 &middot; &#128205; Editing Systems — Browse-by-Location Picker (Both Booking Modes)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Asked:</strong> students booking an Editing System should choose a room/location first (Radio Edit, TV Edit, Preview Room Edit, F&amp;NM Edit, Smaller Suite Windows, Smaller Suite Mac, Film &amp; TV Studio) — either as a location grid on the Visual Card Grid's left column, or, if that's not feasible, as buttons plus a dropdown showing that location's system. <strong>Data confirmed already real, not guessed from names:</strong> every editing system record has carried a genuine <code>.location</code> field since v80.20 — one of the 7 canonical <code>EDITING_LOCATIONS</code> values, set directly on the Admin Add form. So this location filter reads structured data the app already collects, rather than parsing it out of a display name (which would've broken the moment two systems at different rooms happened to share similar names). <strong>Built for both booking modes, kept consistent:</strong> (1) Visual Card Grid path — a "Browse by Location" button row (same visual pattern as the existing "Browse by Type" icon filter) now sits above the left-column model list for Editing Systems specifically; selecting a location filters which systems appear on the left, each button showing a live count. (2) Fallback (Visual Card Grid toggled off) path — the same button row and same <code>.location</code> field now sit above the plain equipment picker too, filtering which systems the searchable dropdown offers. Both paths read the identical field, so a location picked in one mode means the same thing in the other. <strong>Scope:</strong> <code>renderVisualCardGrid()</code>, two new small functions (<code>vcgSelectEditLocation()</code>, <code>renderEqLocationBar()</code>/<code>selectEqRowsLocation()</code>), and the location-bar CSS — Equipment and Studio Booking categories are completely untouched, and existing Editing Systems bookings/data needed no migration since <code>.location</code> was already there.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1e40af;"><div style="font-size:10px;font-weight:800;color:#1e40af;margin-bottom:3px;">v80.46 &middot; &#128421;&#65039; Editing System Details/Manager Note Now Persist to Supabase</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported gap:</strong> the Add Editing System form has captured System Details (software) and Manager Note since v80.20/v80.21 and shows them correctly in the Admin list right after entry — but v80.20's changelog flagged both as local-only because their Supabase columns didn't exist yet. <code>specifications</code> is now confirmed live on <code>systems</code>, and <code>manager_note TEXT</code> was just added via <code>ALTER TABLE systems ADD COLUMN manager_note TEXT;</code> — this pass wires both through end-to-end using the existing column names (no new/renamed columns). <strong>Insert:</strong> <code>admAddEditing()</code>'s <code>addSupaEditing()</code> call now sends <code>specifications</code> and <code>manager_note</code> alongside the existing <code>system_name</code>/<code>location</code>/<code>os</code> fields. <strong>Load-back:</strong> <code>fetchSupaEditing()</code> now maps <code>specifications → .software</code> and <code>manager_note → .note</code>, the same remap pattern already used for <code>.name</code>/<code>.fac</code> just above it; <code>rebuildKitDBFromSupabase()</code>'s editing mapper now spells both out explicitly (matching the equipment mapper's pattern) so they can't silently drop on a future refetch. <strong>Display — no changes needed, already generic:</strong> the Admin Editing Systems list already renders <code>e.software</code>/<code>e.note</code> (was working locally, now works cross-device/cross-refresh too); the booking-side kit card (<code>_vcgKitCardHTML()</code>) already reads <code>rec.note</code> generically off whatever <code>adminData</code> record it resolves to — since that record now carries a real, Supabase-backed note for Editing Systems, the existing Admin/Manager-only Manager Note block from v80.42 starts showing it automatically with zero code change there. <strong>No Edit modal exists for Editing Systems</strong> (Add/Delete only, same as Equipment/Studios) — nothing to wire on that front; re-adding a system is the only way to change these fields today. <strong>Scope:</strong> <code>admAddEditing()</code>'s Supabase payload, <code>fetchSupaEditing()</code>'s mapper, and <code>rebuildKitDBFromSupabase()</code>'s editing mapper only — no change to the Add form's markup, Equipment/Studio handling, or any other page.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.35 &middot; &#128202; Analytics Fetch Was Still Capped at 200 Rows</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Follow-up on v80.34:</strong> "Analytics should reflect everything" — checked the fetch itself, not just the role filters removed last version, and found the query still carried a flat <code>limit=200</code> regardless of whether it was the role-scoped fetch or the new unfiltered Analytics one. That's harmless for the role-scoped fetches (Booking/Manager/Approvals genuinely only need recent/active rows), but for Analytics — which has no filter narrowing the row count at all once v80.34 removed role scoping — that same 200 cap meant a table with more than 200 total bookings would silently drop the oldest ones from every Analytics view, including past dates someone might pick on the date picker. <strong>Fix:</strong> the row limit is now conditional — 200 for the normal role-scoped fetch (unchanged), 10,000 for the unfiltered Analytics fetch. Not left fully uncapped, so a single fetch can't run away if the table grows unexpectedly large, but well above any realistic total at this app's current scale (~300 students, 15 faculty a semester). <strong>Worth knowing:</strong> Supabase/PostgREST projects can carry their own server-side "max rows" setting (Project Settings → API) that silently overrides any client-supplied <code>limit</code> above it — if Analytics ever appears to plateau at a suspiciously round number of records again, that setting is the first thing to check, not this code. <strong>Scope:</strong> one line — the limit value — no other change to the query, its filters, or the mapping logic.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.34 &middot; &#128202; Analytics Showed Different Data to Admin vs Manager (Root Cause: Reused the Action-Queue Fetch)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin's Analytics correctly showed 2 test bookings for the day (cancelled/denied, with their timestamps) that Manager's Analytics showed as 0 for the exact same day. <strong>Root cause:</strong> Analytics (<code>an2GetBookingsForDate</code>) reads from the shared <code>S.bookings</code> array — but <code>S.bookings</code> is populated by <code>fetchAndRenderBookings()</code> using SERVER-SIDE role filters that were built for each role's ACTION queue, not for Analytics. <code>managerStatusFilter</code> deliberately restricts Manager's fetch to <code>approved,kit_prep,ready,student_arrived,issued,partially_received,returned</code> — correct for Manager's own working queue, which has no business use for pending/cancelled/rejected bookings, but that same restriction silently starved Analytics too, since both screens were reading the one fetch. Admin has no role filter at all, so Admin's Analytics saw everything Manager's couldn't. <strong>Fix:</strong> <code>fetchAndRenderBookings()</code> now takes an optional <code>unfiltered</code> argument. Every existing call site (Booking screen, Manager screen, the 10-second auto-refresh, approve/issue/return actions) still calls it with no argument and gets the exact same role-scoped behavior as before — zero change there. Entering the Analytics screen now calls <code>fetchAndRenderBookings(true)</code> specifically, pulling every booking regardless of role or status, so Admin, Professor, and Studio Manager see the identical underlying dataset in Analytics — matching by default, narrowed only when someone applies a filter chip, exactly as requested. Leaving Analytics immediately re-triggers a normal role-scoped fetch (rather than waiting up to 10s for the next auto-refresh) so Manager's action queue doesn't sit on the broader Analytics dataset a moment longer than necessary. <strong>Scope:</strong> the fetch function signature, its 3 role-filter guards, and the two Analytics-screen call sites in <code>switchScreen()</code> only — no change to the Manager/Professor/Student queue-scoping logic itself, the booking pipeline, or any other screen's data.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.33 &middot; &#128273; Change Admin PINs Panel Rebuilt for 2-Layer, Supabase-Backed PINs</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> after v80.32 moved Admin login verification to the 2-layer Supabase <code>admin_pin_layers</code> table, the "Change Admin Password" panel under Admin → Password was untouched and still read/wrote a single plaintext 4-digit PIN in <code>localStorage</code> — so it could no longer actually change the PIN login checked against, and its change history was device-local, invisible on any other browser or the phone. <strong>Fix:</strong> the panel is now two separate forms, one per layer — current/new/confirm for the 6-digit PIN and the same for the 4-digit PIN — each verifying the entered "current PIN" against the live Supabase hash (via the same <code>_fetchAdminPinLayers()</code>/<code>_sha256Hex()</code> used at login) before writing the new hash back with a Supabase <code>PATCH</code>. Every successful change also inserts a row into a new <code>admin_pin_change_history</code> table (layer + timestamp only, never the PIN or its hash), and the history list on this panel now reads from that table instead of <code>localStorage</code> — so a PIN changed from a laptop shows up in history on the phone too. Changing either PIN invalidates the in-memory hash cache immediately, so the new PIN is live for the very next login attempt without a page reload. <strong>Schema:</strong> <code>v80.33_admin_pin_history.sql</code> adds <code>admin_pin_change_history</code> (anon SELECT+INSERT, no UPDATE/DELETE — audit-log pattern already used elsewhere in this file) and, necessarily, an anon UPDATE policy on <code>admin_pin_layers</code> itself, which v80.32's SQL deliberately left read-only. <strong>Flagged plainly:</strong> that UPDATE policy means anyone holding the public anon key could rewrite the PIN hashes directly via the REST API, bypassing this panel's "must know the current PIN" check entirely — it does not add a new class of exposure (the anon key already carries this app's real trust boundary everywhere, per the v80.29 RLS audit), but it does mean this table is only as protected as every other admin-writable table in this app, not more. A properly scoped, non-anon key for PIN changes specifically would close that gap, and is a reasonable follow-up if wanted. <strong>Action needed:</strong> run <code>v80.33_admin_pin_history.sql</code> in the Supabase SQL editor — the panel will show "Could not save to Supabase" on either form until then.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.32 &middot; &#128274; Two-Layer Admin PIN, Supabase-Backed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Change:</strong> Admin login now requires two sequential PINs — a 6-digit PIN, then a 4-digit PIN — instead of a single 4-digit PIN. Both are verified against SHA-256 hashes stored in a new Supabase table, <code>admin_pin_layers</code> (see <code>v80.32_admin_pin_layers.sql</code>, seeded with the defaults <code>123456</code> and <code>1234</code>), not in <code>localStorage</code> and not in plaintext. The overlay's subtitle and input length switch automatically between stages; entering the correct 6-digit PIN advances to the 4-digit prompt, entering the correct 4-digit PIN logs in as Admin. The existing brute-force throttle (5 fails → 60s lock) applies across both stages. If Supabase can't be reached, verification falls back to the hash of the same two defaults, matching the fail-open pattern already used elsewhere in this file, so a network hiccup never locks Admin out entirely. <strong>Bug found and fixed along the way:</strong> a leftover override further down the file was silently reassigning <code>window.adminPinCheck</code> to an old plaintext single-PIN comparison, running after the real (hashed) implementation and clobbering it — meaning Admin login had actually been running on the broken, unhashed logic despite the v80.29 hardening pass. That override is now deleted; only the one real implementation remains. <strong>Known gap flagged:</strong> the existing "Change Admin Password" panel (Admin → Password tab) still reads/writes a single plaintext 4-digit PIN in <code>localStorage</code> — it no longer matches how login actually verifies PINs and needs its own follow-up pass to become 2-layer and Supabase-backed; not touched in this change to keep this pass scoped to login verification only. <strong>Action needed:</strong> run <code>v80.32_admin_pin_layers.sql</code> in the Supabase SQL editor before this version goes live — until then, login falls back to the same 123456 / 1234 defaults via the hash fallback, so nothing breaks, but the real PINs aren't centrally stored yet.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.45 &middot; &#127909; Booking Screen Showed Only 3 of 5 Studios (Facility-Scoping Leak)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin's studio list correctly showed all 5 Supabase rows, but the Booking screen (dropdown, Visual Card Grid, and calendar) only ever showed 3. Confirmed first that this was not a database or RLS issue — Supabase's <code>studios</code> table genuinely has all 5 rows and the anon SELECT policy is open; traced instead through the actual frontend read path as instructed. <strong>Root cause:</strong> <code>rebuildKitDBFromSupabase()</code> correctly pulls all 5 studios, but then buckets every one of them into <code>kitDB.t1['Studio Booking']</code> or <code>kitDB.film['Studio Booking']</code> by its <code>fac</code> column — a split that's genuinely necessary for Equipment/Editing Systems (physical kit that really does sit in one facility or the other), but every booking-side picker (<code>populateKit()</code>, <code>renderIconCatRow()</code>, <code>renderCalendar()</code>'s item list, the multi-row picker in <code>addEqRow()</code>, and the Visual Card Grid's <code>renderVisualCardGrid()</code>) read that same split via <code>(kitDB[S.fac]||{})[S.cat]||[]</code> — so whichever facility happened to be selected (T1 Central, by default) silently hid every studio filed under Film & TV. 3 of the 5 studios are T1 Central; the other 2 are Film & TV — exactly the 3-vs-5 gap reported. Admin's list was unaffected because <code>adminData.studios</code> is rendered directly with no facility filter at all. <strong>Fix:</strong> added a single shared accessor, <code>getCatItems(cat)</code>, defined right next to <code>kitDB</code> itself. For Studio Booking it now always merges <code>kitDB.t1['Studio Booking']</code> and <code>kitDB.film['Studio Booking']</code> (de-duped) regardless of which facility chip is active — matching Admin's unfiltered view exactly. For Equipment and Editing Systems it's a pure passthrough to the existing <code>(kitDB[S.fac]||{})[cat]||[]</code> logic, so that facility-scoping behavior is completely unchanged. All 5 read-sites were repointed to call <code>getCatItems(S.cat)</code> instead of indexing <code>kitDB</code> directly, so the dropdown, icon-category row, calendar, plain picker, and Visual Card Grid all pull from the exact same merged list going forward — no more risk of one picker drifting out of sync with another. <strong>Scope:</strong> new <code>getCatItems()</code> helper plus its 5 call-sites only. No change to <code>rebuildKitDBFromSupabase()</code>'s fetch/mapping logic, Equipment/Editing Systems behavior, Admin's studio list, or any other page (Students, Approvals, Reports, Analytics don't read from <code>kitDB</code> at all — they read <code>adminData</code>/<code>S.bookings</code> directly and were already unaffected).</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.44 &middot; &#128269; Searchable Equipment Picker, Natural Kit Sort, Weather Restored, Cancellation Diagnostics + One Confirmed Extra Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Search box added to the equipment dropdown:</strong> confirmed the native <code>&lt;select&gt;</code> is genuine browser/OS chrome — not app-controllable HTML — so a search box can't be injected into its native picker directly. Replaced the VISIBLE control with a custom button + searchable bottom-sheet overlay (same pattern as the Approving Professor picker), while the real <code>&lt;select&gt;</code> stays in the DOM, just hidden — every existing consumer (<code>getSelectedEquipment()</code>, <code>checkEquipmentConflicts()</code>, <code>getCalendarSelectedItems()</code>, the booking payload builder) still reads it exactly as before; selecting an option in the new overlay just sets the hidden select's value and fires its existing <code>change</code> event, so zero downstream logic was duplicated or touched. <strong>2. Equipment/kit lists sorted numerically:</strong> lists were left in raw Supabase fetch order (Kit 8, Kit 4, Kit 11, Kit 2...) — added a natural-sort helper applied once where <code>kitDB</code> is built, which is the single shared source feeding the native select, the Visual Card Grid, AND the plain picker modal — fixing all three consistently. <strong>3. Visual Card Grid's left column no longer leaves a large blank area:</strong> the list was hard-capped at 190px inside its 520px-tall parent — with only 3-4 models, most of that height sat empty below the list. Changed to <code>flex:1</code> so it fills all available space naturally, with scroll only appearing once content genuinely exceeds it — same fill-then-scroll behavior the calendar already used successfully. <strong>4. Weather stamp restored:</strong> the SQL column was added and confirmed (v80.37 migration), but the code-side write was never actually re-enabled after v80.11 disabled it — that was the real remaining gap. Re-enabled the cross-device PATCH now that the column genuinely exists; same safe fallback pattern as the rest of this file if anything about it ever fails again. <strong>5. Cancellation timestamp — traced thoroughly, found no code defect this time:</strong> re-checked the write path (<code>rejectBooking()</code>, correct), the read-back mapper (correct), and <code>applyLocalExtras()</code> (doesn't touch this field at all, ruled out as a clobber). Unlike the earlier v80.33 bug, this one shows no identifiable defect on static review — added targeted console logging to both the PATCH attempt and the post-refetch verification instead of guessing a further blind fix, so the next live reproduction gives real evidence rather than another guess. <strong>Bonus, found while tracing #5:</strong> a separate "Reject" button (a secondary live-booking-card widget) was calling <code>rejectBooking(bid)</code> with no <code>action</code>/<code>reason</code>/actor arguments at all — meaning every rejection through that specific button silently recorded as a CANCELLATION instead of a rejection, with no reason attached. Fixed to pass all five arguments correctly.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.43 &middot; &#128683; Mobile/Desktop Toggle Broke When File Opened Locally — Guarded</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported live:</strong> tapping the toggle produced a blank page with "It may have been moved, edited or deleted", URL bar reading <code>content://downloads/all_downloads/2231</code>. <strong>Root cause:</strong> that URL confirms the HTML file was opened directly from the phone's Downloads app rather than visited as a hosted web page. v80.42's iframe approach needs a genuinely reloadable URL to point its <code>src</code> at — appending <code>?_devframe=1</code> to an opaque Android <code>content://</code> identifier isn't a valid link, so the browser tried to re-open it via the downloads content-provider instead of embedding it inline, producing exactly this broken result. <strong>Fix:</strong> <code>toggleDeviceView()</code> now checks <code>location.protocol</code> first — if it isn't <code>http:</code>/<code>https:</code> (covers <code>content:</code>, <code>file:</code>, and any other local-open scheme), it shows a clear explanatory toast and does nothing further, instead of attempting the iframe at all. The buttons are also dimmed with an explanatory tooltip up front on load in that case, and the saved-mode auto-restore is skipped too — so a "Mobile" preference saved while using the real hosted link doesn't silently break the very next time the file happens to be opened locally. <strong>Scope:</strong> guard clauses only, in <code>toggleDeviceView()</code> and <code>initDeviceView()</code> — the working iframe behavior on the real hosted URL (confirmed working architecture from v80.42) is completely unchanged.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1f2937;"><div style="font-size:10px;font-weight:800;color:#1f2937;margin-bottom:3px;">v80.42 &middot; &#128241; Mobile/Desktop Toggle, Rebuilt on a Different Architecture + Manager Note at Booking Time + App Info Stats Refreshed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Mobile/Desktop toggle — rebuilt from scratch, not re-patched:</strong> three straight prior attempts (v80.32 → v80.35 → v80.37 removal) all tried to approximate a real phone viewport with CSS classes/<code>!important</code> overrides on <code>body</code>/<code>html</code> — and kept drifting out of sync, confirmed by live testing each time, because <code>@media</code> queries always evaluate against the REAL browser viewport; no class can make a genuinely wide window satisfy <code>@media(max-width:480px)</code>. This version does something categorically different instead of a fourth CSS approximation: "Mobile" mode now opens a same-page <code>&lt;iframe&gt;</code> sized to a real phone viewport (390&times;844) via <code>toggleDeviceView('mobile')</code> — an iframe has its OWN independent viewport, so the app's existing real <code>@media</code> rules evaluate correctly and natively inside it, automatically, with no hand-copied CSS and no possible drift, because it's not an approximation anymore — it's the same code genuinely running in a smaller real viewport. The nested instance detects itself via a <code>?_devframe=1</code> URL flag and hides its own toggle buttons, so Mobile-inside-Mobile can't happen. Buttons moved off the login screen entirely, per explicit request, into the persistent app-bar next to the notification bell — visible on every screen, not just login. Choice persists via <code>localStorage</code> and restores automatically on next load. <strong>2. Manager Note now visible when RAISING a booking, not just on the Manager Ops Desk afterward:</strong> the kit card's Manager Note (v80.28.1 deliberately hid it from students — "internal only") now also shows for Admin/Manager roles specifically, right below Kit Contents, at the actual point of picking a kit — using the same substring role check from v80.36 so both "Admin" and "Studio Manager" are covered. Students still never see it; that original privacy intent is unchanged. <strong>3. App Info stats corrected:</strong> the Versions/Lines counters had gone stale (showing 80/17K+ from an earlier point) — now reflect the actual current counts (99 distinct version entries, ~18.8K lines). <strong>Scope:</strong> app-bar markup, the new <code>toggleDeviceView()</code>/<code>_onDomReady()</code> functions, <code>_vcgKitCardHTML()</code>'s note block, and the App Info stat strip only — no change to any other screen or the booking/approval pipeline.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.36 &middot; Five Surgical Fixes: Equipment Categorization, Accessories Tile, Booking SFX, Admin Equipment Search, DB Health Access</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;">
+<strong>1. Cables/chargers/connectors showing under "Cameras" browse tile:</strong> same root cause as v80.28's Admin list icon bug — <code>_guessItemIcon()</code> checked the frozen <code>icon</code> field (set once at creation, defaulted to 📷 under the old free-form picker) before the live <code>itemCategory</code> (correctly "Accessories" on these rows). Now checks <code>itemCategory</code> first for Equipment; every existing item self-corrects on next render, no data migration. Also broadened the keyword fallback (for items with neither field set) to catch cable/connector/charger/battery/adapter/mount/tripod/windscreen/blimp/xlr/hdmi/trolley/case as Accessories instead of defaulting to camera.<br/>
+<strong>2. New "Accessories &amp; Other's" Browse-by-Type tile:</strong> the Accessories (🔌) and Other (🧰) icon buckets are now merged into one combined tile/filter via a new <code>_iconBucket()</code> wrapper (used for grouping/filtering only — each item's own card still shows its true, specific icon). <code>ICON_TITLES</code> and the "Available Types" badge map both updated to label it correctly.<br/>
+<strong>3. Booking screen had zero click SFX:</strong> traced to the global click-sound listener's selector list — <code>.icat-tile</code> (Browse by Type tiles), <code>.vcg-btn</code> (kit "+Add"/"Book This"), <code>.vcg-loc-btn</code>, and <code>.vcg-bk-left-item</code> (left-column model list) were simply never added to it, so Booking was the one screen silent while every other button in the app already played <code>playClick()</code>. Added all four classes — same sound as everywhere else, just extended to cover Booking.<br/>
+<strong>4. Admin ▸ Equipment — search box + type filter added:</strong> a search input (matches name/category/facility/kit contents) and a category dropdown now sit above the equipment list, filtering it live so duplicate entries (e.g. two identical "BATTERY CHARGER" rows) are easy to find and remove with the existing ✕ Remove button. This is a searchable/filterable version of the existing list, not a full rebuild into the booking screen's card-grid style — that's a larger, separate undertaking and can be scoped as a follow-up if still wanted.<br/>
+<strong>5. Diagnostics / Test Booking / DB Health — Admin-only:</strong> Diagnostics and Test Booking on the Booking screen were already gated to Admin (<code>diag-test-btns-row</code> display toggle). DB Health was not — Studio Manager was being granted it in the same role-based nav block that correctly excludes it from every other non-Admin role. That one grant line is removed; DB Health now shows for Admin only.<br/>
+<strong>Scope:</strong> <code>_guessItemIcon()</code>/new <code>_iconBucket()</code> and their 3 call sites, <code>ICON_TITLES</code>, the Available Types INFER_MAP, the two click-sound selector strings, <code>renderAdminEquipment()</code>/new <code>admFilterEquipmentList()</code>, and one nav-visibility line for Studio Manager. No change to the booking/approval pipeline, equipment add/edit forms, or any other role's screen.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.40 &middot; &#127183; Zoom F6 Kits Not Grouping + Manager Note Reading From Wrong Column</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Zoom F6 kits each showing as their own "model" (1 Kit Available) instead of grouping like TASCAM (7 Kits Available):</strong> <code>algBaseName()</code>'s suffix-stripping regex only matched a trailing <code>"– Kit 8"</code> pattern (dash, "Kit", then digits) — TASCAM's kit names fit that exactly, but the Zoom F6 kits are named <code>"… Kit – Kit No 5"</code>, with "No" between "Kit" and the number, which the regex didn't account for, so each Zoom F6 kit kept its full name as its own base and never grouped with its siblings in the Visual Card Grid's left-column model list. <strong>Fix:</strong> regex now also matches an optional "No"/"No." before the trailing digits, so "Kit No 5", "Kit No. 5", and the existing "Kit 5" form all strip correctly. <strong>2. Manager Note still invisible after being confirmed live in Supabase:</strong> traced with a live COUNT/NULL check — <code>equipment.manager_note</code> is a real column, but <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call never included it in the insert payload (only <code>kit_contents</code>/<code>equipment_type</code> were ever sent), so every row's <code>manager_note</code> stayed NULL regardless of what was typed on the form. Separately, <code>rebuildKitDBFromSupabase()</code>'s read-back mapper was looking for a column literally named <code>note</code> (which doesn't exist) instead of <code>manager_note</code> — a second, independent reason it would have stayed invisible even after the insert was fixed. Both now corrected: the insert sends <code>manager_note</code>, and the mapper reads <code>e.manager_note</code> first, falling back to the local-extras cache and the old wrong key for any pre-existing rows. <strong>Scope:</strong> <code>algBaseName()</code>, <code>admAddEquipment()</code>'s Supabase payload, and <code>rebuildKitDBFromSupabase()</code>'s equipment mapper only — no change to who can add/delete equipment (Admin/Manager add access and Admin-only delete are untouched), the kit-card display logic itself, or any other field.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.39 &middot; &#128683; Real Double-Booking Prevention + Kit Contents/Note Lookup Fix + Live Auto-Refresh</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Kit Contents/Manager Note not showing — root cause found, not role-specific:</strong> reported as a Studio Manager visibility issue, but traced to <code>canonicalRecordHTML()</code>'s equipment lookup using an EXACT string match against <code>adminData.equipment</code>. Any booking made with the optional "Kit No. / Note" field filled in stores its resource name WITH the bracket baked in (e.g. <code>"TASCAM DR 05 – Kit 8 [Test]"</code> — see <code>_vcgKitCardHTML</code>), which can never exact-match the equipment record's real name — so Kit Contents/Manager Note silently never rendered for ANY viewer on that booking, not specifically Manager. Fixed to strip the bracket suffix before matching, reusing the exact same pattern already used correctly in three other places in this file (<code>getCalendarSelectedItems</code>, <code>checkEquipmentConflicts</code>). <strong>2. Double-booking was only ever a soft warning, never actually blocked:</strong> <code>checkEquipmentConflicts()</code> (live, as the time picker changes) has existed since earlier versions and correctly detects overlaps — but only ever shows a dismissible toast; nothing stopped <code>submitBooking()</code> itself from inserting a genuinely conflicting booking. <code>submitBooking()</code> now queries Supabase DIRECTLY for just the requested resource(s) immediately before insert (not the local <code>S.bookings</code> cache, which is exactly what was stale in the reported "showed booked only after a refresh" case) and refuses the insert outright — clear error, no booking created — if any active, non-cancelled/rejected booking already overlaps the requested window. Applies uniformly to Equipment, Editing Systems, and Studio Booking, since <code>resource_name</code> isn't category-specific — not equipment-only. Fails OPEN only if the check itself can't reach Supabase (network hiccup), never silently blocking a legitimate booking. <strong>Calendar color-coding itself was already correct</strong> — confirmed <code>approved</code> status already maps to the yellow "Booked/Pending" bucket in <code>renderCalendar()</code>'s <code>statusMap</code>; the visible gap was purely the stale-data problem #2 addresses, not a missing color rule. <strong>3. Auto-refresh added:</strong> Book and Manager screens now silently re-fetch bookings and re-render every 10 seconds via the same functions every other action already calls — skips the cycle entirely whenever an input/select/textarea is currently focused, so a user mid-pick or mid-typing is never interrupted. <strong>Scope:</strong> <code>canonicalRecordHTML()</code>'s equipment lookup, <code>submitBooking()</code>'s pre-insert check, <code>handleBookingSubmit()</code>'s error display, and one new interval — no change to the existing soft-warning conflict toast, the calendar's color/status logic, or the booking/approval pipeline itself.</div></div>
@@ -4452,7 +4463,10 @@ function applyRoleUI(role){
     if(navAdmin)     navAdmin.style.display='';
     // navStudents: still REMOVED — Studio Manager must NOT access Student Management
     if(navAppInfo)   navAppInfo.style.display='';
-    if(navDbHealth)  navDbHealth.style.display='';
+    // v80.36: DB Health removed for Studio Manager — Diagnostics/Test Booking
+    // on the Booking screen were already Admin-only (see switchScreen's
+    // diag-test-btns-row gate), but this nav item was still being granted to
+    // Studio Manager here, alongside it. Now all three are Admin-only.
     if(navBirthday){ navBirthday.style.display=''; if(typeof renderBirthdayTab==='function') renderBirthdayTab(); if(typeof renderInitiativesTab==='function') renderInitiativesTab(); if(typeof renderYouTubeJSJCTab==='function') renderYouTubeJSJCTab(); if(typeof renderJSJCNewsTab==='function') renderJSJCNewsTab(); if(typeof renderRadioJSJCTab==='function') renderRadioJSJCTab(); }
   }
   else if(role === 'Admin'){
@@ -4805,7 +4819,7 @@ function updateTimeLabels(){
 }
 
 // ── V71.6: Icon-based sub-category browsing — reuses Admin's own icon assignments ──
-var ICON_TITLES = {'📷':'Cameras','🎤':'Microphones','💡':'Lights','🎧':'Headphones','🎙️':'Recorders','🍎':'Mac Systems','🪟':'Windows Systems'};
+var ICON_TITLES = {'📷':'Cameras','🎤':'Microphones','💡':'Lights','🎧':'Headphones','🎙️':'Recorders','🍎':'Mac Systems','🪟':'Windows Systems','🔌':"Accessories & Other's"};
 window._iconFilter = null; // null = "All" (no sub-filter applied)
 
 function _iconSourceArray(cat){
@@ -4818,6 +4832,23 @@ function _iconSourceArray(cat){
 // V71.7: Fallback icon inference for items with no icon field set (e.g. seed/demo data,
 // or records created before this feature existed). Never overrides a real Admin-picked icon.
 function _guessItemIcon(rec, cat){
+  // v80.36 FIX: same root cause as v80.28 (Admin equipment list icon), this
+  // time affecting the student-facing "Browse by Type" tiles/counts and the
+  // Visual Card Grid's icon grouping. itemCategory is the live, trustworthy
+  // field (Admin-selected, reliably rehydrated via equipment_type on every
+  // refetch since v80.26.1) — rec.icon is frozen at creation time and can
+  // silently drift from it (pre-v80.20 rows created under the old free-form
+  // icon-chip picker, which defaulted to 📷 unless a different chip was
+  // manually clicked). That drift is exactly why cables/connectors/battery
+  // chargers — correctly saved as itemCategory "Accessories" — were showing
+  // up under the "Cameras" browse tile: their frozen icon was 📷. Checking
+  // itemCategory first fixes this for every existing row immediately, no
+  // data migration or re-save needed. Only applies to Equipment — Editing
+  // Systems/Studio Booking have no itemCategory concept and keep using
+  // their own OS/type-based inference below, unchanged.
+  if(cat === 'Equipment' && rec && rec.itemCategory && EQUIPMENT_CATEGORY_ICONS[rec.itemCategory]){
+    return EQUIPMENT_CATEGORY_ICONS[rec.itemCategory];
+  }
   if(rec && rec.icon) return rec.icon;
   var name = ((rec && rec.name) || '').toLowerCase();
   if(cat === 'Editing Systems'){
@@ -4835,9 +4866,19 @@ function _guessItemIcon(rec, cat){
   if(/light|aputure|godox|led\b/.test(name)) return '💡';
   if(/headphone|mdr|m50x|audio-technica/.test(name)) return '🎧';
   if(/recorder|zoom h|tascam|mixpre|sound devices|zaxcom|sonosax|nagra/.test(name)) return '🎙️';
+  if(/cable|connector|charger|battery|adapter|mount|tripod|windscreen|blimp|xlr|hdmi|trolley|case\b/.test(name)) return '🔌';
   return '📷'; // cameras, gimbals, camera-adjacent gear default
 }
 window._guessItemIcon = _guessItemIcon;
+// v80.36: combines the 🔌 (Accessories) and 🧰 (Other) buckets into one
+// "Accessories & Other's" Browse-by-Type tile, per request — everywhere the
+// app groups/filters items by icon for that row, it should use this instead
+// of calling _guessItemIcon directly, so the merge stays consistent.
+function _iconBucket(rec, cat){
+  var ic = _guessItemIcon(rec, cat);
+  return ic === '🧰' ? '🔌' : ic;
+}
+window._iconBucket = _iconBucket;
 
 function renderIconCatRow(){
   var row = document.getElementById('icon-cat-row');
@@ -4848,7 +4889,7 @@ function renderIconCatRow(){
   var groups = {};
   items.forEach(function(name){
     var rec = source.find(function(r){ return r.name===name; });
-    var icon = _guessItemIcon(rec, S.cat);
+    var icon = _iconBucket(rec, S.cat);
     if(!groups[icon]) groups[icon] = {total:0, active:0};
     groups[icon].total++;
     if(!rec || rec.status==='Active') groups[icon].active++;
@@ -4878,7 +4919,8 @@ function renderIconCatRow(){
           '🎙':      'Audio Recorder Kit',
           '💡':      'Lights Kit',
           '🎧':      'Headphones',
-          '🎤':      'Audio Recorder Kit'
+          '🎤':      'Audio Recorder Kit',
+          '🔌':      'Accessories'
         };
         t = INFER_MAP[inf] || 'Other';
       }
@@ -7802,7 +7844,10 @@ window._eqRowsLocation = null;
 function renderEqLocationBar(){
   var bar = document.getElementById('eq-loc-bar');
   if(!bar) return;
-  if(S.cat !== 'Editing Systems'){ bar.innerHTML=''; bar.style.display='none'; return; }
+  // v80.26.8W4d: hide the fallback bar entirely when VCG is active —
+  // VCG renders its own location bar inside the grid (locationBarHTML),
+  // so showing this one too produces two duplicate Browse by Location rows.
+  if(S.cat !== 'Editing Systems' || window._vcgActive){ bar.innerHTML=''; bar.style.display='none'; return; }
   var items = getCatItems(S.cat);
   var editList = (window.adminData && window.adminData.editing) ? window.adminData.editing : [];
   var presentLocations = [];
@@ -7881,7 +7926,7 @@ function addEqRow() {
   var optHtml = items.filter(function(it){
     if(!window._iconFilter) return true;
     var rec = (window.adminData && (S.cat==='Editing Systems'?window.adminData.editing:window.adminData.equipment)) ? (S.cat==='Editing Systems'?window.adminData.editing:window.adminData.equipment).find(function(e){ return e.name===it; }) : null;
-    return _guessItemIcon(rec, S.cat) === window._iconFilter;
+    return _iconBucket(rec, S.cat) === window._iconFilter;
   }).map(function(it){
     var eqSrc = (S.cat==='Editing Systems') ? (window.adminData&&window.adminData.editing) : (window.adminData&&window.adminData.equipment);
     var eqRec = eqSrc ? eqSrc.find(function(e){ return e.name===it; }) : null;
@@ -8062,7 +8107,7 @@ function renderVisualCardGrid(){
 
   var items = getCatItems(S.cat);
   if(window._iconFilter){
-    items = items.filter(function(it){ return _guessItemIcon(_vcgItemRec(it), S.cat) === window._iconFilter; });
+    items = items.filter(function(it){ return _iconBucket(_vcgItemRec(it), S.cat) === window._iconFilter; });
   }
 
   // Selected-items chip strip (shown above the browser, same across all categories)
@@ -8146,12 +8191,17 @@ function renderVisualCardGrid(){
     var isActive = (m.base===window._vcgLeftModel);
     return '<div class="vcg-bk-left-item'+(isActive?' active':'')+'" onclick="vcgSelectModel(\''+m.base.replace(/'/g,"\\'")+'\')">'
       + m.base
-      + '<span class="vcg-bk-count">'+m.kits.length+' Kit'+(m.kits.length!==1?'s':'')+' Available</span>'
+      + '<span class="vcg-bk-count">'+m.kits.length+(S.cat==='Editing Systems'?' System':' Kit')+(m.kits.length!==1?'s':'')+' Available</span>'
       + '</div>';
   }).join('') : (models.length ? '<div class="vcg-bk-left-empty">No matches</div>' : '<div class="vcg-bk-left-empty">No systems at this location.</div>');
 
+  // v80.26.8W4: for Editing Systems with a specific location selected, suffix
+  // right-panel title with the suite name instead of generic "Available Kits".
+  var _rightSuffix = (S.cat === 'Editing Systems' && window._vcgEditLocation && window._vcgEditLocation !== 'All')
+    ? window._vcgEditLocation
+    : (S.cat === 'Editing Systems' ? 'Available Systems' : 'Available Kits');
   var rightHTML = activeModel
-    ? '<div class="vcg-bk-right-title">'+(activeModel.base)+' — Available Kits</div>' + activeModel.kits.map(function(name){ return _vcgKitCardHTML(name); }).join('')
+    ? '<div class="vcg-bk-right-title">'+(activeModel.base)+' — '+_rightSuffix+'</div>' + activeModel.kits.map(function(name){ return _vcgKitCardHTML(name); }).join('')
     : '<div class="vcg-bk-right-title">Select a system on the left</div>';
 
   grid.innerHTML = locationBarHTML + '<div class="vcg-blinkit">'
@@ -8221,7 +8271,13 @@ function _vcgKitCardHTML(name){
   var rec = _vcgItemRec(name);
   var status = rec ? (rec.status || 'Active') : 'Active';
   if(status === 'Retired') return '';
-  var loc  = rec ? (rec.fac==='T1 Central' ? adminData.facilityLabels.t1 : adminData.facilityLabels.film) : (S.fac==='t1'?adminData.facilityLabels.t1:adminData.facilityLabels.film);
+  // v80.26.8W4: for Editing Systems, show the specific edit suite name
+  // (rec.location e.g. "T1 Radio Edit") rather than the generic facility
+  // label ("T1 Central Block") — the .location field has been real structured
+  // data on every system record since v80.20, so we read it directly here.
+  var loc = (S.cat === 'Editing Systems' && rec && rec.location)
+    ? rec.location
+    : (rec ? (rec.fac==='T1 Central' ? adminData.facilityLabels.t1 : adminData.facilityLabels.film) : (S.fac==='t1'?adminData.facilityLabels.t1:adminData.facilityLabels.film));
   var serial = rec && rec.id ? ('#'+String(rec.id).padStart(3,'0')) : name.replace(/^.*–\s*/,'');
   var isSelected = window._vcgSelected.some(function(s){ return s.name===name; });
   var isMaint = status === 'Maintenance';
@@ -10295,7 +10351,14 @@ window.an2UpdateInsights = an2UpdateInsights;
 function algBaseName(name){
   if(!name) return '';
   let s = name.trim();
-  s = s.replace(/[–-]\s*(Kit)\s*(No\.?)?\s*\d+\s*$/i,'').trim();
+  // v80.26.8W4d: strip PC hostname from Editing System names so all units
+  // with the same system number group together in the left column.
+  // e.g. 'Windows OPJGUSNPD0357 – System 1' and 'Windows OPJGUSNPD0364 – System 1'
+  // both resolve to 'Windows – System 1', grouping by suite slot not machine ID.
+  // Matches 6+ char all-caps/digit hostnames between OS name and the dash.
+  s = s.replace(/^(Windows|Mac(?:OS|Book)?|iMac)\s+[A-Z0-9]{6,}\s*/, function(m){ return m.split(/\s+/)[0]+' '; });
+  // v80.26.8W4c: strip trailing unit-counter suffixes (Kit, Earphones, Charger etc.)
+  s = s.replace(/[–-]\s*(Kit|Earphones?|Headphones?|Trolley|Cable|Charger|Battery|Unit|Lens|Light|Pack|Mic|Microphone|Accessory|Accessories)\s*(No\.?)?\s*\d*\s*$/i,'').trim();
   s = s.replace(/\s+(Suite|Rig|Floor)\s+[0-9A-Za-z]+$/i, function(m, word){ return ' '+word; });
   return s.trim();
 }
@@ -12518,44 +12581,86 @@ populateKit();renderCalendar();updateTimeLabels();
 })();
 
 // ═══════════════════════════════════════════════════
-//  ADMIN PIN
+//  ADMIN PIN — v80.32: 2-LAYER, SUPABASE-BACKED
 // ═══════════════════════════════════════════════════
-// v80.29: Admin PIN is now stored as a SHA-256 hash, not plaintext, so a
-// stolen device / localStorage dump doesn't hand over the Admin PIN itself.
-// Backward-compatible: if the stored value isn't a 64-char hex hash yet
-// (i.e. it's the old plaintext default), it's transparently migrated to a
-// hash on first check — no action needed, no PIN reset forced on anyone.
-const ADMIN_PIN_DEFAULT = '1234';
+// Two sequential PIN layers gate Admin access: a 6-digit PIN, then a 4-digit
+// PIN. Both are stored as SHA-256 hashes in the Supabase `admin_pin_layers`
+// table (see v80.32_admin_pin_layers.sql), not in localStorage and not in
+// plaintext anywhere. Defaults (matching the SQL seed) are 123456 / 1234.
+// If Supabase is unreachable, verification falls back to the hash of these
+// same defaults so a network hiccup never locks Admin out entirely — this
+// mirrors the existing fail-open pattern used elsewhere in this file
+// (checkPlatformLicense, etc.), not a new precedent.
+const ADMIN_PIN_LAYER_DEFAULTS = { 1: '123456', 2: '1234' };
 async function _sha256Hex(str){
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
 }
-function _isHash(v){ return typeof v === 'string' && /^[0-9a-f]{64}$/.test(v); }
-async function _getStoredAdminPinHash(){
-  var stored = localStorage.getItem('tou_admin_pin');
-  if(stored && _isHash(stored)) return stored;
-  // migrate plaintext (old default '1234' or a legacy plaintext PIN) → hash
-  var plain = stored || ADMIN_PIN_DEFAULT;
-  var hash = await _sha256Hex(plain);
-  try{ localStorage.setItem('tou_admin_pin', hash); }catch(e){}
-  return hash;
+let _adminPinHashCache = null; // {1:hash, 2:hash} — refetched each time the overlay opens
+async function _fetchAdminPinLayers(){
+  if(_adminPinHashCache) return _adminPinHashCache;
+  var out = {};
+  try{
+    var r = await fetch(SUPABASE_URL+'/rest/v1/admin_pin_layers?select=layer,pin_hash', {
+      headers:{ apikey: SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY }
+    });
+    if(r.ok){
+      var rows = await r.json();
+      rows.forEach(function(row){ out[row.layer] = row.pin_hash; });
+    }
+  }catch(e){}
+  for(const layer of [1,2]){
+    if(!out[layer]) out[layer] = await _sha256Hex(ADMIN_PIN_LAYER_DEFAULTS[layer]);
+  }
+  _adminPinHashCache = out;
+  return out;
 }
-const ADMIN_PIN = '1234'; // v80.29: legacy constant kept ONLY as a display/reference default — actual verification always goes through _getStoredAdminPinHash(), never compares against this directly.
+let _adminPinStage = 1; // 1 = 6-digit layer, 2 = 4-digit layer
+function _renderAdminPinStage(){
+  var sub=document.getElementById('admin-pin-subtitle');
+  var inp=document.getElementById('admin-pin-input');
+  if(_adminPinStage===1){
+    if(sub) sub.textContent='Enter 6-digit Admin PIN';
+    if(inp){ inp.maxLength=6; inp.placeholder='••••••'; }
+  } else {
+    if(sub) sub.textContent='Enter 4-digit Security PIN';
+    if(inp){ inp.maxLength=4; inp.placeholder='••••'; }
+  }
+}
 function showAdminPin(){
+  _adminPinStage=1;
+  _adminPinHashCache=null;
   const ov=document.getElementById('admin-pin-overlay');
   ov.style.display='flex';
+  _renderAdminPinStage();
   setTimeout(()=>{const inp=document.getElementById('admin-pin-input');if(inp){inp.value='';inp.focus();}},100);
   document.getElementById('admin-pin-error').textContent='';
 }
-function closeAdminPin(){document.getElementById('admin-pin-overlay').style.display='none';}
+function closeAdminPin(){document.getElementById('admin-pin-overlay').style.display='none';_adminPinStage=1;}
 async function adminPinCheck(val){
-  if(val.length<4)return;
+  var need=(_adminPinStage===1)?6:4;
+  if(val.length<need)return;
   var _throttle = _loginThrottleCheck();
   if(_throttle.blocked){ document.getElementById('admin-pin-error').textContent='⛔ Too many attempts. Try again in '+_throttle.secsLeft+'s.'; document.getElementById('admin-pin-input').value=''; return; }
+  var hashes = await _fetchAdminPinLayers();
   var enteredHash = await _sha256Hex(val);
-  var storedHash = await _getStoredAdminPinHash();
-  if(enteredHash===storedHash){ _loginThrottleReset(); closeAdminPin(); doLogin('Admin'); }
-  else{ _loginThrottleRecordFail(); document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.'; document.getElementById('admin-pin-input').value=''; }
+  var expected = hashes[_adminPinStage];
+  if(enteredHash===expected){
+    _loginThrottleReset();
+    if(_adminPinStage===1){
+      _adminPinStage=2;
+      document.getElementById('admin-pin-error').textContent='';
+      document.getElementById('admin-pin-input').value='';
+      _renderAdminPinStage();
+    } else {
+      closeAdminPin();
+      doLogin('Admin');
+    }
+  } else {
+    _loginThrottleRecordFail();
+    document.getElementById('admin-pin-error').textContent='❌ Incorrect PIN. Try again.';
+    document.getElementById('admin-pin-input').value='';
+  }
 }
 // Expose to onclick
 window.showAdminLogin=showAdminPin;
@@ -12773,7 +12878,11 @@ async function setAdminTab(tab, el){
       break;
     case 'bookings':  c.innerHTML=renderAdminBookings();break;
     case 'assignments':c.innerHTML=renderAdminAssignments();break;
-    case 'password':  c.innerHTML=renderAdminPassword();break;
+    case 'password':
+      c.innerHTML='<div style="text-align:center;padding:20px;color:#9ca3af;font-size:11px;">Loading PIN history…</div>';
+      await admFetchPinHistory();
+      c.innerHTML=renderAdminPassword();
+      break;
   }
 }
 window.setAdminTab=setAdminTab;
@@ -12885,7 +12994,28 @@ function renderAdminEquipment(){
     <button class="adm-save-btn" onclick="admAddEquipment()">📷 Add Equipment</button>
   </div>
   <div class="sec-lbl">${adminData.equipment.length} Equipment Items</div>
-  ${adminData.equipment.map((e,i)=>`
+  <!-- v80.36: search box + category dropdown so double-entries (e.g. two
+       "BATTERY CHARGER - F 770 LITHIUM" rows) are easy to surface and remove
+       — this is a searchable/filterable version of the existing list+✕Remove
+       pattern, not the full Visual Card Grid rebuild; that's a bigger,
+       separate undertaking if wanted later. -->
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <input class="finput" id="adm-eq-search" placeholder="🔍 Search by name, kit #, facility…" style="flex:2;margin-bottom:0;" oninput="admFilterEquipmentList()"/>
+    <select class="fselect" id="adm-eq-filter-cat" style="flex:1;margin-bottom:0;" onchange="admFilterEquipmentList()">
+      <option value="">All Types</option>
+      ${Object.keys(EQUIPMENT_CATEGORY_ICONS).map(function(c){ return `<option value="${c}">${EQUIPMENT_CATEGORY_ICONS[c]} ${c}</option>`; }).join('')}
+    </select>
+  </div>
+  <div id="adm-eq-list">${admEquipmentListHTML(adminData.equipment)}</div>`;
+}
+// v80.36: card list extracted so admFilterEquipmentList() can re-render just
+// this part on every keystroke/dropdown change, without touching the Add
+// Equipment form above it (which would lose whatever the Admin was mid-typing).
+function admEquipmentListHTML(list){
+  if(!list.length) return '<div style="text-align:center;padding:22px 10px;color:#9ca3af;font-size:11px;">No equipment matches this search/filter.</div>';
+  return list.map(function(e){
+    var i = adminData.equipment.indexOf(e); // real index into the unfiltered array, for delete
+    return `
     <div class="adm-item">
       <div class="adm-item-hd">
         <div><div class="adm-item-name">${(EQUIPMENT_CATEGORY_ICONS[e.itemCategory] || e.icon || '📷')} ${e.name}</div><div class="adm-item-sub">${e.itemCategory?e.itemCategory+' · ':''}${e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · <span style="color:${e.status==='Active'?'#16a34a':e.status==='Maintenance'?'#ea580c':'#6b7280'}">${e.status}</span></div>
@@ -12893,8 +13023,25 @@ function renderAdminEquipment(){
         ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}</div>
         ${admDelBtn(`admDeleteEquipment(${i})`)}
       </div>
-    </div>`).join('')}`;
+    </div>`;
+  }).join('');
 }
+function admFilterEquipmentList(){
+  var qEl = document.getElementById('adm-eq-search');
+  var catEl = document.getElementById('adm-eq-filter-cat');
+  var listEl = document.getElementById('adm-eq-list');
+  if(!qEl || !catEl || !listEl) return;
+  var q = qEl.value.trim().toLowerCase();
+  var cat = catEl.value;
+  var filtered = adminData.equipment.filter(function(e){
+    if(cat && e.itemCategory !== cat) return false;
+    if(!q) return true;
+    var hay = ((e.name||'')+' '+(e.itemCategory||'')+' '+(e.fac||'')+' '+(e.kitContents||'')).toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+  listEl.innerHTML = admEquipmentListHTML(filtered);
+}
+window.admFilterEquipmentList = admFilterEquipmentList;
 // V80.21: one repeatable block = one kit's Kit#/Facility/Status/Contents/Note.
 // Brand & Model and Category stay entered once, above, and apply to every block.
 function admEqKitBlockHTML(idx){
@@ -12945,7 +13092,7 @@ var EDITING_LOCATIONS = [
   ['T1 F&NM Edit',            'T1 Central'],
   ['T1 Smaller Suite Windows','T1 Central'],
   ['T1 Smaller Suite Mac',    'T1 Central'],
-  ['Film & TV Studio Edit Suite', 'Film & TV']
+  ['Film & TV Studio',        'Film & TV']
 ];
 window.EDITING_LOCATIONS = EDITING_LOCATIONS;
 
@@ -13520,34 +13667,86 @@ async function admDeleteAssignmentTag(i){
 }
 window.admDeleteAssignmentTag = admDeleteAssignmentTag;
 
-function renderAdminPassword(){
-  var histHtml = (function(){
-    try{
-      var h=JSON.parse(localStorage.getItem("tou_pin_history")||"[]");
-      if(!h.length) return "<div style=\"color:#9ca3af;font-style:italic;\">No changes recorded yet</div>";
-      return h.slice(-10).reverse().map(function(r){ return "<div style=\"padding:5px 0;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;\"><span>"+r.date+"</span><span style=\"font-family:monospace;color:#374151;\">PIN changed ✓</span></div>"; }).join("");
-    }catch(e){return "History unavailable";}
-  })();
-  return `<div class="adm-add-panel"><div class="adm-add-title">🔑 Change Admin Password</div><div class="alert al-info" style="margin-bottom:10px;"><span style="flex-shrink:0;">ℹ️</span><div>This changes the Admin login PIN. The new PIN must be exactly 4 digits. History is logged (no PIN stored, only date of change).</div></div><label class="flabel">Current PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw-current" type="password" maxlength="4" placeholder="Current 4-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>  <label class="flabel">New PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw-new" type="password" maxlength="4" placeholder="New 4-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>  <label class="flabel">Confirm New PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw-confirm" type="password" maxlength="4" placeholder="Re-enter new PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>  <div id="adm-pw-msg" style="min-height:18px;font-size:11px;font-weight:700;margin-bottom:8px;"></div><button class="adm-save-btn" onclick="admChangeAdminPassword()">🔑 Update Admin PIN</button></div><div class="card" style="margin-top:8px;padding:13px;"><div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;">🕐 PIN Change History</div><div id="adm-pw-history" style="font-size:10.5px;color:#6b7280;">`+histHtml+`</div></div>`;
+// v80.33: PIN change history now lives in Supabase (admin_pin_change_history),
+// not localStorage — so it's the same history on every device/browser, not
+// just the one that made the change. window._adminPinHistory is the cache.
+window._adminPinHistory = null;
+async function admFetchPinHistory(){
+  try{
+    var r = await fetch(SUPABASE_URL+'/rest/v1/admin_pin_change_history?select=layer,changed_at&order=changed_at.desc&limit=10', {
+      headers:{ apikey: SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY }
+    });
+    if(r.ok){ window._adminPinHistory = await r.json(); }
+  }catch(e){}
+  if(!window._adminPinHistory) window._adminPinHistory=[];
 }
-function admChangeAdminPassword(){
+function _renderPinHistoryHtml(){
+  var hist=window._adminPinHistory||[];
+  if(!hist.length) return "<div style=\"color:#9ca3af;font-style:italic;\">No changes recorded yet</div>";
+  return hist.map(function(r){
+    var label=r.layer===1?'6-digit PIN':'4-digit PIN';
+    var when=new Date(r.changed_at).toLocaleString("en-IN");
+    return "<div style=\"padding:5px 0;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;\"><span>"+when+"</span><span style=\"font-family:monospace;color:#374151;\">"+label+" changed ✓</span></div>";
+  }).join("");
+}
+function renderAdminPassword(){
+  return `<div class="adm-add-panel"><div class="adm-add-title">🔑 Change Admin PINs</div><div class="alert al-info" style="margin-bottom:10px;"><span style="flex-shrink:0;">ℹ️</span><div>Both Admin PINs are stored in Supabase, not on this device — a change here takes effect for every device immediately. History below is stored in Supabase too (layer + timestamp only, never the PIN itself).</div></div>
+
+<div style="font-size:11px;font-weight:800;color:#1e3a8a;margin-bottom:6px;">Layer 1 — 6-digit PIN</div>
+<label class="flabel">Current 6-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw6-current" type="password" maxlength="6" placeholder="Current 6-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<label class="flabel">New 6-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw6-new" type="password" maxlength="6" placeholder="New 6-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<label class="flabel">Confirm New 6-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw6-confirm" type="password" maxlength="6" placeholder="Re-enter new PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<div id="adm-pw6-msg" style="min-height:18px;font-size:11px;font-weight:700;margin-bottom:8px;"></div>
+<button class="adm-save-btn" onclick="admChangeAdminPin(1)">🔑 Update 6-digit PIN</button>
+
+<div style="font-size:11px;font-weight:800;color:#1e3a8a;margin:18px 0 6px;">Layer 2 — 4-digit PIN</div>
+<label class="flabel">Current 4-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw4-current" type="password" maxlength="4" placeholder="Current 4-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<label class="flabel">New 4-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw4-new" type="password" maxlength="4" placeholder="New 4-digit PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<label class="flabel">Confirm New 4-digit PIN <span style="color:#dc2626;">*</span></label><input class="finput" id="adm-pw4-confirm" type="password" maxlength="4" placeholder="Re-enter new PIN" style="letter-spacing:6px;font-family:monospace;margin-bottom:10px;"/>
+<div id="adm-pw4-msg" style="min-height:18px;font-size:11px;font-weight:700;margin-bottom:8px;"></div>
+<button class="adm-save-btn" onclick="admChangeAdminPin(2)">🔑 Update 4-digit PIN</button>
+</div><div class="card" style="margin-top:8px;padding:13px;"><div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;">🕐 PIN Change History</div><div id="adm-pw-history" style="font-size:10.5px;color:#6b7280;">`+_renderPinHistoryHtml()+`</div></div>`;
+}
+async function admChangeAdminPin(layer){
   if(guestBlock()) return;
-  var cur=document.getElementById("adm-pw-current").value.trim();
-  var nw=document.getElementById("adm-pw-new").value.trim();
-  var cf=document.getElementById("adm-pw-confirm").value.trim();
-  var msg=document.getElementById("adm-pw-msg");
-  var stored=localStorage.getItem("tou_admin_pin")||"1234";
-  if(cur!==stored){msg.style.color="#dc2626";msg.textContent="❌ Current PIN is incorrect.";return;}
-  if(!nw||nw.length!==4||isNaN(nw)){msg.style.color="#dc2626";msg.textContent="❌ New PIN must be exactly 4 digits.";return;}
+  var need = layer===1?6:4;
+  var pfx = layer===1?'adm-pw6':'adm-pw4';
+  var cur=document.getElementById(pfx+"-current").value.trim();
+  var nw=document.getElementById(pfx+"-new").value.trim();
+  var cf=document.getElementById(pfx+"-confirm").value.trim();
+  var msg=document.getElementById(pfx+"-msg");
+  if(!nw||nw.length!==need||isNaN(nw)){msg.style.color="#dc2626";msg.textContent="❌ New PIN must be exactly "+need+" digits.";return;}
   if(nw!==cf){msg.style.color="#dc2626";msg.textContent="❌ PINs do not match.";return;}
   if(nw===cur){msg.style.color="#dc2626";msg.textContent="⚠️ New PIN must differ from current PIN.";return;}
-  localStorage.setItem("tou_admin_pin",nw);
-  try{var h=JSON.parse(localStorage.getItem("tou_pin_history")||"[]");h.push({date:new Date().toLocaleString("en-IN"),action:"password_updated"});localStorage.setItem("tou_pin_history",JSON.stringify(h));}catch(e){}
-  ["adm-pw-current","adm-pw-new","adm-pw-confirm"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
-  msg.style.color="#16a34a";msg.textContent="✅ Admin PIN updated successfully!";
-  toast("🔑 Admin PIN changed successfully");
+  msg.style.color="#6b7280";msg.textContent="Checking current PIN…";
+  var hashes = await _fetchAdminPinLayers();
+  var curHash = await _sha256Hex(cur);
+  if(curHash!==hashes[layer]){msg.style.color="#dc2626";msg.textContent="❌ Current PIN is incorrect.";return;}
+  var newHash = await _sha256Hex(nw);
+  try{
+    var r = await fetch(SUPABASE_URL+'/rest/v1/admin_pin_layers?layer=eq.'+layer, {
+      method:'PATCH',
+      headers:{ apikey: SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', Prefer:'return=minimal' },
+      body: JSON.stringify({ pin_hash:newHash, updated_at:new Date().toISOString() })
+    });
+    if(!r.ok) throw new Error('update failed');
+    await fetch(SUPABASE_URL+'/rest/v1/admin_pin_change_history', {
+      method:'POST',
+      headers:{ apikey: SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', Prefer:'return=minimal' },
+      body: JSON.stringify({ layer:layer })
+    });
+  }catch(e){
+    msg.style.color="#dc2626";msg.textContent="❌ Could not save to Supabase — check connection and try again.";return;
+  }
+  _adminPinHashCache=null; // next login check re-fetches, so the new PIN is live immediately
+  await admFetchPinHistory();
+  [pfx+"-current",pfx+"-new",pfx+"-confirm"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
+  msg.style.color="#16a34a";msg.textContent="✅ PIN updated successfully!";
+  toast("🔑 Admin "+need+"-digit PIN changed successfully");
+  var histEl=document.getElementById('adm-pw-history');
+  if(histEl) histEl.innerHTML=_renderPinHistoryHtml();
 }
-window.admChangeAdminPassword=admChangeAdminPassword;
+window.admChangeAdminPin=admChangeAdminPin;
 window.enterGuestMode = function(){
   // Guest mode — shows everything Admin sees, but every mutating action is blocked (guestBlock()).
   // All identities are swapped for fictional/superhero names so real institutional data never surfaces.
@@ -13707,13 +13906,13 @@ window.enterGuestMode = function(){
   toast('&#128065;&#65039; Guest mode active — browsing with anonymised demo data.');
 };
 window.enterGuestMode = enterGuestMode;
-var _origAdminPinCheck2=window.adminPinCheck;
-window.adminPinCheck=function(val){
-  if(val.length<4)return;
-  var stored=localStorage.getItem("tou_admin_pin")||"1234";
-  if(val===stored){closeAdminPin();doLogin("Admin");}
-  else{document.getElementById("admin-pin-error").textContent="❌ Incorrect PIN. Try again.";document.getElementById("admin-pin-input").value="";}
-};
+// v80.32: removed a stale override that used to reassign window.adminPinCheck
+// to a plaintext single-4-digit comparison against localStorage — it ran
+// AFTER the real (hashed, now 2-layer/Supabase) adminPinCheck was defined
+// and silently replaced it, so Admin login was actually running on this
+// broken plaintext logic the whole time, not the hardened one further up
+// the file. Deleted outright; the one true implementation lives with the
+// rest of the Admin PIN code above.
 
 function admPickIcon(prefix, el){
   var row = document.getElementById('adm-'+prefix+'-icon-row');
@@ -13724,7 +13923,7 @@ function admPickIcon(prefix, el){
 }
 window.admPickIcon = admPickIcon;
 
-async function admAddEquipment(){
+function admAddEquipment(){
   if(guestBlock()) return;
   const name=document.getElementById('adm-eq-name').value.trim();
   const category=document.getElementById('adm-eq-cat').value;
@@ -13735,18 +13934,7 @@ async function admAddEquipment(){
   // item without retyping the shared fields each time.
   var blocks = document.querySelectorAll('#adm-eq-kit-blocks .adm-kit-block');
   var addedNames = [];
-  var failedNames = [];
-  // v80.48 FIX: this loop used to call window.addSupaEquipment(...) without
-  // awaiting it, inside a plain forEach — for a multi-kit batch (e.g. 8
-  // blocks in one submit), that fires 8 concurrent, unawaited POST requests
-  // and then immediately continues to populateKit()/saveAdminData()/
-  // setAdminTab() (navigates away) with NO guarantee any of them had
-  // actually finished. A still-in-flight write can be silently lost or
-  // race-overwritten by a subsequent fetch — exactly the "added it, but it
-  // never showed up in Supabase or the app" symptom reported live. Now
-  // awaits each write sequentially and reports success/failure per item
-  // explicitly, before the function does anything else.
-  for(const [bi, block] of Array.from(blocks).entries()){
+  blocks.forEach(function(block, bi){
     const kit = (block.querySelector('.adm-eq-kit')||{}).value.trim();
     const fac = (block.querySelector('.adm-eq-fac')||{}).value || 'T1 Central';
     const status = (block.querySelector('.adm-eq-status')||{}).value || 'Active';
@@ -13754,7 +13942,7 @@ async function admAddEquipment(){
     const note = (block.querySelector('.adm-eq-note')||{}).value.trim()||'';
     // an extra block (bi>0) left completely untouched is skipped rather than
     // creating an accidental duplicate of the first kit
-    if(bi>0 && !kit && !kitContents && !note) continue;
+    if(bi>0 && !kit && !kitContents && !note) return;
     const fullName = kit ? name + ' – ' + kit : name;
     const id=adminData.equipment.length+1;
     // V80.20: itemCategory/kitContents are new fields, stored in adminData/localStorage
@@ -13788,23 +13976,13 @@ async function admAddEquipment(){
       // the type badge survives a cross-device refetch via rebuildKitDBFromSupabase.
       // Confirmed live column (equipment.manager_note) — send it so it
       // actually persists to Supabase instead of staying NULL forever.
-      var _saveResult = await window.addSupaEquipment({ name: fullName, kit_number: kit||null, location: fac, status: status, kit_contents: kitContents||null, equipment_type: category||null, manager_note: note||null });
-      if(_saveResult === false){
-        console.error('❌ [admAddEquipment] Supabase write FAILED for: ' + fullName + ' — kept locally only, will not survive a refresh.');
-        failedNames.push(fullName);
-      } else {
-        console.log('✅ [admAddEquipment] Supabase write confirmed for: ' + fullName);
-      }
+      window.addSupaEquipment({ name: fullName, kit_number: kit||null, location: fac, status: status, kit_contents: kitContents||null, equipment_type: category||null, manager_note: note||null });
     }
     addedNames.push(fullName);
-  }
+  });
   populateKit();
   saveAdminData();
-  if(failedNames.length){
-    toast('⚠️ ' + failedNames.length + ' of ' + addedNames.length + ' kit(s) saved locally only — Supabase rejected: ' + failedNames.join(', '), 6000);
-  } else {
-    toast(addedNames.length>1 ? '✅ '+addedNames.length+' kits added: '+name : '✅ Equipment added: '+addedNames[0]);
-  }
+  toast(addedNames.length>1 ? '✅ '+addedNames.length+' kits added: '+name : '✅ Equipment added: '+addedNames[0]);
   addedNames.forEach(function(n){ logResourceAudit('Equipment', n); });
   setAdminTab('equipment',null);
   document.querySelectorAll('.adm-tab')[0].classList.add('active');
@@ -13837,7 +14015,7 @@ async function admDeleteEquipment(i){
   }
 }
 
-async function admAddEditing(){
+function admAddEditing(){
   if(guestBlock()) return;
   const location=document.getElementById('adm-ed-loc').value;
   const locMatch = EDITING_LOCATIONS.find(function(l){ return l[0]===location; });
@@ -13847,15 +14025,9 @@ async function admAddEditing(){
   // V80.21: OS + Location are entered once and apply to every system block below.
   var blocks = document.querySelectorAll('#adm-ed-sys-blocks .adm-sys-block');
   var addedNames = [];
-  var failedNames = [];
-  // v80.48 FIX: same bug as admAddEquipment() — this loop called
-  // window.addSupaEditing(...) without awaiting it, inside a plain forEach,
-  // then immediately continued to populateKit()/saveAdminData()/setAdminTab
-  // (navigates away) with no guarantee any write had actually finished.
-  // Now awaits each write sequentially and reports success/failure per item.
-  for(const block of Array.from(blocks)){
+  blocks.forEach(function(block){
     const name = (block.querySelector('.adm-ed-name')||{}).value.trim();
-    if(!name) continue; // skip empty blocks silently rather than error the whole batch
+    if(!name) return; // skip empty blocks silently rather than error the whole batch
     const suite = (block.querySelector('.adm-ed-suite')||{}).value.trim();
     const software = (block.querySelector('.adm-ed-software')||{}).value.trim()||'';
     const note = (block.querySelector('.adm-ed-note')||{}).value.trim()||'';
@@ -13867,32 +14039,25 @@ async function admAddEditing(){
     if(!kitDB[facKey]['Editing Systems'])kitDB[facKey]['Editing Systems']=[];
     kitDB[facKey]['Editing Systems'].push(fullName);
     if(typeof window.addSupaEditing==='function'){
-      // v80.48 FIX: 'location' here was sending `fac` (the generic T1
-      // Central/Film & TV bucket) — the SPECIFIC edit suite the admin
-      // actually picked (e.g. "T1 Radio Edit") was being silently
-      // discarded before it ever reached Supabase, which is why it always
-      // fell back to showing the generic facility label after a refresh.
-      // Now sent separately as its own dedicated column, edit_suite — see
-      // v80.48_edit_suite_column.sql. 'location' is left exactly as before
-      // (still fac) so nothing that already reads that column breaks.
-      var _saveResult = await window.addSupaEditing({ system_name: fullName, location: fac, edit_suite: location, os: os, specifications: software, manager_note: note });
-      if(_saveResult === false){
-        console.error('❌ [admAddEditing] Supabase write FAILED for: ' + fullName + ' — kept locally only, will not survive a refresh.');
-        failedNames.push(fullName);
-      } else {
-        console.log('✅ [admAddEditing] Supabase write confirmed for: ' + fullName);
-      }
+      // V80.26.8W2: specifications (confirmed live column) now carries
+      // System Details/Software, and manager_note (newly added column,
+      // per the ALTER TABLE run in Supabase) carries the internal note —
+      // both were captured on this form since v80.20/v80.21 but never
+      // actually sent to Supabase, so they only ever survived locally
+      // and were lost on refetch/cross-device. Sent as-is (blank string
+      // when empty) so a later edit can also clear a previously-set value.
+      // v80.26.8W4b: edit_suite is the dedicated Supabase column (added via
+      // ALTER TABLE systems ADD COLUMN IF NOT EXISTS edit_suite text) that
+      // stores the specific suite name (e.g. 'T1 Radio Edit'). location
+      // stays as the legacy facility value ('T1 Central') for fac-bucketing.
+      window.addSupaEditing({ system_name: fullName, location: fac, edit_suite: location, os: os, specifications: software, manager_note: note });
     }
     addedNames.push(fullName);
-  }
+  });
   if(!addedNames.length){ toast('⚠️ Enter at least one system name'); return; }
   populateKit();
   saveAdminData();
-  if(failedNames.length){
-    toast('⚠️ ' + failedNames.length + ' of ' + addedNames.length + ' system(s) saved locally only — Supabase rejected: ' + failedNames.join(', '), 6000);
-  } else {
-    toast(addedNames.length>1 ? '✅ '+addedNames.length+' systems added' : '✅ Editing system added: '+addedNames[0]);
-  }
+  toast(addedNames.length>1 ? '✅ '+addedNames.length+' systems added' : '✅ Editing system added: '+addedNames[0]);
   addedNames.forEach(function(n){ logResourceAudit('Editing System', n); });
   setAdminTab('editing',null);document.querySelectorAll('.adm-tab')[1].classList.add('active');
 }
@@ -15318,18 +15483,14 @@ window.fetchSupaEditing = async function() {
     window.supaEditing = rows.map(function(s){
       if (!s.name && s.system_name) s.name = s.system_name;
       if (!s.fac  && s.location)    s.fac  = s.location;
-      // v80.48: edit_suite is the new dedicated column for the SPECIFIC
-      // suite (e.g. "T1 Radio Edit") — distinct from the generic .fac
-      // bucket ("T1 Central"). Mapped into .location, which is exactly
-      // what the Editing Systems location-picker (both booking modes)
-      // already reads — so this is the only line needed to make the
-      // specific suite survive a refetch/cross-device instead of only
-      // ever surviving in the browser session that added it.
+      // v80.26.8W4b: edit_suite is the dedicated column for the specific
+      // suite name ('T1 Radio Edit' etc). Map it onto .location so that
+      // every consumer — the Browse-by-Location bar, _vcgKitCardHTML(),
+      // the kit card's 📍 line, and the right-panel header — all read
+      // the suite name via rec.location exactly as they expect.
+      // Falls back to the legacy .location value (the facility string)
+      // for rows that predate the edit_suite column.
       if (s.edit_suite) s.location = s.edit_suite;
-      // V80.26.8W2: specifications/manager_note are the live Supabase
-      // column names; every display site (admin list, booking kit cards)
-      // reads .software/.note, so map them here — same pattern already
-      // used above for .name/.fac.
       if (!s.software && s.specifications) s.software = s.specifications;
       if (!s.note && s.manager_note) s.note = s.manager_note;
       return s;
@@ -16017,21 +16178,33 @@ window._autoRefreshTimer = setInterval(function(){
   } catch(e){ console.warn('⚠️ auto-refresh guard error:', e && e.message); }
 }, 10000);
 
-window.fetchAndRenderBookings = async function() {
+window.fetchAndRenderBookings = async function(unfiltered) {
+  // v80.34 FIX (root cause of "Analytics differs by role" — Admin sees
+  // cancelled/denied test bookings, Manager sees 0): Analytics was reading
+  // S.bookings, but S.bookings is populated by THIS function using role-scoped
+  // server-side filters built for each role's ACTION queue, not for Analytics.
+  // managerStatusFilter below deliberately excludes pending/cancelled/rejected
+  // (Manager's queue only needs approved-and-later statuses) — correct for the
+  // Manager screen, wrong for Analytics, which should show the same underlying
+  // data to every stakeholder until a filter is explicitly applied. Callers
+  // that want the full unfiltered set (Analytics) now pass `true`; every
+  // existing call site continues to pass nothing and gets the exact same
+  // role-scoped behavior as before — this is additive, not a behavior change
+  // for Booking/Manager/Approvals.
   // Guard: if a fetch is already in flight, skip — prevents double-render flicker
   if (window._fetchInProgress) return;
   window._fetchInProgress = true;
   try {
     // v26: fetch with nested booking_equipment join for multi-equipment support.
     // Gracefully falls back to plain fetch if table doesn't exist yet.
-    var studentFilter = (window.currentRole === 'Student' && window.currentStudentDbId != null)
+    var studentFilter = (!unfiltered && window.currentRole === 'Student' && window.currentStudentDbId != null)
       ? '&student_id=eq.' + encodeURIComponent(window.currentStudentDbId) : '';
     // v31.3 FIX (superseded): Role-based server-side filters.
     // Professor: scope to THEIR OWN bookings (professor_email match) across all
     // statuses — needed so Analytics/history isn't starved to pending-only, and so
     // one professor never sees another professor's pending queue.
     var professorFilter = '';
-    if (window.currentRole === 'Professor') {
+    if (!unfiltered && window.currentRole === 'Professor') {
       var profEmailForFilter = (typeof window.getProfessorEmail === 'function')
         ? window.getProfessorEmail(window.currentUser || '') : '';
       if(!profEmailForFilter){
@@ -16048,7 +16221,7 @@ window.fetchAndRenderBookings = async function() {
     }
     // Manager: fetch ONLY approved/ready/issued bookings (not pending — those belong to Prof)
     var managerStatusFilter = '';
-    if (window.currentRole === 'Studio Manager' || window.currentRole === 'Manager') {
+    if (!unfiltered && (window.currentRole === 'Studio Manager' || window.currentRole === 'Manager')) {
       // V73.3 FIX: this filter was missing kit_prep, student_arrived, and partially_received —
       // the exact statuses the Manager's own action buttons transition a booking INTO. The
       // optimistic local render showed the booking fine right after clicking "Manager Approve",
@@ -16059,11 +16232,20 @@ window.fetchAndRenderBookings = async function() {
       managerStatusFilter = '&status=in.(approved,kit_prep,ready,student_arrived,issued,partially_received,returned)';
     }
     var roleFilter = studentFilter + professorFilter + managerStatusFilter;
+    // v80.35: role-scoped fetches (Booking/Manager/Approvals) only ever need
+    // recent/active rows, so 200 is plenty there. The unfiltered Analytics
+    // fetch has no role filter narrowing the row count at all — capping it
+    // at the same 200 would silently truncate older bookings once the table
+    // grows past that, which defeats "Analytics should reflect everything."
+    // Raised well above realistic totals for this app's scale (~300 students,
+    // 15 faculty per semester) rather than left uncapped, so a single fetch
+    // can't runaway if the table grows unexpectedly large.
+    var fetchLimit = unfiltered ? 10000 : 200;
     // V56 FIX (PGRST201): disambiguate the FK relationship with an explicit hint.
     // PostgREST throws PGRST201 when more than one FK links bookings↔booking_equipment.
     // Using the !fkey suffix selects the correct FK column unambiguously.
-    var joinUrl  = SUPABASE_URL + '/rest/v1/bookings?select=*,booking_equipment!booking_equipment_booking_id_fkey(resource_name)&order=start_time.desc&limit=200' + roleFilter;
-    var plainUrl = SUPABASE_URL + '/rest/v1/bookings?select=*&order=start_time.desc&limit=200' + roleFilter;
+    var joinUrl  = SUPABASE_URL + '/rest/v1/bookings?select=*,booking_equipment!booking_equipment_booking_id_fkey(resource_name)&order=start_time.desc&limit=' + fetchLimit + roleFilter;
+    var plainUrl = SUPABASE_URL + '/rest/v1/bookings?select=*&order=start_time.desc&limit=' + fetchLimit + roleFilter;
 
     console.log('fetchAndRenderBookings (join attempt):', joinUrl);
     var res = await fetch(joinUrl, { headers: HEADERS });
@@ -17688,6 +17870,12 @@ function inferFacilityFromItem(itemName){
 window.inferFacilityFromItem = inferFacilityFromItem;
 var _origSwitchScreen = window.switchScreen;
 window.switchScreen = function(id) {
+  // v80.34: capture which screen was active BEFORE _origSwitchScreen swaps the
+  // .active class, so code below can tell "we just left Analytics" accurately.
+  var prevScreen = (function(){
+    var cur = document.querySelector('.screen.active');
+    return cur ? cur.id : null;
+  })();
   // Stop weather ambience when leaving booking screen
   if(id !== 'screen-booking' && typeof stopWeatherAmbience==='function') stopWeatherAmbience();
   // Load today's weather when entering booking screen for the first time
@@ -17734,7 +17922,7 @@ window.switchScreen = function(id) {
       // Extended to Professor & Studio Manager too — previously only Admin
       // triggered a refetch on entering this screen at all.
       if(typeof window.fetchAndRenderBookings==='function'){
-        window.fetchAndRenderBookings().then(function(){
+        window.fetchAndRenderBookings(true).then(function(){
           if(document.getElementById('screen-analytics') && document.getElementById('screen-analytics').classList.contains('active') && typeof window.initAnalyticsDateView==='function'){
             window.initAnalyticsDateView();
           }
@@ -17742,8 +17930,17 @@ window.switchScreen = function(id) {
       }
     }
   } else {
-    // Leaving the Analytics screen — restore the normal app tab title
+    // Leaving the Analytics screen — restore the normal app tab title.
     document.title = 'JSJC Smart Booking App';
+    // v80.34: Analytics just populated S.bookings with the UNFILTERED set
+    // (see fetchAndRenderBookings(true) above) so every stakeholder sees the
+    // same data there. That set is broader than what Manager/Professor/Student
+    // action screens should show, so re-scope it back immediately on the way
+    // out rather than waiting up to 10s for the next auto-refresh cycle to
+    // quietly narrow it again.
+    if(prevScreen === 'screen-analytics' && typeof window.fetchAndRenderBookings==='function'){
+      window.fetchAndRenderBookings();
+    }
   }
   if(id === 'screen-booking' && window.currentRole === 'Student') {
     renderStudentBookings();
@@ -18007,12 +18204,19 @@ window.switchScreen = function(id) {
   });
 
   // ── Global button click sound — catches every interactive element ──
+  // v80.36: added .icat-tile, .vcg-btn, .vcg-loc-btn, .vcg-bk-left-item —
+  // the Booking screen's Browse-by-Type tiles, kit "+Add"/"Book This"
+  // buttons, location filter buttons, and left-column model list were
+  // entirely missing from this selector, so Booking was the one screen
+  // with no click SFX while every other button in the app already had it.
+  // Uses the same playClick() as everything else in this list, matching
+  // "SFX needed like other buttons" — no new sound, just closing the gap.
   document.addEventListener('mousedown', function(e){
-    var t=e.target.closest('button,a,.nav-it,.cat-tile,.fac-chip,.pur-opt,.t2btn,.t5btn,.per-chip,.pf-chip,.asset-cat-btn,.asset-item-btn,.role-btn,.adm-tab,.cancel-booking-btn,.star-rate-btn,.mood-face-btn,.bday-icon-btn,.btn-ap,.btn-rj,.btn-kr,.btn-ik,.btn-cb,.adm-del-btn,.adm-save-btn,.sub-btn,.forgot-link');
+    var t=e.target.closest('button,a,.nav-it,.cat-tile,.fac-chip,.pur-opt,.t2btn,.t5btn,.per-chip,.pf-chip,.asset-cat-btn,.asset-item-btn,.role-btn,.adm-tab,.cancel-booking-btn,.star-rate-btn,.mood-face-btn,.bday-icon-btn,.btn-ap,.btn-rj,.btn-kr,.btn-ik,.btn-cb,.adm-del-btn,.adm-save-btn,.sub-btn,.forgot-link,.icat-tile,.vcg-btn,.vcg-loc-btn,.vcg-bk-left-item');
     if(t){ ac(); if(typeof playClick==='function') playClick(); }
   }, {capture:true});
   document.addEventListener('touchstart', function(e){
-    var t=e.target.closest('button,a,.nav-it,.cat-tile,.fac-chip,.pur-opt,.t2btn,.t5btn,.per-chip,.pf-chip,.asset-cat-btn,.asset-item-btn,.role-btn,.adm-tab,.cancel-booking-btn,.star-rate-btn,.mood-face-btn,.bday-icon-btn,.btn-ap,.btn-rj,.btn-kr,.btn-ik,.btn-cb,.adm-del-btn,.adm-save-btn,.sub-btn,.forgot-link');
+    var t=e.target.closest('button,a,.nav-it,.cat-tile,.fac-chip,.pur-opt,.t2btn,.t5btn,.per-chip,.pf-chip,.asset-cat-btn,.asset-item-btn,.role-btn,.adm-tab,.cancel-booking-btn,.star-rate-btn,.mood-face-btn,.bday-icon-btn,.btn-ap,.btn-rj,.btn-kr,.btn-ik,.btn-cb,.adm-del-btn,.adm-save-btn,.sub-btn,.forgot-link,.icat-tile,.vcg-btn,.vcg-loc-btn,.vcg-bk-left-item');
     if(t){ ac(); if(typeof playClick==='function') playClick(); }
   }, {capture:true, passive:true});
 })();
