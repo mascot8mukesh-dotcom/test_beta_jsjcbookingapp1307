@@ -3840,6 +3840,22 @@ function getCatItems(cat){
     });
     return merged;
   }
+  // v80.28H-patch: Equipment must be sourced from BOTH facility buckets before
+  // the location filter (eqLocationFilterMatches) runs. Previously this fell
+  // through to kitDB[S.fac]['Equipment'], which excluded the other facility's
+  // kit entirely — so filtering for 'Film & TV Studio' on a T1 session always
+  // returned [] before the filter even ran. Pattern mirrors the Studio Booking
+  // merge above; de-dupe is defensive (admin UI prevents cross-facility dupes).
+  // Editing Systems retains the original facility-scoped path (unchanged).
+  if(cat === 'Equipment'){
+    var t1Eq   = (kitDB.t1   && kitDB.t1['Equipment'])   || [];
+    var filmEq = (kitDB.film && kitDB.film['Equipment']) || [];
+    var seenEq = {}, mergedEq = [];
+    t1Eq.concat(filmEq).forEach(function(name){
+      if(!seenEq[name]){ seenEq[name] = true; mergedEq.push(name); }
+    });
+    return mergedEq;
+  }
   return (kitDB[S.fac] || {})[cat] || [];
 }
 window.getCatItems = getCatItems;
@@ -7852,9 +7868,50 @@ function initEqRows() {
 // pattern, so both experiences stay consistent regardless of which one a
 // student sees. Renders nothing for Equipment/Studio Booking.
 window._eqRowsLocation = null;
+// v80.28H: Equipment-only location filter, sourced from the REAL Supabase
+// `location` column on the equipment table (the same field addSupaEquipment()
+// writes the facility into — see v80.28A). Shared by both live equipment
+// read-sites (the dropdown/native-select path AND Visual Card Grid) via
+// eqLocationFilterMatches() below, so Search Overlay and VCG can never show
+// a different filtered set. No name parsing, no category inference.
+window._eqLocationFilter = 'All';
+var EQ_LOCATION_BUTTONS = ['All', 'T1 Central', 'Film & TV Studio'];
+function eqLocationFilterMatches(itemName){
+  if(window._eqLocationFilter === 'All') return true;
+  var rec = (window.adminData && window.adminData.equipment) ? window.adminData.equipment.find(function(e){ return e.name===itemName; }) : null;
+  if(!rec) return false;
+  // v80.28H FIX: equipment records store facility as 'T1 Central' / 'Film & TV'
+  // (rec.fac, set by the admin form dropdown — see admAddEquipment) or, once
+  // round-tripped through Supabase, rec.location carrying those same two values.
+  // Neither ever equals the button label 'Film & TV Studio', so the old exact
+  // string match (rec.location === filter) rejected every row. Normalize both
+  // sides to the same t1/film key the rest of the app already uses (see
+  // rebuildKitDBFromSupabase's facKey derivation) instead of comparing raw strings.
+  var recRaw = rec.location || rec.fac || '';
+  var recKey = (recRaw === 'Film & TV' || recRaw === 'Film & TV Studio' || recRaw === 'film') ? 'film' : 't1';
+  var filterKey = (window._eqLocationFilter === 'Film & TV Studio') ? 'film' : 't1';
+  return recKey === filterKey;
+}
+function selectEqLocationFilter(loc){
+  window._eqLocationFilter = loc;
+  renderEqLocationBar();
+  if(window._vcgActive){ renderVisualCardGrid(); } else { initEqRows(); }
+}
+window.selectEqLocationFilter = selectEqLocationFilter;
 function renderEqLocationBar(){
   var bar = document.getElementById('eq-loc-bar');
   if(!bar) return;
+  // v80.28H: Equipment gets a fixed All / T1 Central / Film & TV Studio
+  // bar (both in the dropdown flow here, and inside VCG via vcgEqLocBarHTML()).
+  if(S.cat === 'Equipment' && !window._vcgActive){
+    bar.style.display = '';
+    bar.innerHTML = '<div class="vcg-loc-bar-label">Browse by Location</div><div class="vcg-loc-bar">' +
+      EQ_LOCATION_BUTTONS.map(function(loc){
+        var isActive = (loc === window._eqLocationFilter);
+        return '<button type="button" class="vcg-loc-btn'+(isActive?' active':'')+'" onclick="selectEqLocationFilter(\''+loc.replace(/'/g,"\\'")+'\')">'+loc+'</button>';
+      }).join('') + '</div>';
+    return;
+  }
   // v80.26.8W4d: hide the fallback bar entirely when VCG is active —
   // VCG renders its own location bar inside the grid (locationBarHTML),
   // so showing this one too produces two duplicate Browse by Location rows.
@@ -7899,6 +7956,12 @@ function addEqRow() {
       var rec = _editListForFilter.find(function(e){ return e.name===full; });
       return rec && rec.location === window._eqRowsLocation;
     });
+  }
+  // v80.28H: Equipment location filter — same eqLocationFilterMatches() used
+  // by renderVisualCardGrid(), so the native <select> feeding Search Overlay
+  // (openEqPicker/filterEqPicker/renderEqPickerList) always matches VCG.
+  if(S.cat === 'Equipment'){
+    items = items.filter(eqLocationFilterMatches);
   }
 
   // For Studio Booking: filter to show status from adminData, mark Maintenance/Retired
@@ -8120,6 +8183,13 @@ function renderVisualCardGrid(){
   if(window._iconFilter){
     items = items.filter(function(it){ return _iconBucket(_vcgItemRec(it), S.cat) === window._iconFilter; });
   }
+  // v80.28H: Equipment location filter — identical eqLocationFilterMatches()
+  // predicate used by addEqRow()'s native <select>, so VCG and Search
+  // Overlay always show the exact same filtered set. Real Supabase
+  // `location` column only; no name parsing, no inference.
+  if(S.cat === 'Equipment'){
+    items = items.filter(eqLocationFilterMatches);
+  }
 
   // Selected-items chip strip (shown above the browser, same across all categories)
   if(stripEl){
@@ -8151,6 +8221,16 @@ function renderVisualCardGrid(){
   // guess parsed from the display name — so it can't drift out of sync
   // with whatever an admin actually picked when adding the system.
   var locationBarHTML = '';
+  // v80.28H: Equipment — fixed All / T1 Central / Film & TV Studio bar,
+  // reading the same real `location` column as the dropdown-side bar
+  // (renderEqLocationBar) via the shared EQ_LOCATION_BUTTONS/window._eqLocationFilter.
+  if(S.cat === 'Equipment'){
+    locationBarHTML = '<div class="vcg-loc-bar-label">Browse by Location</div><div class="vcg-loc-bar">' +
+      EQ_LOCATION_BUTTONS.map(function(loc){
+        var isActive = (loc === window._eqLocationFilter);
+        return '<button type="button" class="vcg-loc-btn'+(isActive?' active':'')+'" onclick="selectEqLocationFilter(\''+loc.replace(/'/g,"\\'")+'\')">'+loc+'</button>';
+      }).join('') + '</div>';
+  }
   if(S.cat === 'Editing Systems'){
     var presentLocations = [];
     items.forEach(function(full){
