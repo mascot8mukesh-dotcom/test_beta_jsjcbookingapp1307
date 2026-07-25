@@ -2233,8 +2233,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           </div>
           <label class="flabel">Equipment Issued</label>
           <div class="num-row"><input class="num-inp" id="eq-issued" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces issued this shift"/><span class="num-hint">pieces issued this shift</span></div>
-          <label class="flabel">Equipment Returned</label>
-          <div class="num-row"><input class="num-inp" id="eq-returned" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces returned this shift"/><span class="num-hint">pieces returned this shift</span></div>
+          <label class="flabel">Equipment Returned by Student</label>
+          <div class="num-row"><input class="num-inp" id="eq-returned" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces returned this shift"/><span class="num-hint">pieces received by Manager this shift</span></div>
           <div id="eq-autofill-hint" style="font-size:9.5px;color:#0891b2;margin:2px 0 4px;"></div>
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:11.5px;color:#374151;display:flex;justify-content:space-between;margin-top:4px;">
             <span>Calculated Time</span><strong id="equipment-fixed-preview" style="font-family:monospace;">0 hrs 0 mins</strong>
@@ -2476,6 +2476,28 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             </div>
           </div>
 
+          <!-- ── v80.55 PHASE 3: Studio & Editing Support Hours — mirrors the
+               existing Equipment throughput metric (10 min issue / 5 min
+               return, already used in the Work Report) using the SAME
+               issuedAt/returnedAt timestamps every booking already carries,
+               grouped by category instead of by manual activity-type entry.
+               No manual entry, no new storage, no new workflow step. ── -->
+          <div class="an2-insights an2-noprint" id="an2-support-hours-panel" style="display:none;">
+            <div class="an2-insights-title">🛠️ Studio &amp; Editing Support Hours</div>
+            <div id="an2-support-hours-list" class="an2-ins-grid"></div>
+          </div>
+
+          <!-- ── v80.55 PHASE 4: Manager Feedback Panel — surfaces existing
+               b.managerRating / b.ratedAt data (already captured on the
+               booking, already shown per-record via an2EfficiencyInsightHTML/
+               an2StudentFeedbackInsightHTML) as one consolidated Analytics
+               section, filtered/updated by the same filter bar as everything
+               else on this screen. No new data source, no schema change. ── -->
+          <div class="an2-insights an2-noprint" id="an2-mgr-feedback-panel" style="display:none;">
+            <div class="an2-insights-title">🌟 Manager Feedback</div>
+            <div id="an2-mgr-feedback-list"></div>
+          </div>
+
           <!-- Calendar date filter — Single Day / Date Range toggle (v49.7) -->
           <div class="an2-noprint" style="margin-bottom:8px;">
             <!-- Mode toggle -->
@@ -2578,9 +2600,23 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <button class="asset-cat-btn" onclick="setAssetCat('Studio Booking',this)">🎙️ Studios</button>
       </div>
 
-      <!-- Asset picker -->
+      <!-- Asset picker — v80.51: replaced full-scroll list with search+dropdown -->
       <div class="sec-lbl alg-noprint">Select Asset(s)</div>
-      <div id="asset-picker" class="alg-noprint"></div>
+      <!-- Selected chips row -->
+      <div id="alg-selected-chips" class="alg-noprint" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+      <!-- Search input + dropdown -->
+      <div class="alg-noprint" style="position:relative;margin-bottom:4px;">
+        <input type="text" id="alg-asset-search"
+               placeholder="🔍 Type to search or scroll below…"
+               oninput="algAssetSearchFilter(this.value)"
+               onfocus="algAssetSearchFilter(document.getElementById('alg-asset-search').value)"
+               style="width:100%;padding:10px 13px;border:1.5px solid #e5e7eb;border-radius:11px;font-size:13px;font-family:inherit;box-sizing:border-box;background:#fff;outline:none;"/>
+        <div id="alg-asset-dropdown"
+             style="display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1.5px solid #e5e7eb;border-radius:11px;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:50;max-height:220px;overflow-y:auto;">
+          <div id="alg-asset-dropdown-list"></div>
+        </div>
+      </div>
+      <div id="asset-picker" class="alg-noprint" style="display:none;"></div>
 
       <!-- Date range -->
       <div id="asset-date-panel" style="display:none;">
@@ -2963,7 +2999,11 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.22</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.57</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #d97706;"><div style="font-size:10px;font-weight:800;color:#d97706;margin-bottom:3px;">v80.57 &middot; &#11088; Student Feedback — Confirmed Below Manager Efficiency, Hardened for Partial Data</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audit finding:</strong> <code>an2StudentFeedbackInsightHTML(b)</code> was already called immediately after <code>an2EfficiencyInsightHTML(b)</code> at both existing call sites — <code>an2BuildRecordHTML()</code> (the per-record Analytics document card) and the new v80.55 <code>an2ManagerFeedbackHTML()</code> panel — so "Student Feedback directly below Manager Efficiency" was already true structurally; no reordering was needed. <strong>What changed:</strong> (1) added a "Rated by &lt;student&gt;" line to the Student Feedback box itself (previously only showed inside the Manager Feedback panel's own header, inconsistently with the per-record card). (2) Hardened for partial/malformed data per spec: a rating with no mappable insight text now shows stars + "Rated by" alone instead of an empty description line; the function now separately checks for rating and for a (currently nonexistent) free-text comment field so a genuine future comment-only case would show the comment alone with no fabricated stars — today's data model only ever writes the rating (<code>rateManagerEmoji()</code> sets <code>managerRating</code>/<code>ratedAt</code> only, no separate comment column), so in practice this still renders exactly as before for every existing booking. (3) Icon changed 🌟→⭐ to match the requested header exactly ("⭐ Student Feedback"). (4) Removed the now-duplicate stars/"Rated by" line from <code>an2ManagerFeedbackHTML()</code>'s own card header, since the shared function supplies it. <strong>Applies uniformly</strong> to Equipment/Studio/Editing via the existing category-aware <code>insightMap</code>, unchanged. <strong>Untouched:</strong> Analytics calculations, Timeline logic, cancellation flow, denial flow, booking workflow, database schema.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.56 &middot; &#128100; Process Timeline — "Manager Manager" Name-Resolution Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Process Timeline showed "Equipment received by Manager Manager." <strong>Root cause — two independent generic fallbacks concatenating:</strong> <code>resVocab()</code>'s Equipment <code>receivedVerb</code> had the literal word "Manager" baked directly into the action text ("Equipment received by Manager"), while the actor name appended right after it separately fell back to the same literal string <code>'Manager'</code> whenever <code>b.receivedBy</code> wasn't a real name (e.g. <code>window.currentUser</code> was empty on the device/session that ran <code>markReceived()</code>). Studio and Editing never showed this because their <code>receivedVerb</code> strings correctly end at "by" with nothing baked in — Equipment's was the one inconsistent entry. <strong>Fix:</strong> (1) Equipment's <code>receivedVerb</code> in <code>resVocab()</code> now reads "Equipment received by" — no baked-in placeholder, matching Studio/Editing. (2) New single resolver <code>_pipeActor()</code> inside <code>pipelineRecordHTML()</code>, applied to every manager-attributed row (Manager Acknowledged, Kit/Studio/Workstation Ready, Issued/Opened/Session Started, Handed Over/Access Granted, Received/Partially Received) — tries the specific field for that stage first, falls back across the OTHER manager fields already on the same booking (<code>kitPrepBy</code>/<code>kitReadyBy</code>/<code>issuedBy</code>/<code>receivedBy</code> — usually the same person handled the whole booking), and only falls back to the literal "Manager" if genuinely nothing usable is found. It also explicitly rejects known-bad placeholder values (<code>'manager'</code>, <code>'manager manager'</code>, <code>'undefined'</code>, <code>'null'</code>, empty string) so a corrupted/legacy value can never resurface as-is. <strong>Result:</strong> "Equipment received by Mukesh Mohankumar" when a real name is available anywhere on the booking; plain "Equipment received by Manager" (never doubled) when truly nothing is available. <strong>Untouched:</strong> booking/approval/issue/return workflow, database schema, <code>markReceived()</code>'s own PATCH logic (the underlying "why was <code>currentUser</code> empty" question is a separate investigation if it keeps recurring — this fix makes the display correct regardless of that root data gap).</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.55 &middot; &#128202; Surgical Reporting &amp; Visibility Enhancement Pass — Complete Lifecycle, Support Hours, Manager Feedback</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Phase 0 audit (mapping, no fabrication):</strong> every new stage/metric below traces to a field the app already writes — <code>approved_at/by</code>, <code>kitPrepBy/kitPreparationStartedAt/manager_approved_at</code>, <code>kitReadyBy/kitReadyAt</code>, <code>studentArrivedAt/By</code>, <code>issuedBy/issuedAt/issued_at</code>, <code>returnedAt/returned_at/receivedBy/returnNum</code>, <code>managerRating/ratedAt</code>. Nothing was invented; where a source field doesn't exist for a given booking, that row/metric is simply omitted. <strong>Phase 1 (already shipped as v80.54, folded in here):</strong> Process Timeline's return/receive rows now gate on the same <code>anWasReturned()</code> helper Analytics uses, instead of the narrower <code>b.returnedAt</code>-only check — Timeline and Analytics can no longer disagree on "Returned." Verified this does not touch Cancelled/Rejected precedence: the Cancelled row is still appended only when <code>b.status==='cancelled'</code>, the Rejected early-return is untouched, and the new Booking Completed row (below) is explicitly excluded when <code>b.status==='cancelled'</code>. <strong>Phase 2 — 11th lifecycle stage, Booking Completed:</strong> <code>pipelineRecordHTML()</code> now appends a terminal "Booking Completed" row once <code>anWasReturned(b)</code> is true (and the booking wasn't cancelled), timestamped from <code>ratedAt</code> if the student rated the manager, else the same return timestamp already shown on the row above it — no new field. The other 10 stages requested (Booking Placed → Approved → Manager Acknowledged → Ready → Student Reached Room → Issued/Opened/Session Started → Handed Over/Access Granted → Returned/Ended → Received/Cleared → Rated) were confirmed already rendering with correct category-aware wording via the existing <code>resVocab()</code> vocabulary map (e.g. Studio already says "Studio opened"/"Studio access granted"/"Studio received and cleared by"; Editing already says "Session started"/"Workstation access granted"/"Workstation received and cleared by") — no changes needed there, just the missing 11th row. <strong>Phase 3 — Studio &amp; Editing Support Hours:</strong> new <code>an2SupportHoursHTML()</code> in Analytics computes Studios/Sessions Opened &amp; Closed from the existing <code>anWasIssued()</code>/<code>anWasReturned()</code> helpers, and Studio/Editing Support Time as the sum of <code>returnedAt/returned_at &minus; issuedAt/issued_at</code> per booking (sanity-gated under 24h, same pattern as the Efficiency Insight), grouped by <code>b.cat</code> — mirrors the Equipment throughput metric's architecture without adding manual entry, storage, or a new workflow step. Panel auto-hides when there's nothing to show for the current filter set. <strong>Phase 4 — Manager Feedback analytics section:</strong> new <code>an2ManagerFeedbackHTML()</code> consolidates every currently-filtered booking with a <code>managerRating</code> into one Analytics panel (stars, rated-by, booking type + reference, manager name if available), reusing the existing <code>an2EfficiencyInsightHTML()</code>/<code>an2StudentFeedbackInsightHTML()</code> functions verbatim for the efficiency/feedback text rather than re-deriving them. Both new panels are wired into the same <code>an2ApplyFilters()</code> pass everything else on the Analytics screen already goes through, so they respect every existing filter (date, resource, facility, purpose, programme, section, batch year, assignment tag) automatically. <strong>Regression-checked per the Timeline Safety Requirement:</strong> Pending/Approved/Issued/Returned/Completed bookings show the expected rows; Cancelled and Rejected bookings render exactly as before (their own dedicated rows, no return/completed rows). <strong>Untouched:</strong> booking/approval/issue/return workflow, all four Pending RTN filter sites, <code>anWasApproved()/anWasIssued()/anWasReturned()</code> themselves, analytics count/utilization calculations, database schema, RLS policies.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.54 &middot; &#128260; CRITICAL FIX — Process Timeline / Analytics Return-State Disagreement</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Analytics and status badges correctly labelled certain bookings "Returned," but their Process Timeline stopped at "Issued/Handed over" and never showed a return or receive row, even though the booking's own RETURNED AT field was populated. <strong>Root cause:</strong> Analytics/badges decide "Returned" via the shared <code>anWasReturned(b)</code> helper, which accepts four independent evidence signals (<code>returned_at</code> from Supabase, <code>returnedAt</code> set locally, <code>receivedBy</code>, and <code>returnNum</code>). <code>pipelineRecordHTML()</code>'s return/receive rows, however, gated on <code>b.returnedAt</code> alone — a same-device/session-only field — so any booking whose return evidence arrived via a different signal (a fresh Supabase refetch, a different device) satisfied Analytics but not the Timeline. <strong>Fix (surgical, display-only):</strong> the Timeline's return/receive rows now gate on the same <code>anWasReturned(b)</code> helper used by Analytics and every Pending-RTN filter, and pick their displayed timestamp from whichever of <code>returnedAt</code>/<code>returned_at</code>/<code>partialReceiptAt</code> is actually present, instead of only <code>returnedAt</code>. Timeline and Analytics/status badges can no longer disagree about whether a booking has been returned. <strong>Untouched:</strong> <code>anWasReturned()</code> itself, all four Pending RTN filter sites, booking/approval/issue/return workflow, database schema, RLS policies.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.7 &middot; &#128100; Assignment Tags &#8594; Approving Professor Auto-Assignment</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>New:</strong> Admin ▸ Assignments ▸ Create Assignment Tag now has an \u201cApproving Professor\u201d dropdown (populated from the same <code>adminData.professors</code> roster the booking screen\u2019s Approving Professor picker already reads), optional \u2014 defaults to \u201cNo auto-assignment.\u201d Saved on the tag as <code>approvingProf</code>, shown on each tag\u2019s row in the Admin list (\u201c\u{1F464} Approves: Prof. X\u201d) alongside the existing Active/Deactivated status. <strong>Connected on the booking side:</strong> <code>selectAsgnTag()</code> \u2014 already the single place a student\u2019s tag chip selection is handled \u2014 now checks the selected tag\u2019s <code>approvingProf</code> and, if set and that professor still exists in the live roster, calls the existing <code>ppSelect()</code> (the same function the professor-search picker itself calls) to auto-fill the Approving Professor field, with a toast confirming which professor was auto-set and for which tag. This is a pre-fill, not a hard lock \u2014 the student can still reopen the picker and choose someone else if the assigned professor is genuinely unavailable; locking it outright is a follow-up if that turns out to be needed. <strong>Supabase, same fail-safe pattern as v75.3\u2019s tag sync:</strong> <code>approving_prof</code> is included in the <code>addSupaAssignmentTag()</code> payload and read back in <code>mergeSupaTagsIntoAdminData()</code>; on an unmigrated install (no <code>approving_prof</code> column yet) the Supabase write fails exactly like any other missing-column case already handled, and falls back to local-only \u2014 the professor assignment still saves and works for that session, tag creation is never blocked. <strong>Migration required for cross-device sync:</strong> <code>ALTER TABLE assignment_tags ADD COLUMN approving_prof text;</code> \u2014 until run, the assignment persists locally on the device that created the tag but won\u2019t sync to others, same caveat v75.3 documented for the rest of this table. <strong>Untouched:</strong> tag color/label/numbers/allotted-hours logic, <code>admToggleAssignmentTag()</code>/<code>admDeleteAssignmentTag()</code>, the professor picker\u2019s own search/list UI, and every other booking-form field.</div></div>
               
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #B89B72;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.26.6 &middot; &#127912; Analytics Module Restyled to DRI Palette (UI/Theme Only)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Surgical, theme-only:</strong> no filter logic, data fetching, calculations, or record structure were touched \u2014 every edit in this pass is a color/background/border swap. <strong>Root cause:</strong> the Analytics screen's entire <code>.an2-*</code> CSS block (~115 rules \u2014 page background, filter bar, summary tiles, document header, record rows, status badges, feedback blocks, smart-filter chips, insights panel, metrics strip) was still on the pre-DRI dark-navy theme (#0b0f17 background, #141b29 cards, #7c8aa5 muted text, #c89b3c/#e9c46a gold accents), while v80.26.5 moved the Discipline module to a bright cream/academic palette \u2014 the resulting light-on-dark vs dark-on-light mismatch was the visibility complaint. <strong>Fix:</strong> every <code>.an2-*</code> rule remapped to the same DRI tokens (#FFFDF7 background / #FFFFFF cards / #E8DED0 borders / #B89B72 accent / #2E2E2E primary text / #6B6256 secondary text / #4F8A5B success / #D38B36 warning / #C05A4A attention), covering the filter bar, date inputs, Today button, summary stat tiles, Reset button, document header + record cards, status badges (Issued/Returned/Pending/Approved/Rejected/Cancelled), field labels/values, feedback callouts, the Print button, Smart Filter chips + Batch Year dropdown, the active-filters bar, the Insights panel, and the Metrics strip. <strong>Also caught and fixed</strong> (same dark theme, just outside the shared CSS block so a plain CSS pass would have missed them): the Single Day / Date Range mode-toggle tabs and their JS-driven active-state colors in <code>an2SetMode()</code>, the custom Date Range panel (background, both date inputs, Apply/7D/30D buttons), and the per-record header block built in <code>an2BuildRecordHTML()</code> (student name/ID/programme text, the canonical-record box background, and the Issue/Return tracking-number color pair) \u2014 all were hardcoded inline dark-theme hex values independent of the CSS classes, now matching the same palette. <strong>Program-color chips</strong> (JMS blue / FNM green / CCPA yellow, used for at-a-glance program identification) were deliberately left as-is \u2014 they're informational color-coding, not part of the dark/light theme, and read fine on either background. <strong>Untouched:</strong> <code>renderAnalytics()</code>, <code>an2ApplyFilters()</code>, <code>an2BuildRecordHTML()</code>'s data logic, <code>canonicalRecordHTML()</code>/<code>pipelineRecordHTML()</code> (shared with other stakeholder views \u2014 left alone since restyling those would ripple into screens outside this request's scope), all Supabase queries, and every non-Analytics screen.</div></div>
@@ -3548,6 +3588,11 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
 <strong>Scope:</strong> <code>_guessItemIcon()</code>/new <code>_iconBucket()</code> and their 3 call sites, <code>ICON_TITLES</code>, the Available Types INFER_MAP, the two click-sound selector strings, <code>renderAdminEquipment()</code>/new <code>admFilterEquipmentList()</code>, and one nav-visibility line for Studio Manager. No change to the booking/approval pipeline, equipment add/edit forms, or any other role's screen.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.40 &middot; &#127183; Zoom F6 Kits Not Grouping + Manager Note Reading From Wrong Column</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Zoom F6 kits each showing as their own "model" (1 Kit Available) instead of grouping like TASCAM (7 Kits Available):</strong> <code>algBaseName()</code>'s suffix-stripping regex only matched a trailing <code>"– Kit 8"</code> pattern (dash, "Kit", then digits) — TASCAM's kit names fit that exactly, but the Zoom F6 kits are named <code>"… Kit – Kit No 5"</code>, with "No" between "Kit" and the number, which the regex didn't account for, so each Zoom F6 kit kept its full name as its own base and never grouped with its siblings in the Visual Card Grid's left-column model list. <strong>Fix:</strong> regex now also matches an optional "No"/"No." before the trailing digits, so "Kit No 5", "Kit No. 5", and the existing "Kit 5" form all strip correctly. <strong>2. Manager Note still invisible after being confirmed live in Supabase:</strong> traced with a live COUNT/NULL check — <code>equipment.manager_note</code> is a real column, but <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call never included it in the insert payload (only <code>kit_contents</code>/<code>equipment_type</code> were ever sent), so every row's <code>manager_note</code> stayed NULL regardless of what was typed on the form. Separately, <code>rebuildKitDBFromSupabase()</code>'s read-back mapper was looking for a column literally named <code>note</code> (which doesn't exist) instead of <code>manager_note</code> — a second, independent reason it would have stayed invisible even after the insert was fixed. Both now corrected: the insert sends <code>manager_note</code>, and the mapper reads <code>e.manager_note</code> first, falling back to the local-extras cache and the old wrong key for any pre-existing rows. <strong>Scope:</strong> <code>algBaseName()</code>, <code>admAddEquipment()</code>'s Supabase payload, and <code>rebuildKitDBFromSupabase()</code>'s equipment mapper only — no change to who can add/delete equipment (Admin/Manager add access and Admin-only delete are untouched), the kit-card display logic itself, or any other field.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.51 &middot; &#128269; Asset Ledger — Scroll List Replaced with Search + Dropdown</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> The asset picker was a full-length scrollable button list — on a phone with 40+ equipment items (as the live DB grows) the user had to scroll through the entire Hanuman-tail list to find and select anything. No filtering, no search. <strong>Fix:</strong> The scroll list UI is replaced with: (1) a text search input that filters items as you type (case-insensitive substring match), (2) a floating dropdown that shows matching items (or all items when empty), (3) a chips row above the input showing already-selected items with a tap-to-remove &times; button. Selecting an item from the dropdown clears the search field so the box is ready for the next search immediately. Switching category tabs clears the search and closes the dropdown. <strong>Unchanged:</strong> <code>toggleAsset()</code>, <code>S.selectedAssets</code>, <code>updateAssetPanelVisibility()</code>, <code>algBuildReport()</code>, date range panel, purpose filter, Generate Report button, and all downstream analytics logic. The hidden <code>#asset-picker</code> div is kept in the DOM (no downstream references broken).</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0d9488;"><div style="font-size:10px;font-weight:800;color:#0d9488;margin-bottom:3px;">v80.D5 &middot; &#127775; UX Consistency, Analytics Efficiency Insight &amp; Student Feedback Insight</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Category-aware terminology — Equipment:</strong> <code>resVocab()</code> Equipment entry updated: <em>kit prep arranged</em> → <em>kit preparation arranged</em>; <em>Returned by</em> → <em>Returned by Student</em>; <em>Equipment received by</em> → <em>Equipment received by Manager</em>; <em>kit returned</em> toast → <em>Equipment returned</em>; <em>Kit issued</em> notif → <em>Equipment issued</em>; <em>prepSlaNoun</em> → <em>kit preparation</em>. Studio Booking and Editing Systems vocabulary was already correct. All three category branches of <code>resVocab()</code> are now unambiguous — no Equipment wording bleeds into Studio or Editing System flows. <strong>Work Log Equipment Issuing label</strong> updated: &ldquo;Equipment Returned&rdquo; label → &ldquo;Equipment Returned by Student&rdquo;; hint text &rarr; &ldquo;pieces received by Manager this shift&rdquo;. <strong>2. Auto work-log improvement:</strong> <code>autofillEquipmentCounts()</code> now also reads <code>b.issued_at</code>/<code>b.returned_at</code> (DB snake_case) as fallbacks alongside the existing camelCase fields, so auto-fill is correct even when a refetch has replaced the optimistic booking object. Hint text now states exact counts: &ldquo;✓ Auto-filled: N item(s) issued, N item(s) received by Manager on DATE — adjust if needed.&rdquo; <strong>3. Manager Efficiency Insight (Analytics):</strong> new <code>an2EfficiencyInsightHTML(b)</code> — uses actual <code>kitPreparationStartedAt</code> / <code>manager_approved_at</code> and <code>issuedAt</code> / <code>issued_at</code> timestamps already in the workflow. Shown in Analytics record after a booking lifecycle reaches issue stage. Category-aware: Equipment → &ldquo;Equipment prepared and issued in X min Y sec&rdquo;; Studio → &ldquo;Studio prepared and opened in …&rdquo;; Editing System → &ldquo;Workstation prepared and session started in …&rdquo;. Sanity-gated (0–4 hrs window) so stale or bad timestamps don't produce nonsense values. Presentation layer only — no new data stored. <strong>4. Student Feedback Insight (Analytics):</strong> new <code>an2StudentFeedbackInsightHTML(b)</code> — shown in Analytics when <code>b.managerRating</code> exists. Displays star visual (★★★☆☆), a rated-out-of-5 label, and a short category-aware operational sentence (e.g. &ldquo;Student reported satisfactory support during equipment issue and return&rdquo;). Color-coded by rating tier (red 1, orange 2, amber 3, green 4, teal 5). Presentation layer only — reads <code>b.managerRating</code> already captured. <strong>Untouched:</strong> booking workflow, approval workflow, issue workflow, return workflow, analytics calculations, Pending RTN logic, database schema, permissions.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.50 &middot; &#128202; Investigation: Pending RTN + Ledger No Records + Ledger Search</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>ISSUE 1 — Pending RTN = 1:</strong> Full runtime trace confirmed: the booking contributing to Pending RTN is <code>EQ-BK-JUL26-0007</code> (Sony Alpha A7 IV New kit &ndash; Kit 1, status <code>issued</code>). <code>anWasReturned(b)</code> returns false because <code>returned_at</code> is null (no PATCH sent), <code>receivedBy</code> is hardcoded <code>''</code> in <code>dbRows</code> (received_by not a schema column), and <code>returnNum</code> is empty (no return_id in Supabase). The Process Timeline in the screenshot ending at &ldquo;Equipment handed over to Admin&rdquo; is the <em>issue confirmation</em> step &mdash; the equipment left the room and went to the student. It has NOT yet been returned. <strong>Pending RTN = 1 is operationally correct.</strong> No code bug. The Manager must press &ldquo;Mark Received&rdquo; to close this booking. <strong>ISSUE 2 — Ledger No Records (actual code gap fixed):</strong> Traced <code>runAssetReport()</code> &rarr; <code>algBuildReport()</code> &rarr; <code>algWasActuallyUsed()</code>. Asset matching (algBaseName), date filtering (algInRange on start_time), and data source (S.bookings via select=*) are all correct. For the 3 selected assets (Sony A7 III, TASCAM DR 05, TASCAM DR 05 New Pink), there are no issued/returned bookings in Supabase within the date range &mdash; &ldquo;No records&rdquo; is accurate for those assets. However, a real code gap was found: <code>algWasActuallyUsed()</code> did not check <code>b.returned_at</code>, creating an inconsistency with <code>anWasReturned()</code> &mdash; a booking whose <code>status</code> PATCH to <code>returned</code> failed or lagged but whose <code>returned_at</code> column was written would be counted as Returned in Analytics but silently excluded from the Ledger. <strong>Fix (surgical):</strong> added <code>b.returned_at || b.returnNum</code> check to <code>algWasActuallyUsed()</code> &mdash; mirrors <code>anWasReturned()</code>&apos;s DB-backed evidence. <strong>ISSUE 3 — Ledger Search Box:</strong> Search box IS present in the code (rendered at top of <code>results.innerHTML</code> with <code>position:sticky</code>, v80.49 fix). It only renders when <code>report.matches.length &gt; 0</code> &mdash; i.e. only when records exist. With zero records the empty-state HTML is written instead and the search box is never rendered. This is correct behaviour. Once the relevant assets have issued bookings in the DB, the search box will appear. <strong>Untouched:</strong> all four Pending RTN filter sites, <code>anWasReturned()</code>, <code>anWasIssued()</code>, <code>algBuildReport()</code>, <code>algFilterLedgerHistory()</code>, booking pipeline, database schema.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.49 &middot; &#128202; Three Confirmed Fixes — Ledger Search Visibility, Ledger Usage Logic, Pending RTN Leak</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>ISSUE 1 — Ledger search box not visible:</strong> The search input existed in the DOM but was rendered below the fold after the header, stat cards, pie chart, item stats, and Program/Year table — effectively invisible on mobile without aggressive scrolling. Root cause: render position, not CSS. Fix: search box moved to the top of <code>results.innerHTML</code>, immediately below the two breadcrumb lines, with <code>position:sticky;top:0;z-index:5</code> so it sticks at the top of the scroll area and remains visible as the user scrolls through cards. The old search div placement (below the Program/Year table) was removed. No change to <code>algFilterLedgerHistory()</code> or any data path. <strong>ISSUE 2 — Ledger counts approved/ready bookings as "used":</strong> Root cause: <code>algWasActuallyUsed(b)</code> only excluded <code>rejected</code> and <code>cancelled</code> — every other status including <code>pending</code>, <code>approved</code>, and <code>ready</code> was counted as a usage and contributed to Times Used, Total Hours, and Student Count. A booking approved but never physically issued was being counted as if equipment had left the room. Fix: <code>algWasActuallyUsed()</code> now mirrors <code>anWasIssued()</code> — counts only bookings with real issue evidence (<code>issued_at</code>, <code>issuedBy</code>, or status in <code>issued/returned/partially_received/partially_returned</code>). pending/approved/ready bookings are excluded. Consequence: existing reports will show lower Times Used / Total Hours figures if prior counts included approved-only bookings — this is correct. No change to <code>algBuildReport()</code>, <code>runAssetReport()</code>, the chart, or the table. <strong>ISSUE 3 — Pending RTN still shows 1 after equipment received:</strong> Root cause: <code>anWasReturned()</code> checked only <code>returned_at</code>, <code>receivedBy</code>, and <code>status==='returned'</code>. <code>receivedBy</code> is hardcoded <code>''</code> in the <code>dbRows</code> mapper (V55 — <code>received_by</code> not in schema) and is only restored by <code>applyLocalExtras()</code> on the same device/session. After a refresh on a different device, or if the local cache was unavailable, <code>receivedBy</code> was empty. If the Supabase <code>returned_at</code> PATCH also failed (or lagged), <code>anWasReturned()</code> returned false and a received booking leaked back into Pending RTN. Fix: added <code>b.returnedAt</code> (set locally by <code>markReceived()</code>/<code>setKS()</code> on the same device) and <code>b.returnNum</code> (read from Supabase via <code>b.return_id</code> in the <code>dbRows</code> mapper — survives any refetch) as additional return-evidence checks in <code>anWasReturned()</code>. A booking with a <code>returnNum</code> (return code like <code>EQ-RT-xxxx</code>) can never re-appear as Pending RTN after a refetch, because that value is DB-backed. No change to any of the four Pending RTN filter sites or any status transition logic. <strong>Untouched:</strong> <code>algFilterLedgerHistory()</code>, <code>algLedgerRecordCardHTML()</code>, <code>algBuildReport()</code>, pie chart, all four Pending RTN filter sites (<code>renderAnalyticsByDate</code>/<code>an2FilterRecords</code>/<code>an2ApplyRange</code>/<code>an2ApplyFilters</code>), booking pipeline, database schema.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.48 &middot; &#128202; Pending Return Reconciled — Awaiting-Approval Bookings No Longer Counted as Pending RETURN</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported inconsistency:</strong> Issued=2, Returned=1, Pending RTN=2 on a 4-booking dataset — flagged as impossible since Pending Return should be a subset of Issued. <strong>Record-level reconciliation confirmed no double-count</strong> (the v80.46 return-evidence guard was working correctly): with 4 bookings — one <code>returned</code>, one <code>issued</code>-not-yet-returned, one <code>approved</code>-not-yet-issued, and one still <code>pending</code> (awaiting Professor/Manager decision, never issued at all) — the tiles Bookings=4/Approved=3/Issued=2/Returned=1 all check out exactly. The apparent impossibility was that the Pending RTN filter itself was <code>status==='pending' || status==='issued'</code>, which folds two unrelated things into one tile: a booking still awaiting approval (never issued) and a booking genuinely issued-and-awaiting-return. <strong>Fix:</strong> all four Pending RTN filters (in <code>renderAnalyticsByDate</code>, <code>an2FilterRecords</code>, <code>an2ApplyRange</code>, <code>an2ApplyFilters</code>) now match only <code>status==='issued' || status==='partially_received' || status==='partially_returned'</code> (still combined with the v80.46 <code>anWasReturned()</code> exclusion) — i.e. exactly "genuinely issued and not yet returned," matching the original spec wording. A booking still waiting on approval no longer appears in this tile at all. <strong>Not touched:</strong> Approved/Issued/Returned tile logic, booking pipeline, database schema, equipment location fix.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.47 &middot; &#128269; Asset Usage Ledger Search &amp; Single-Student DRI Print</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>PATCH 3 — Ledger search:</strong> a search box was added above the Usage History list in the Asset Usage Ledger (<code>#asset-report-results</code>). <code>algLedgerRecordCardHTML()</code> now tags each already-rendered card with a <code>data-alg-search</code> attribute built from Equipment Name, Kit Name (<code>b.resource</code>/<code>b.equipList</code>), Issue Number, Student Name, and Student ID; a new <code>algFilterLedgerHistory(query)</code> toggles each card's visibility with a plain substring check against that attribute — pure client-side DOM filtering of records already rendered by <code>runAssetReport()</code>/<code>algBuildReport()</code>, no re-query, no schema change, no Analytics touched, layout otherwise identical. <strong>PATCH 4 — Single-student DRI print:</strong> a "🖨️ Print My DRI Record" button now renders inside a student's own DRI card, gated strictly to <code>window.currentRole==='Student'</code> inside <code>renderStudents()</code>'s card template — Admin/Professor roster views (which render many cards, not one) never see this button and are otherwise byte-for-byte unchanged. New <code>printSingleDRICard(sid)</code> clones just the matching <code>.scard[data-sid]</code> element and opens it in a clean popup via the same <code>window.print()</code> pattern already used by <code>printAnalyticsReport()</code>/<code>printLedgerReport()</code> — no PDF library, no new export path, no change to DRI scoring or data structure. <strong>Not touched:</strong> Analytics, equipment location logic, booking workflow, DRI data model, existing export/print functions.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.46 &middot; &#128202; Analytics Pending-Return Double-Count Fix &amp; Equipment Location Recording Bug</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>PATCH 1 — Pending Return double-counting:</strong> all four Analytics "Pending" tile/summary calculations matched only <code>status==='pending' || status==='issued'</code>, with no check for return evidence first — so a booking that already had <code>returned_at</code>/<code>receivedBy</code> set (return evidence per <code>anWasReturned()</code>) but whose status hadn't fully synced to <code>'returned'</code> could be counted as BOTH Returned and Pending Return simultaneously. Fixed by adding an <code>if(anWasReturned(b)) return false;</code> guard as the first line of all four pending filters (an2RenderTagFilterChips's initial summary, an2FilterRecords, an2ApplyRange, an2ApplyFilters) — a booking with genuine return evidence can never be classified Pending Return again, regardless of its raw status field. <strong>PATCH 2 — Equipment recorded under the wrong location:</strong> Film &amp; TV Studio equipment was displaying as "T1 Central Block" on booking records, timelines, and analytics after booking creation, despite the picker showing the correct location beforehand. <strong>Root cause:</strong> the <code>bookings</code> table has no <code>fac</code>/<code>location</code> column (removed as phantom columns back at V55), so both the Supabase <code>dbRows</code> refetch mapper and the optimistic post-submit local booking object hardcoded <code>fac:''/location:''</code> on every booking, and <code>fbBadgeText()</code> treats any non-<code>'film'</code> value as T1 by default — so every booking silently defaulted to T1 Central Block regardless of which facility's equipment was actually selected. <strong>Fix:</strong> new <code>resolveResourceFacKey(catKey, resourceName)</code> helper looks up the booking's own <code>resource_name</code> against the matching <code>adminData.equipment</code>/<code>editing</code>/<code>studios</code> record (the real source of truth for that item's facility) and returns its normalised fac key. Both the <code>dbRows</code> mapper and the optimistic <code>localBk</code> builder now call this instead of hardcoding blank, so the equipment's true location is preserved and flows automatically into every downstream view that already reads <code>b.fac</code>/<code>b.location</code> (booking record, Process Timeline, Analytics, reports) with no changes needed there. <strong>Not touched:</strong> equipment picker behaviour/filtering, approval/issue/return workflows, database schema, booking pipeline. <strong>Risk level: Low</strong> — two additive lookups reading existing local data, no new writes, no schema change.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.39 &middot; &#128683; Real Double-Booking Prevention + Kit Contents/Note Lookup Fix + Live Auto-Refresh</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Kit Contents/Manager Note not showing — root cause found, not role-specific:</strong> reported as a Studio Manager visibility issue, but traced to <code>canonicalRecordHTML()</code>'s equipment lookup using an EXACT string match against <code>adminData.equipment</code>. Any booking made with the optional "Kit No. / Note" field filled in stores its resource name WITH the bracket baked in (e.g. <code>"TASCAM DR 05 – Kit 8 [Test]"</code> — see <code>_vcgKitCardHTML</code>), which can never exact-match the equipment record's real name — so Kit Contents/Manager Note silently never rendered for ANY viewer on that booking, not specifically Manager. Fixed to strip the bracket suffix before matching, reusing the exact same pattern already used correctly in three other places in this file (<code>getCalendarSelectedItems</code>, <code>checkEquipmentConflicts</code>). <strong>2. Double-booking was only ever a soft warning, never actually blocked:</strong> <code>checkEquipmentConflicts()</code> (live, as the time picker changes) has existed since earlier versions and correctly detects overlaps — but only ever shows a dismissible toast; nothing stopped <code>submitBooking()</code> itself from inserting a genuinely conflicting booking. <code>submitBooking()</code> now queries Supabase DIRECTLY for just the requested resource(s) immediately before insert (not the local <code>S.bookings</code> cache, which is exactly what was stale in the reported "showed booked only after a refresh" case) and refuses the insert outright — clear error, no booking created — if any active, non-cancelled/rejected booking already overlaps the requested window. Applies uniformly to Equipment, Editing Systems, and Studio Booking, since <code>resource_name</code> isn't category-specific — not equipment-only. Fails OPEN only if the check itself can't reach Supabase (network hiccup), never silently blocking a legitimate booking. <strong>Calendar color-coding itself was already correct</strong> — confirmed <code>approved</code> status already maps to the yellow "Booked/Pending" bucket in <code>renderCalendar()</code>'s <code>statusMap</code>; the visible gap was purely the stale-data problem #2 addresses, not a missing color rule. <strong>3. Auto-refresh added:</strong> Book and Manager screens now silently re-fetch bookings and re-render every 10 seconds via the same functions every other action already calls — skips the cycle entirely whenever an input/select/textarea is currently focused, so a user mid-pick or mid-typing is never interrupted. <strong>Scope:</strong> <code>canonicalRecordHTML()</code>'s equipment lookup, <code>submitBooking()</code>'s pre-insert check, <code>handleBookingSubmit()</code>'s error display, and one new interval — no change to the existing soft-warning conflict toast, the calendar's color/status logic, or the booking/approval pipeline itself.</div></div>
@@ -3995,9 +4040,80 @@ function descriptionBoxesHTML(b){
 }
 window.descriptionBoxesHTML = descriptionBoxesHTML;
 
+// v80.53: single source of truth for resource-aware UI vocabulary. Display
+// text only — consumed by pipelineRecordHTML(), setKS()'s toasts/confirms,
+// and status labels. No status/workflow value ever reads from this object;
+// it only ever feeds into strings shown to the user.
+function resVocab(cat){
+  if(cat==='Editing Systems') return {
+    room:'Editing Suite', item:'Workstation', itemLC:'workstation',
+    prepArranged:'workstation preparation arranged', markedReady:'Workstation marked ready',
+    readyLabel:'Workstation Ready', issuedVerb:'Session started', issueBtn:'Start Session',
+    handoverVerb:'Workstation access granted to', returnedVerb:'Session ended by',
+    receivedVerb:'Workstation received and cleared by', prepStartedToast:'Workstation preparation started',
+    readyToast:'Workstation marked ready!', issuedToast:'Session started — awaiting session end.',
+    returnedToast:'Session ended and workstation cleared.', issueNotif:'Session started',
+    returnNotif:'Session ended', prepSlaNoun:'workstation preparation'
+  };
+  if(cat==='Studio Booking') return {
+    room:'Studio', item:'Studio', itemLC:'studio',
+    prepArranged:'studio preparation arranged', markedReady:'Studio marked ready',
+    readyLabel:'Studio Ready', issuedVerb:'Studio opened', issueBtn:'Open Studio',
+    handoverVerb:'Studio access granted to', returnedVerb:'Studio vacated by',
+    receivedVerb:'Studio received and cleared by', prepStartedToast:'Studio preparation started',
+    readyToast:'Studio marked ready!', issuedToast:'Studio opened — awaiting vacancy.',
+    returnedToast:'Studio vacated and cleared.', issueNotif:'Studio opened',
+    returnNotif:'Studio vacated', prepSlaNoun:'studio preparation'
+  };
+  return {
+    room:'Equipment Room', item:'Equipment', itemLC:'equipment',
+    prepArranged:'kit preparation arranged', markedReady:'Kit marked ready',
+    readyLabel:'Kit Ready', issuedVerb:'Equipment issued', issueBtn:'Issue Kit',
+    handoverVerb:'Equipment handed over to', returnedVerb:'Returned by Student',
+    receivedVerb:'Equipment received by', prepStartedToast:'Kit preparation started',
+    readyToast:'Kit marked ready!', issuedToast:'Kit issued — awaiting return.',
+    returnedToast:'Equipment returned successfully.', issueNotif:'Equipment issued',
+    returnNotif:'Equipment returned', prepSlaNoun:'kit preparation'
+  };
+}
+window.resVocab = resVocab;
+
 function pipelineRecordHTML(b){
   if(!b) return '';
   function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  // ── v80.56 VOCABULARY & NAME RESOLUTION FIX ──────────────────────────────
+  // Root cause of "Equipment received by Manager Manager": resVocab()'s
+  // Equipment receivedVerb had the literal word "Manager" baked into the
+  // action text ("Equipment received by Manager"), while the actor name
+  // appended after it ALSO fell back to the literal string 'Manager' when
+  // no real name was captured — two independent generic fallbacks
+  // concatenating into a visible duplicate. Studio/Editing never had this
+  // problem because their receivedVerb strings correctly end at "by" with
+  // no baked-in placeholder.
+  // Fix: (1) resVocab's Equipment receivedVerb below no longer bakes in
+  // "Manager" (see resVocab()), so every category's verb now ends cleanly
+  // at "by". (2) every manager-attributed row (acknowledged/ready/issued/
+  // received) now resolves its actor name through this ONE helper instead
+  // of each row picking its own ad-hoc fallback — it tries the specific
+  // field for that stage first, then falls back across the OTHER manager
+  // fields already on the same booking (the same person usually handles a
+  // booking end-to-end), and only falls back to the literal 'Manager' if
+  // truly nothing usable is found. It also strips known-bad placeholder
+  // values ('manager', 'manager manager', 'undefined', 'null', '') so a
+  // corrupted/legacy value can never surface as-is.
+  function _pipeActor(primary){
+    function ok(v){
+      if(v==null) return false;
+      var s = String(v).trim();
+      if(!s) return false;
+      var low = s.toLowerCase();
+      return low!=='manager' && low!=='manager manager' && low!=='undefined' && low!=='null';
+    }
+    var candidates = [primary, b.kitPrepBy, b.kitReadyBy, b.issuedBy, b.receivedBy];
+    for(var i=0;i<candidates.length;i++){ if(ok(candidates[i])) return candidates[i]; }
+    return 'Manager';
+  }
+  var rv = resVocab(b.cat);
   var rows = [];
   var approverRole = b.approved_by_role ? ' (' + b.approved_by_role + ')' : '';
   var jointNames = '';
@@ -4030,15 +4146,15 @@ function pipelineRecordHTML(b){
   }
   var kitPrepTs = b.kitPreparationStartedAt||b.manager_approved_at||b.managerApprovedAt;
   if(b.kitPrepBy || kitPrepTs){
-    rows.push({icon:'🧰', text:'Manager acknowledged the requisition — kit prep arranged by <strong>'+esc(b.kitPrepBy||'Manager')+'</strong>', ts:(kitPrepTs||null)});
+    rows.push({icon:'🧰', text:'Manager acknowledged the requisition — '+rv.prepArranged+' by <strong>'+esc(_pipeActor(b.kitPrepBy))+'</strong>', ts:(kitPrepTs||null)});
   }
   var kitReadyTs = b.kitReadyAt||b.readyAt;
   if(b.kitReadyBy || kitReadyTs){
-    rows.push({icon:'📦', text:'Kit marked ready by <strong>'+esc(b.kitReadyBy||'Manager')+'</strong>'+(b.prepMinutes!=null?' <span style="color:#9ca3af;">('+b.prepMinutes+' min)</span>':''), ts:(kitReadyTs||null)});
+    rows.push({icon:'📦', text:rv.markedReady+' by <strong>'+esc(_pipeActor(b.kitReadyBy))+'</strong>'+(b.prepMinutes!=null?' <span style="color:#9ca3af;">('+b.prepMinutes+' min)</span>':''), ts:(kitReadyTs||null)});
   }
   // V73.11: SLA breach — Manager has 15 minutes from approval to have the kit ready.
   if(b.slaBreachKitPrep){
-    rows.push({icon:'⚠️', text:'<strong style="color:#991b1b;">SLA breach:</strong> kit prep took '+(b.prepMinutes!=null?b.prepMinutes+' min':'longer than expected')+' — exceeds the 15-min target', ts:(kitReadyTs||null)});
+    rows.push({icon:'⚠️', text:'<strong style="color:#991b1b;">SLA breach:</strong> '+rv.prepSlaNoun+' took '+(b.prepMinutes!=null?b.prepMinutes+' min':'longer than expected')+' — exceeds the 15-min target', ts:(kitReadyTs||null)});
   }
   var arrivedTs = b.studentArrivedAt;
   if(arrivedTs){
@@ -4049,7 +4165,7 @@ function pipelineRecordHTML(b){
     // unchanged.
     var arrivedActor = b.studentArrivedBy;
     var arrivedByNote = (arrivedActor && arrivedActor !== b.student) ? ' — marked by <strong>'+esc(arrivedActor)+'</strong>'+(b.studentArrivedByRole?' ('+esc(b.studentArrivedByRole)+')':'') : '';
-    rows.push({icon:'📍', text:'<strong>'+esc(b.student||'Student')+'</strong> reached studio'+arrivedByNote, ts:arrivedTs});
+    rows.push({icon:'📍', text:'<strong>'+esc(b.student||'Student')+'</strong> reached the '+rv.room+arrivedByNote, ts:arrivedTs});
   }
   if(b.issuedBy || b.issuedAt || b.issued_at){
     // v80.13 FIX 2: root cause was the mapper/local-cache only ever carrying
@@ -4058,14 +4174,19 @@ function pipelineRecordHTML(b){
     // showed "—" as soon as a refetch replaced the optimistic booking object.
     // Fallback to b.issued_at keeps this correct however the value arrived.
     var issuedTs = b.issuedAt || b.issued_at || null;
-    rows.push({icon:'🚀', text:'Issued by <strong>'+esc(b.issuedBy||'Manager')+'</strong>', ts:issuedTs});
+    rows.push({icon:'🚀', text:rv.issuedVerb+' by <strong>'+esc(_pipeActor(b.issuedBy))+'</strong>', ts:issuedTs});
     // V80.12: explicit handover event, distinct from the Manager's "Issued by"
     // action line above — narrates that the equipment physically moved to the
     // booking owner (student), confirmed by the actor who issued it. Additive
     // only — no new pipeline status, no change to setKS/issueBooking's status
     // transitions; this is purely a Process Timeline row using data that was
     // already being written (b.issuedBy/b.issuedAt).
-    rows.push({icon:'📦', text:'Equipment handed over to <strong>'+esc(b.student||'Student')+'</strong> — confirmed by <strong>'+esc(b.issuedBy||'Manager')+'</strong>', ts:issuedTs});
+    // v80.51 FIX: handover line was hardcoded "Equipment handed over" for every
+    // category — Editing Systems and Studio Booking rows showed the same
+    // Equipment wording. Now mirrors the existing b.cat checks used elsewhere
+    // (v80.18 mapper, ready-state labels) so each category narrates correctly.
+    var handoverVerb = rv.handoverVerb;
+    rows.push({icon:'📦', text:handoverVerb+' <strong>'+esc(b.student||'Student')+'</strong> — confirmed by <strong>'+esc(_pipeActor(b.issuedBy))+'</strong>', ts:issuedTs});
   }
   if(b.issuingDurationSeconds != null){
     var idm = Math.floor(b.issuingDurationSeconds/60), ids = b.issuingDurationSeconds%60;
@@ -4076,11 +4197,28 @@ function pipelineRecordHTML(b){
     rows.push({icon:'⚠️', text:'<strong style="color:#991b1b;">SLA breach:</strong> issuing took longer than the 1-min target', ts:(b.issuedAt||null)});
   }
   if(b.status==='partially_received' && b.partialReceiptAt){
-    rows.push({icon:'⚠️', text:'Partially received by <strong>'+esc(b.receivedBy||window.currentUser||'Manager')+'</strong>', ts:b.partialReceiptAt});
+    rows.push({icon:'⚠️', text:'Partially received by <strong>'+esc(_pipeActor(b.receivedBy))+'</strong>', ts:b.partialReceiptAt});
   }
-  if(b.returnedAt){
-    rows.push({icon:'🔁', text:'Returned by <strong>'+esc(b.student||'Student')+jointNames+'</strong>', ts:b.returnedAt});
-    rows.push({icon:'🏁', text:'Received by <strong>'+esc(b.receivedBy||'Manager')+'</strong>', ts:b.returnedAt});
+  if(anWasReturned(b)){
+    // v80.54 CRITICAL FIX: this block used to gate solely on b.returnedAt (a
+    // camelCase field set locally by markReceived()/setKS() on the SAME
+    // device/session only). Analytics and status badges decide "Returned" via
+    // the broader anWasReturned() helper, which also accepts b.returned_at
+    // (Supabase column, survives any refetch/device), b.receivedBy
+    // (cacheLocalExtra-restored) and b.returnNum (DB-backed return code).
+    // Result: on a fresh fetch/different device a booking Analytics correctly
+    // labelled "Returned" could still render a Process Timeline stuck at
+    // "Issued/Handed over" — exactly the gap where RETURNED AT was populated
+    // but the timeline never showed a return/receive row. Fix: gate on the
+    // same anWasReturned(b) helper used everywhere else (single source of
+    // truth), and pick the best available timestamp from any recognized
+    // return-evidence field instead of only b.returnedAt. Display only — no
+    // workflow/status logic touched.
+    var returnedVerb = rv.returnedVerb;
+    var receivedVerb = rv.receivedVerb;
+    var returnTs = b.returnedAt || b.returned_at || b.partialReceiptAt || null;
+    rows.push({icon:'🔁', text:returnedVerb+' <strong>'+esc(b.student||'Student')+jointNames+'</strong>', ts:returnTs});
+    rows.push({icon:'🏁', text:receivedVerb+' <strong>'+esc(_pipeActor(b.receivedBy))+'</strong>', ts:returnTs});
   }
   // V73.7: closes out the confirmed pipeline storyline — student rating of the
   // Manager's service, with a timestamp, was the one step never represented here
@@ -4088,6 +4226,20 @@ function pipelineRecordHTML(b){
   if(b.managerRating){
     var starMap = {1:'⭐',2:'⭐⭐',3:'⭐⭐⭐',4:'⭐⭐⭐⭐',5:'⭐⭐⭐⭐⭐'};
     rows.push({icon:'🌟', text:'<strong>'+esc(b.student||'Student')+'</strong> rated Manager <strong>'+(starMap[b.managerRating]||(b.managerRating+'★'))+'</strong>', ts:(b.ratedAt||null)});
+  }
+  // ── v80.55 PHASE 2: terminal "Booking Completed" row — the 11th lifecycle
+  // stage requested, using only data already on the booking (no synthetic
+  // timestamp). Gated on anWasReturned(b) so it lines up with the same
+  // return-evidence check used everywhere else, and only appears for
+  // bookings that actually reached completion — never for a cancelled or
+  // rejected booking (status==='cancelled' is excluded explicitly per the
+  // Timeline Safety Requirement: cancellation/denial precedence is
+  // untouched and this row must never appear alongside a Cancelled row).
+  // Timestamp preference: the rating time if the student rated (the
+  // genuinely last event in the storyline), else the same return timestamp
+  // already computed above.
+  if(anWasReturned(b) && b.status!=='cancelled'){
+    rows.push({icon:'✅', text:'<strong>Booking Completed</strong>', ts:(b.ratedAt || b.returnedAt || b.returned_at || null)});
   }
   // v78 REQUEST 2: terminal Cancelled row, appended AFTER every stage the
   // booking actually reached (see fix note above) rather than replacing them.
@@ -7209,7 +7361,7 @@ function renderManager(){
     var isStudio    = (b.cat === 'Studio Booking');
     var isSuiteOrStudio = isEditSuite || isStudio;
 
-    var readyLabel  = isEditSuite ? '🖥️ Suite Ready'   : isStudio ? '🎙️ Studio Ready'  : '📦 Kit Ready';
+    var readyLabel  = isEditSuite ? '🖥️ Workstation Ready' : isStudio ? '🎙️ Studio Ready'  : '📦 Kit Ready';
     var issueLabel  = isEditSuite ? '▶ Start Using'    : isStudio ? '▶ Open Studio'    : '🚀 Issue Kit';
     var awaitHdr    = isEditSuite ? '📺 Session In Progress — Awaiting End' : isStudio ? '🎙️ Studio In Use — Awaiting End' : '📬 Awaiting Student Return';
     var endLabel    = isSuiteOrStudio ? '⏹ End Session'  : '✓ Mark as Received';
@@ -7419,7 +7571,7 @@ function renderManager(){
     var mgrRightBadgeHTML = `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
       <span class="pill" style="${ksStyle(b.ks)}">${
         b.ks==='ready'
-          ? (b.cat==='Editing Systems' ? 'Suite Ready' : b.cat==='Studio Booking' ? 'Studio Ready' : 'Kit Ready')
+          ? (b.cat==='Editing Systems' ? 'Workstation Ready' : b.cat==='Studio Booking' ? 'Studio Ready' : 'Kit Ready')
           : b.ks==='issued'
             ? (b.cat==='Editing Systems' ? 'In Session' : b.cat==='Studio Booking' ? 'Studio Open' : 'Yet to Receive')
             : ksLabel(b.ks)
@@ -7526,6 +7678,12 @@ document.addEventListener('click', function(e){
   var btn = document.getElementById('notif-btn');
   if(p && p.classList.contains('open') && !p.contains(e.target) && btn && !btn.contains(e.target)){
     p.classList.remove('open');
+  }
+  // v80.51: close asset search dropdown when tapping outside the search box or dropdown
+  var dd = document.getElementById('alg-asset-dropdown');
+  var si = document.getElementById('alg-asset-search');
+  if(dd && dd.style.display==='block' && !dd.contains(e.target) && si && !si.contains(e.target)){
+    dd.style.display='none';
   }
 });
 window.toggleNotifPanel=toggleNotifPanel;
@@ -8709,6 +8867,8 @@ window.toggleForgotHint = function(){
 async function markReceived(id){
   // ── v49.10: Return Condition mandatory; non-Good requires note ──
   var sid  = String(id);
+  var _rvB = S.bookings.find(function(x){ return String(x.id)===sid; });
+  var rv   = resVocab(_rvB ? _rvB.cat : null);
   var cond = (document.getElementById('cond-'+sid)||{}).value || '';
   if(!cond){
     toast('⚠️ Please select a Return Condition before marking as received.');
@@ -8728,7 +8888,7 @@ async function markReceived(id){
     }
   }
   // V70.1: Manager double confirmation before final return is recorded
-  if(!(await appConfirm('Confirm all returned equipment has been verified and acknowledged?', {icon:'✅', title:'Confirm Return', okText:'Confirm'}))) return;
+  if(!(await appConfirm('Confirm all returned '+rv.itemLC+' has been verified and acknowledged?', {icon:'✅', title:'Confirm Return', okText:'Confirm'}))) return;
 
   // V72.6: Assignment Hours — capture actual hours used at return time.
   // Unused hours (booked − used) carry forward and increase the allowance
@@ -8803,8 +8963,8 @@ async function markReceived(id){
       if(typeof renderManager==='function') renderManager();
       if(typeof renderAnalytics==='function') renderAnalytics();
     }
-    toast('✅ ' + ((bk&&bk.cat==='Editing Systems')?'Session ended — Suite cleared!':(bk&&bk.cat==='Studio Booking')?'Session ended — Studio cleared!':'Kit marked as Returned!') + _hrsSummaryTxt);
-    addNotif('Kit returned: '+(bk&&bk.bkNum||sid), 'returned');
+    toast('✅ ' + ((bk&&bk.cat==='Editing Systems')?'Session ended — Workstation cleared!':(bk&&bk.cat==='Studio Booking')?'Studio vacated — cleared!':'Kit marked as Returned!') + _hrsSummaryTxt);
+    addNotif(rv.returnNotif+': '+(bk&&bk.bkNum||sid), 'returned');
     if(typeof window.logAuditEvent==='function') window.logAuditEvent(sid, 'final_receipt_completed', window.currentUser);
     if(typeof window.logReturnEvent==='function') window.logReturnEvent(sid, 'completed', 'Condition: '+cond+(_retNote?' | '+_retNote:''));
     if(typeof window.fetchAndRenderBookings==='function'){
@@ -8902,6 +9062,7 @@ async function setKS(id,s){
   if(guestBlock()) return;
   const sid_=String(id);
   const b=S.bookings.find(x=>String(x.id)===sid_);
+  var rv = resVocab(b ? b.cat : null);
   // v31.2 FIX: Manager can ONLY act (ready/issue/cancel) if status is strictly 'approved' or 'ready'/'issued'.
   // Pending bookings must never be actionable by Manager.
   var bst = b ? (b.status||b.ks||'pending').toLowerCase() : 'pending';
@@ -8915,22 +9076,22 @@ async function setKS(id,s){
     return;
   }
   if(b && s === 'ready' && bst !== 'kit_prep'){
-    toast('⚠️ Manager Approval (Kit Preparation) must be started before marking Kit Ready.');
+    toast('⚠️ Manager Approval ('+rv.item+' Preparation) must be started before marking '+rv.readyLabel+'.');
     return;
   }
   if(b && s === 'student_arrived' && bst !== 'ready'){
-    toast('⚠️ Kit must be Ready to Receive before confirming arrival.');
+    toast('⚠️ '+rv.item+' must be Ready to Receive before confirming arrival.');
     return;
   }
   if(b && s === 'issued'){
     if(bst !== 'student_arrived'){
-      toast('⚠️ Student must confirm arrival before equipment can be issued.');
+      toast('⚠️ Student must confirm arrival before '+rv.itemLC+' can be issued.');
       return;
     }
-    if(!(await appConfirm('Confirm equipment issue?', {icon:'🚀', title:'Confirm Equipment Issue', okText:'Issue Kit'}))) return;
+    if(!(await appConfirm('Confirm '+rv.itemLC+' issue?', {icon:'🚀', title:'Confirm '+rv.item+' Issue', okText:rv.issueBtn}))) return;
   }
   if(b && s === 'returned'){
-    if(!(await appConfirm('Confirm all returned equipment has been verified and acknowledged?', {icon:'✅', title:'Confirm Return', okText:'Confirm'}))) return;
+    if(!(await appConfirm('Confirm all returned '+rv.itemLC+' has been verified and acknowledged?', {icon:'✅', title:'Confirm Return', okText:'Confirm'}))) return;
   }
   if(b){
     b.ks=s; b.status=s;
@@ -9001,7 +9162,7 @@ async function setKS(id,s){
         if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'sla_breach_issue', window.currentUser, 'Issuing took '+issMin+'m '+issSec+'s — exceeds the 1-min SLA');
         toast('⚠️ Issuing took '+issMin+'m '+issSec+'s — exceeds the 1-min SLA. Logged to your Work Report.');
       }
-      addNotif('Kit issued: '+(b.bkNum||'')+(b.issueNum?' → '+b.issueNum:''), 'issued');
+      addNotif(rv.issueNotif+': '+(b.bkNum||'')+(b.issueNum?' → '+b.issueNum:''), 'issued');
       if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'equipment_issued', window.currentUser);
     }
     if(s==='returned'){
@@ -9009,7 +9170,7 @@ async function setKS(id,s){
       b.returnNum  = catCode2+'-RT-'+getNextBookingNum(catCode2+'_return');
       b.receivedBy = window.currentUser || 'Manager';
       b.returnedAt = new Date().toISOString();
-      addNotif('Kit returned: '+(b.bkNum||'')+(b.returnNum?' → '+b.returnNum:''), 'returned');
+      addNotif(rv.returnNotif+': '+(b.bkNum||'')+(b.returnNum?' → '+b.returnNum:''), 'returned');
       if(typeof window.logAuditEvent==='function') window.logAuditEvent(b.id, 'final_receipt_completed', window.currentUser);
       if(typeof window.logReturnEvent==='function') window.logReturnEvent(b.id, 'completed', 'Final receipt confirmed by '+(window.currentUser||'Manager'));
     }
@@ -9027,7 +9188,7 @@ async function setKS(id,s){
     }
   }
   renderManager(); renderStudentBookings();
-  const m={kit_prep:'🧰 Kit preparation started — 15 min window.',ready:'📦 Kit marked ready!',student_arrived:'📍 Student arrival confirmed.',issued:'🚀 Kit issued — awaiting return.',cancelled:'❌ Booking cancelled.',returned:'✅ Kit returned successfully.'};
+  const m={kit_prep:'🧰 '+rv.prepStartedToast+' — 15 min window.',ready:'📦 '+rv.readyToast,student_arrived:'📍 Student arrival confirmed.',issued:'🚀 '+rv.issuedToast,cancelled:'❌ Booking cancelled.',returned:'✅ '+rv.returnedToast};
   toast(m[s]||'');
   // Call Supabase REST per action
   if(s==='kit_prep' && typeof window.managerApproveKit==='function') window.managerApproveKit(String(id));
@@ -9212,7 +9373,7 @@ function renderShiftLogs(){
         </div>
         <div class="wlog-row"><span>Activity Type</span><strong>${l.label}</strong></div>
         ${l.act==='equipment'?`<div class="wlog-row"><span>Equipment Issued</span><strong>${l.issued} pcs</strong></div>
-        <div class="wlog-row"><span>Equipment Returned</span><strong>${l.received} pcs</strong></div>`:''}
+        <div class="wlog-row"><span>Equipment Returned by Student</span><strong>${l.received} pcs</strong></div>`:''}
         <div class="wlog-row"><span>Gross Hours</span><strong>${l.hrs.toFixed(1)} Hrs</strong></div>
         ${l.reportingTo ? `<div class="wlog-row"><span>Reported To</span><strong>${l.reportingTo}</strong></div>` : ''}
         ${l.note ? `<div class="wlog-note">📝 ${l.note}</div>` : ''}
@@ -9233,7 +9394,7 @@ function renderShiftLogs(){
         <div class="wlog-row"><span>Activity Type</span><strong>${l.label}</strong></div>
         <div class="wlog-row"><span>Logged By</span><strong>${l.loggedBy||'—'}</strong></div>
         ${l.act==='equipment'?`<div class="wlog-row"><span>Equipment Issued</span><strong>${l.issued} pcs</strong></div>
-        <div class="wlog-row"><span>Equipment Returned</span><strong>${l.received} pcs</strong></div>`:''}
+        <div class="wlog-row"><span>Equipment Returned by Student</span><strong>${l.received} pcs</strong></div>`:''}
         <div class="wlog-row"><span>Logged Hours</span><strong>${l.hrs.toFixed(1)} Hrs</strong></div>
         ${l.reportingTo ? `<div class="wlog-row"><span>Reported To</span><strong>${l.reportingTo}</strong></div>` : ''}
         ${l.note ? `<div class="wlog-note">📝 ${l.note}</div>` : ''}
@@ -9292,8 +9453,10 @@ function autofillEquipmentCounts(){
   var mgr = currentManagerName();
   var issuedCount = 0, returnedCount = 0;
   (S.bookings||[]).forEach(function(b){
-    if(b.issuedBy === mgr && b.issuedAt && String(b.issuedAt).slice(0,10) === dateVal) issuedCount++;
-    if(b.receivedBy === mgr && b.returnedAt && String(b.returnedAt).slice(0,10) === dateVal) returnedCount++;
+    var issuedTs = b.issuedAt || b.issued_at || null;
+    var returnedTs = b.returnedAt || b.returned_at || null;
+    if(b.issuedBy === mgr && issuedTs && String(issuedTs).slice(0,10) === dateVal) issuedCount++;
+    if(b.receivedBy === mgr && returnedTs && String(returnedTs).slice(0,10) === dateVal) returnedCount++;
   });
   var issuedEl = document.getElementById('eq-issued'), returnedEl = document.getElementById('eq-returned');
   if(issuedEl) issuedEl.value = issuedCount;
@@ -9301,8 +9464,8 @@ function autofillEquipmentCounts(){
   updateEquipmentFixedPreview();
   var hint = document.getElementById('eq-autofill-hint');
   if(hint) hint.textContent = (issuedCount || returnedCount)
-    ? '✓ Auto-filled from your actual Issue/Return activity on ' + dateVal + ' — adjust if needed.'
-    : 'No Issue/Return activity found for you on ' + dateVal + ' yet — enter manually if this session isn\'t reflected here.';
+    ? '✓ Auto-filled: ' + issuedCount + ' item(s) issued, ' + returnedCount + ' item(s) received by Manager on ' + dateVal + ' — adjust if needed.'
+    : 'No Equipment Issue/Return activity found for you on ' + dateVal + ' yet — enter manually if this session isn\'t reflected here.';
 }
 window.autofillEquipmentCounts = autofillEquipmentCounts;
 
@@ -9625,7 +9788,12 @@ function anWasIssued(b){
 }
 function anWasReturned(b){
   if(!b) return false;
-  if(b.returned_at || b.receivedBy) return true;
+  // returned_at and returnNum survive a Supabase refetch (read in dbRows mapper).
+  // returnedAt is set locally by markReceived()/setKS() on the same device.
+  // receivedBy is restored from cacheLocalExtra (same device/session only).
+  // v80.49: added returnNum + returnedAt so a received booking can't reappear
+  // as Pending RTN after a refetch if receivedBy was not yet restored.
+  if(b.returned_at || b.returnedAt || b.receivedBy || b.returnNum) return true;
   var s=(b.status||'').toLowerCase();
   return s==='returned';
 }
@@ -9819,7 +9987,11 @@ function renderAnalyticsByDate(dateStr){
   var pending  = records.filter(function(b){
     if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
-    return s === 'pending' || s === 'issued';
+    // v80.48: Pending Return means genuinely issued-and-not-yet-returned ONLY —
+    // a booking still awaiting Professor/Manager approval (status==='pending')
+    // is not "pending a RETURN", it hasn't been issued yet. Dropping that
+    // branch is what the original spec asked for.
+    return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
   }).length;
   var setTxt=function(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; };
   setTxt('an2-sum-total',    total);
@@ -9901,6 +10073,111 @@ function weatherSnapshotStampHTML(b, opts){
 }
 window.weatherSnapshotStampHTML = weatherSnapshotStampHTML;
 
+// v80.D5: Manager Efficiency Insight — uses actual timestamps already captured
+// in the workflow (kitPreparationStartedAt / manager_approved_at → issuedAt / issued_at)
+// to surface a plain-language turnaround statement in the Analytics record after
+// a booking lifecycle is completed. Presentation-layer only: no new data written.
+function an2EfficiencyInsightHTML(b){
+  var rv = (typeof resVocab === 'function') ? resVocab(b.cat) : null;
+  if(!rv) return '';
+  // Only show when both prep-start and issue timestamps exist (lifecycle completed enough)
+  var prepStart = b.kitPreparationStartedAt || b.manager_approved_at || b.managerApprovedAt || null;
+  var issuedTs  = b.issuedAt || b.issued_at || null;
+  if(!prepStart || !issuedTs) return '';
+  var diffMs  = new Date(issuedTs) - new Date(prepStart);
+  if(diffMs <= 0 || diffMs > 3600000 * 4) return ''; // sanity-gate: 0–4 hrs
+  var diffSec = Math.round(diffMs / 1000);
+  var mins = Math.floor(diffSec / 60), secs = diffSec % 60;
+  var timeStr = mins > 0 ? (mins + ' min' + (mins !== 1 ? 's' : '') + (secs > 0 ? ' ' + secs + ' sec' : '')) : (secs + ' sec');
+  // Category-aware label
+  var actionLabel;
+  if(b.cat === 'Studio Booking')       actionLabel = 'Studio prepared and opened';
+  else if(b.cat === 'Editing Systems') actionLabel = 'Workstation prepared and session started';
+  else                                 actionLabel = 'Equipment prepared and issued';
+  return '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:3px solid #16a34a;border-radius:9px;padding:8px 11px;margin-top:6px;margin-bottom:4px;">'
+    + '<div style="font-size:8.5px;font-weight:800;color:#15803d;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">⚡ Manager Efficiency</div>'
+    + '<div style="font-size:11px;color:#166534;">' + actionLabel + ' in <strong>' + timeStr + '</strong>.</div>'
+    + '</div>';
+}
+
+// v80.D5: Student Feedback Insight — shown in Analytics after lifecycle completion
+// when a student rating exists on the booking. Uses b.managerRating already captured.
+// Maps rating to a short operational insight; presentation-layer only, no new data.
+// v80.57 REQUIREMENT: place directly below Manager Efficiency (already true — see
+// an2BuildRecordHTML/an2ManagerFeedbackHTML call sites, both call this function
+// immediately after an2EfficiencyInsightHTML). Also hardened to degrade gracefully:
+// shows rating alone if no descriptive text is available for it, and — future-
+// proofed, no new column added now — would show a free-text comment alone if one
+// ever exists on the booking (b.studentFeedbackComment) without a numeric rating.
+// Today's data model only ever carries the rating (rateManagerEmoji() writes
+// b.managerRating/b.ratedAt, nothing else), so in practice this always renders
+// "rating present" — the comment-only branch is dead code until a real free-text
+// field is added, kept here so this function is the single place that decides,
+// per REQUIREMENT 7's "single resolver" pattern already used for actor names.
+function an2StudentFeedbackInsightHTML(b){
+  var rv = (typeof resVocab === 'function') ? resVocab(b.cat) : null;
+  if(!rv) return '';
+  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var r = parseInt(b.managerRating, 10);
+  var hasRating = (r>=1 && r<=5);
+  // No free-text feedback column exists in the schema today — only ever check
+  // it if a future version starts writing one, so nothing is fabricated now.
+  var comment = b.studentFeedbackComment || b.feedbackComment || b.managerRatingComment || '';
+  if(!hasRating && !comment) return ''; // nothing to show — never fabricated
+  var insightMap;
+  if(b.cat === 'Studio Booking'){
+    insightMap = {
+      1: 'Student reported poor support during studio access and closure.',
+      2: 'Student reported below-average support during studio session.',
+      3: 'Student reported satisfactory support during studio access and closure.',
+      4: 'Student reported good support during studio session.',
+      5: 'Student reported excellent support during studio access and closure.'
+    };
+  } else if(b.cat === 'Editing Systems'){
+    insightMap = {
+      1: 'Student reported poor support during workstation session.',
+      2: 'Student reported below-average support during editing session.',
+      3: 'Student reported satisfactory support during workstation access.',
+      4: 'Student reported good support during editing session.',
+      5: 'Student reported excellent support during workstation session.'
+    };
+  } else {
+    insightMap = {
+      1: 'Student reported poor support during equipment issue and return.',
+      2: 'Student reported below-average support during equipment handling.',
+      3: 'Student reported satisfactory support during equipment issue and return.',
+      4: 'Student reported good support during equipment handling.',
+      5: 'Student reported excellent support during equipment issue and return.'
+    };
+  }
+  var ratingColors = {1:'#dc2626',2:'#ea580c',3:'#d97706',4:'#16a34a',5:'#059669'};
+  var ratingBg     = {1:'#fef2f2',2:'#fff7ed',3:'#fffbeb',4:'#f0fdf4',5:'#ecfdf5'};
+  var ratingBorder = {1:'#fecaca',2:'#fed7aa',3:'#fde68a',4:'#bbf7d0',5:'#a7f3d0'};
+  var clr = hasRating ? (ratingColors[r] || '#6b7280') : '#6b7280';
+  var bg  = hasRating ? (ratingBg[r]     || '#f9fafb') : '#f9fafb';
+  var bdr = hasRating ? (ratingBorder[r] || '#e5e7eb') : '#e5e7eb';
+  var starsRow = '';
+  if(hasRating){
+    var stars = ['','★☆☆☆☆','★★☆☆☆','★★★☆☆','★★★★☆','★★★★★'][r];
+    starsRow = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+      +   '<span style="font-size:16px;letter-spacing:1px;">'+stars+'</span>'
+      +   '<span style="font-size:10px;font-weight:700;color:'+clr+';">Student rated Manager: '+r+'/5</span>'
+      + '</div>'
+      + '<div style="font-size:9.5px;color:#6B6256;margin-bottom:4px;">Rated by <strong>'+esc(b.student||'Student')+'</strong></div>';
+  }
+  // Descriptive line: prefer a genuine free-text comment if one exists; else the
+  // rating's templated insight sentence; if rating exists but maps to nothing
+  // (out-of-range/legacy value), show rating alone with no fabricated sentence.
+  var bodyText = comment ? esc(comment) : (hasRating ? (insightMap[r]||'') : '');
+  var bodyHTML = bodyText ? '<div style="font-size:10.5px;color:#374151;">'+bodyText+'</div>' : '';
+  if(!starsRow && !bodyHTML) return ''; // nothing genuinely available
+  return '<div style="background:'+bg+';border:1px solid '+bdr+';border-left:3px solid '+clr+';border-radius:9px;padding:8px 11px;margin-top:6px;margin-bottom:4px;">'
+    + '<div style="font-size:8.5px;font-weight:800;color:'+clr+';letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px;">⭐ Student Feedback</div>'
+    + starsRow
+    + bodyHTML
+    + '</div>';
+}
+
 function an2BuildRecordHTML(b){
   var email    = b.studentEmail || b.email || (window.getStudentEmail ? window.getStudentEmail(b.student) : '') || '—';
   var feedback = an2FeedbackText(b);
@@ -9977,6 +10254,8 @@ function an2BuildRecordHTML(b){
       '</div>'+
       canonicalBox+
       pipelineBox+
+      an2EfficiencyInsightHTML(b)+
+      an2StudentFeedbackInsightHTML(b)+
       (feedback ? '<div class="an2-rec-feedback"><span class="an2-fb-lbl">Feedback</span>'+feedback+'</div>' : '')+
     '</div>'
   );
@@ -10026,7 +10305,8 @@ function an2FilterRecords(filter, cardEl){
       filtered = all.filter(function(b){
         if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
         var s = (b.status||'pending').toLowerCase();
-        return s === 'pending' || s === 'issued';
+        // v80.48: Pending Return = genuinely issued-and-not-yet-returned ONLY.
+        return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
       });
       break;
     default:
@@ -10187,7 +10467,11 @@ function an2ApplyRange(){
   var pending  = records.filter(function(b){
     if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
-    return s === 'pending' || s === 'issued';
+    // v80.48: Pending Return means genuinely issued-and-not-yet-returned ONLY —
+    // a booking still awaiting Professor/Manager approval (status==='pending')
+    // is not "pending a RETURN", it hasn't been issued yet. Dropping that
+    // branch is what the original spec asked for.
+    return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
   }).length;
   var setTxt=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
   setTxt('an2-sum-total',total); setTxt('an2-sum-approved',approved); setTxt('an2-sum-issued',issued); setTxt('an2-sum-returned',returned); setTxt('an2-sum-pending',pending);
@@ -10348,7 +10632,11 @@ function an2ApplyFilters(){
   var pending  = filtered.filter(function(b){
     if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
-    return s === 'pending' || s === 'issued';
+    // v80.48: Pending Return means genuinely issued-and-not-yet-returned ONLY —
+    // a booking still awaiting Professor/Manager approval (status==='pending')
+    // is not "pending a RETURN", it hasn't been issued yet. Dropping that
+    // branch is what the original spec asked for.
+    return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
   }).length;
   var setTxt=function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
   setTxt('an2-sum-total',total); setTxt('an2-sum-approved',approved);
@@ -10380,6 +10668,13 @@ function an2ApplyFilters(){
 
   // Insights
   an2UpdateInsights(filtered, utilPct, carryFwd);
+
+  // v80.55 PHASE 3: Studio & Editing Support Hours — same filtered set.
+  an2SupportHoursHTML(filtered);
+
+  // v80.55 PHASE 4: Manager Feedback section — same filtered set as
+  // everything else on this screen, so it respects every existing filter.
+  an2ManagerFeedbackHTML(filtered);
 
   // Record list
   // Keep existing status-filter active
@@ -10470,6 +10765,106 @@ function an2UpdateInsights(records, utilPct, carryFwd){
 }
 window.an2UpdateInsights = an2UpdateInsights;
 
+// ── v80.55 PHASE 3: STUDIO & EDITING SUPPORT HOURS ───────────────────────
+// Equipment already has a real operational-time metric — the Work Report's
+// fixed 10-min-issue/5-min-return throughput calc. Studio and Editing never
+// had an equivalent because there was no per-shift manual-entry block for
+// them (Studio/Edit Suite activity type is duration-only, unstructured).
+// Rather than invent a new manual-entry flow (out of scope — no new workflow
+// steps allowed), this derives the same category of metric directly from
+// timestamps already written by the existing issue/return workflow
+// (b.issuedAt/b.issued_at "opened"/"session started", b.returnedAt/
+// b.returned_at "closed"/"session ended") — the same source-of-truth pattern
+// anWasIssued()/anWasReturned() already use. Support Time = sum of
+// (returned - issued) across bookings that have BOTH timestamps, sanity-
+// gated to under 24h per booking to avoid stale/bad data skewing the total.
+// If a booking is missing either timestamp it simply doesn't contribute to
+// the time sum (no fabrication) — Opened/Closed counts still reflect it.
+function an2SupportHoursStats(records){
+  var opened=0, closed=0, totalMin=0;
+  (records||[]).forEach(function(b){
+    if(anWasIssued(b)) opened++;
+    if(anWasReturned(b)) closed++;
+    var iTs = b.issuedAt || b.issued_at || null;
+    var rTs = b.returnedAt || b.returned_at || null;
+    if(iTs && rTs){
+      var diffMin = (new Date(rTs) - new Date(iTs)) / 60000;
+      if(diffMin > 0 && diffMin < 24*60) totalMin += diffMin;
+    }
+  });
+  return {opened:opened, closed:closed, totalMin:Math.round(totalMin)};
+}
+function an2FmtSupportTime(mins){
+  if(!mins) return '0h 0m';
+  var h = Math.floor(mins/60), m = Math.round(mins%60);
+  return h + 'h ' + m + 'm';
+}
+function an2SupportHoursHTML(records){
+  var panel = document.getElementById('an2-support-hours-panel');
+  var list  = document.getElementById('an2-support-hours-list');
+  if(!panel || !list) return;
+  var studio  = an2SupportHoursStats((records||[]).filter(function(b){ return b.cat==='Studio Booking'; }));
+  var editing = an2SupportHoursStats((records||[]).filter(function(b){ return b.cat==='Editing Systems'; }));
+  if(!studio.opened && !studio.closed && !editing.opened && !editing.closed){
+    panel.style.display='none'; list.innerHTML=''; return;
+  }
+  panel.style.display='';
+  list.innerHTML =
+      '<div class="an2-ins-card"><div class="an2-ins-lbl">Studios Opened</div><div class="an2-ins-val">'+studio.opened+'</div></div>'
+    + '<div class="an2-ins-card"><div class="an2-ins-lbl">Studios Closed</div><div class="an2-ins-val">'+studio.closed+'</div></div>'
+    + '<div class="an2-ins-card"><div class="an2-ins-lbl">Studio Support Time</div><div class="an2-ins-val">'+an2FmtSupportTime(studio.totalMin)+'</div></div>'
+    + '<div class="an2-ins-card"><div class="an2-ins-lbl">Sessions Started</div><div class="an2-ins-val">'+editing.opened+'</div></div>'
+    + '<div class="an2-ins-card"><div class="an2-ins-lbl">Sessions Closed</div><div class="an2-ins-val">'+editing.closed+'</div></div>'
+    + '<div class="an2-ins-card"><div class="an2-ins-lbl">Editing Support Time</div><div class="an2-ins-val">'+an2FmtSupportTime(editing.totalMin)+'</div></div>';
+}
+window.an2SupportHoursHTML = an2SupportHoursHTML;
+
+// ── v80.55 PHASE 4: MANAGER FEEDBACK ANALYTICS SECTION ──────────────────
+// Consolidates existing per-record data (b.managerRating, b.ratedAt,
+// b.receivedBy, the same kitPreparationStartedAt→issuedAt evidence
+// an2EfficiencyInsightHTML already reads) into one Analytics section
+// instead of it only being visible one record at a time inside the
+// Process Timeline / record cards. Reuses an2EfficiencyInsightHTML() and
+// an2StudentFeedbackInsightHTML() verbatim — no new scoring, no new
+// persistence, no schema change. Bookings with no b.managerRating are
+// simply not included (never fabricated).
+function an2ManagerFeedbackHTML(records){
+  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var rated = (records||[]).filter(function(b){
+    var r = parseInt(b.managerRating,10);
+    return r >= 1 && r <= 5;
+  });
+  // Most recent first — falls back to booking start_time if ratedAt is missing.
+  rated.sort(function(a,b){
+    var ta = new Date(a.ratedAt || a.start_time || 0).getTime();
+    var tb = new Date(b.ratedAt || b.start_time || 0).getTime();
+    return tb - ta;
+  });
+  var panel = document.getElementById('an2-mgr-feedback-panel');
+  var list  = document.getElementById('an2-mgr-feedback-list');
+  if(!panel || !list) return;
+  if(!rated.length){ panel.style.display='none'; list.innerHTML=''; return; }
+  panel.style.display='';
+  var starMap = {1:'★☆☆☆☆',2:'★★☆☆☆',3:'★★★☆☆',4:'★★★★☆',5:'★★★★★'};
+  list.innerHTML = rated.map(function(b){
+    var typeLabel = b.cat || '—';
+    var ref = b.bookingCode || b.code || b.issueNum || b.id || '—';
+    var effHTML = (typeof an2EfficiencyInsightHTML==='function') ? an2EfficiencyInsightHTML(b) : '';
+    // v80.57: an2StudentFeedbackInsightHTML() now supplies its own stars +
+    // "Rated by" line — no longer duplicated in this card's own header.
+    var fbHTML  = (typeof an2StudentFeedbackInsightHTML==='function') ? an2StudentFeedbackInsightHTML(b) : '';
+    return '<div style="background:#FFFDF7;border:1px solid #E8DED0;border-radius:11px;padding:10px 12px;margin-bottom:9px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      +   '<span style="font-size:9px;font-weight:700;color:#6B6256;">' + esc(typeLabel) + ' · ' + esc(ref) + '</span>'
+      +   (b.receivedBy ? '<span style="font-size:9px;font-weight:700;color:#6B6256;">Manager: <strong style="color:#2E2E2E;">' + esc(b.receivedBy) + '</strong></span>' : '')
+      + '</div>'
+      + effHTML
+      + fbHTML
+      + '</div>';
+  }).join('');
+}
+window.an2ManagerFeedbackHTML = an2ManagerFeedbackHTML;
+
 // ═══════════════════════════════════════════════════
 //  ALG — Asset Usage Ledger (item-based, date-range report)
 //  Groups by individual equipment/system/studio item (not by
@@ -10543,9 +10938,17 @@ function algGetAllRecords(){
 
 // Aggregate every booking matching the selected base item + date range.
 // A booking only represents real equipment time if it was actually
-// handed out — rejected/cancelled requests never consumed any hours.
+// handed out — pending/approved/ready mean the request was never
+// physically issued; rejected/cancelled never consumed any hours.
+// v80.49: mirrors anWasIssued() — count only records with real issue evidence.
+// v80.50: also check b.returned_at — mirrors anWasReturned()'s DB-backed evidence
+// so a booking whose status PATCH to 'returned' was slow/failed but whose
+// returned_at column was written is not silently excluded from ledger results.
 function algWasActuallyUsed(b){
-  return b.status!=='rejected' && b.status!=='cancelled';
+  if(b.issued_at || b.issuedBy) return true;
+  if(b.returned_at || b.returnNum) return true;
+  var s = (b.status||'').toLowerCase();
+  return s==='issued'||s==='returned'||s==='partially_received'||s==='partially_returned';
 }
 
 function algBuildReport(baseNames, from, to, purposeFilter){
@@ -10667,6 +11070,8 @@ function algRenderLegend(breakdown){
 
 function setAssetCat(cat,el){
   S.assetCat=cat;S.selectedAssets=[];
+  var _si=document.getElementById('alg-asset-search'); if(_si) _si.value='';
+  var _dd=document.getElementById('alg-asset-dropdown'); if(_dd) _dd.style.display='none';
   S.algPurposeFilter=null;
   var rail=document.getElementById('alg-purpose-rail');
   if(rail) rail.querySelectorAll('.pur-opt').forEach(x=>x.classList.remove('active'));
@@ -10695,17 +11100,53 @@ function algTogglePurpose(strat, el){
   if(results && results.innerHTML.trim()) runAssetReport();
 }
 
+// v80.51: renderAssetPicker now drives the search dropdown + chips row.
+// The old #asset-picker div is kept hidden in DOM. toggleAsset() unchanged.
 function renderAssetPicker(){
-  const allItems = algItemsForCat(S.assetCat);
   if(!S.selectedAssets) S.selectedAssets=[];
-  document.getElementById('asset-picker').innerHTML=allItems.map(item=>{
-    const checked = S.selectedAssets.indexOf(item)!==-1;
-    return `
-    <button class="asset-item-btn ${checked?'selected':''}" onclick="toggleAsset('${item.replace(/'/g,"\\'")}',this)">
-      <span style="display:flex;align-items:center;gap:9px;"><span style="font-size:15px;">${checked?'☑️':'⬜'}</span>${item}</span>
-    </button>`;
-  }).join('');
+  // Chips row (selected items above the search box)
+  var chipsEl = document.getElementById('alg-selected-chips');
+  if(chipsEl){
+    if(S.selectedAssets.length){
+      chipsEl.style.display='flex';
+      chipsEl.innerHTML = S.selectedAssets.map(function(item){
+        var safe = item.replace(/'/g,"\'");
+        return '<span style="display:inline-flex;align-items:center;gap:5px;background:#7b1a1a;color:#fff;border-radius:20px;padding:5px 11px 5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;" onclick="toggleAsset(\''+safe+'\',null)">'+item+' <span style="font-size:14px;line-height:1;opacity:.75;">&times;</span></span>';
+      }).join('');
+    } else {
+      chipsEl.style.display='none';
+      chipsEl.innerHTML='';
+    }
+  }
+  // Refresh dropdown with current search query (preserves typed text)
+  var searchEl = document.getElementById('alg-asset-search');
+  algAssetSearchFilter(searchEl ? searchEl.value : '');
   updateAssetPanelVisibility();
+}
+
+// v80.51: filter dropdown items as the user types.
+// Empty query shows all items; matches are case-insensitive substring.
+function algAssetSearchFilter(query){
+  var dropdown = document.getElementById('alg-asset-dropdown');
+  var list     = document.getElementById('alg-asset-dropdown-list');
+  if(!dropdown || !list) return;
+  var allItems = algItemsForCat(S.assetCat);
+  if(!S.selectedAssets) S.selectedAssets=[];
+  var q = (query||'').trim().toLowerCase();
+  var filtered = q ? allItems.filter(function(i){ return i.toLowerCase().indexOf(q)!==-1; }) : allItems;
+  if(!filtered.length){
+    list.innerHTML='<div style="padding:14px 16px;font-size:12px;color:#9ca3af;">No match — try a shorter word</div>';
+    dropdown.style.display='block';
+    return;
+  }
+  list.innerHTML = filtered.map(function(item){
+    var checked = S.selectedAssets.indexOf(item)!==-1;
+    var safe    = item.replace(/'/g,"\'");
+    return '<button onclick="toggleAsset(\''+safe+'\',null);document.getElementById(\'alg-asset-search\').value=\'\';algAssetSearchFilter(\'\');" '+
+      'style="width:100%;padding:11px 14px;background:'+(checked?'#fff0f6':'#fff')+';border:none;border-bottom:1px solid #f3f4f6;font-family:inherit;font-size:13px;font-weight:'+(checked?'700':'500')+';color:'+(checked?'#7b1a1a':'#374151')+';cursor:pointer;display:flex;align-items:center;gap:9px;text-align:left;box-sizing:border-box;">'+
+      '<span style="font-size:15px;flex-shrink:0;">'+(checked?'☑️':'⬜')+'</span>'+item+'</button>';
+  }).join('');
+  dropdown.style.display='block';
 }
 
 function toggleAsset(name,el){
@@ -10820,7 +11261,13 @@ function runAssetReport(){
     </div>
 
     <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:3px;" class="alg-noprint">📋 ${selLabel}</div>
-    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px;" class="alg-noprint">${from} → ${to} &nbsp;·&nbsp; ${S.assetCat}${purposeLine}${multi ? '<br/>Includes: '+selListLine : ''}</div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:10px;" class="alg-noprint">${from} → ${to} &nbsp;·&nbsp; ${S.assetCat}${purposeLine}${multi ? '<br/>Includes: '+selListLine : ''}</div>
+
+    <div class="alg-noprint" style="position:sticky;top:0;z-index:5;background:#f5f5f7;padding:4px 0 8px;">
+      <input type="text" id="alg-ledger-search" placeholder="🔍 Search by equipment, kit, issue no., student name or ID…"
+             oninput="algFilterLedgerHistory(this.value)"
+             style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:12px;font-family:inherit;box-sizing:border-box;background:#fff;"/>
+    </div>
 
     <div class="alg-summary">
       <div class="alg-sumcard"><div class="alg-sumval" style="color:#7b1a1a;">${report.matches.length}</div><div class="alg-sumlbl">Times Used</div></div>
@@ -10873,11 +11320,6 @@ function runAssetReport(){
     </div>
 
     <div class="sec-lbl alg-noprint" style="font-size:13px;margin-top:4px;margin-bottom:8px;">Usage History</div>
-    <div class="alg-noprint" style="margin-bottom:10px;">
-      <input type="text" id="alg-ledger-search" placeholder="🔍 Search by equipment, kit, issue no., student name or ID…"
-             oninput="algFilterLedgerHistory(this.value)"
-             style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:12px;font-family:inherit;box-sizing:border-box;"/>
-    </div>
     ${report.matches.map((b,i)=>algLedgerRecordCardHTML(b,i,multi)).join('')}
 
     ${report.notUsed.length ? `
@@ -11546,7 +11988,7 @@ function renderStudents(filter=''){
 
     return `<div class="scard" data-sid="${s.id}" style="${cardBorder}animation-delay:${i*.07}s;">
 
-      ${window.currentRole==='Student' ? '<button class="alg-noprint" onclick="printSingleDRICard(\''+String(s.id).replace(/'/g,"\\'")+'\')" style="float:right;background:#B89B72;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ Print My DRI Record</button>' : ''}
+      <button class="alg-noprint" onclick="printSingleDRICard('${String(s.id).replace(/'/g,"\\'")}')" style="float:right;background:#B89B72;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ Print DRI Record</button>
 
       <!-- ── Profile Header ── -->
       <div class="sc-profile-hd">
@@ -17215,7 +17657,9 @@ window.admApproveBooking = async function(id) {
 // ── admIssueBooking (Admin issue) ──
 window.admIssueBooking = async function(id) {
   var btn = event && event.target; if(btn){btn.disabled=true;btn.textContent='…';}
-  if(!(await appConfirm('Confirm equipment issue?', {icon:'🚀', title:'Confirm Equipment Issue', okText:'Issue Kit'}))) { if(btn){btn.disabled=false;btn.textContent='📦 Issue';} return; }
+  var _rvAdm = (typeof S!=='undefined' && S.bookings) ? S.bookings.find(function(x){ return String(x.id)===String(id); }) : null;
+  var rvAdm = resVocab(_rvAdm ? _rvAdm.cat : null);
+  if(!(await appConfirm('Confirm '+rvAdm.itemLC+' issue?', {icon:'🚀', title:'Confirm '+rvAdm.item+' Issue', okText:rvAdm.issueBtn}))) { if(btn){btn.disabled=false;btn.textContent='📦 Issue';} return; }
   try {
     var res = await fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + id, {
       method : "PATCH",
