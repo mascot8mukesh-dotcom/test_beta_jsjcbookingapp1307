@@ -3548,6 +3548,8 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
 <strong>Scope:</strong> <code>_guessItemIcon()</code>/new <code>_iconBucket()</code> and their 3 call sites, <code>ICON_TITLES</code>, the Available Types INFER_MAP, the two click-sound selector strings, <code>renderAdminEquipment()</code>/new <code>admFilterEquipmentList()</code>, and one nav-visibility line for Studio Manager. No change to the booking/approval pipeline, equipment add/edit forms, or any other role's screen.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.41 &middot; &#128269; MixPre Mislabeled as Camera + Searchable Model List + Calendar Scoped to What's Browsed</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Sound Devices MixPre 10 showing under "Cameras" despite being saved as Audio Recorder Kit:</strong> traced to two compounding gaps in <code>_guessItemIcon()</code>'s keyword-inference fallback (used for the "Available Types" badge counts) — "mixpre"/"sound devices" weren't in the recorder-keyword list, AND any item that matched no keyword at all was hard-defaulted to <code>'Camera Kit'</code> rather than <code>'Other'</code>. An item with a correctly-saved <code>itemCategory</code> was never affected by this (that's read first, unchanged) — this only mislabeled items relying on the guess. Both fixed: added mixpre/sound devices/zaxcom/sonosax/nagra to the recorder keywords, and the no-match fallback now lands on "Other" instead of silently becoming a camera. <strong>2. Equipment model list now searchable, capped to ~4 visible before scrolling:</strong> the Visual Card Grid's left-column model list (previously every Brand/Model dumped into one long scroll box) now has a search bar above it, same search-as-you-type pattern as the Joint Requisition team-member picker — typing filters the list live, and the visible list itself is capped to roughly 4 rows tall so it no longer floods the screen. Search resets on toggling the grid on/off or switching category/facility, so a stale filter never hides items on a fresh view. <strong>3. Live Availability calendar no longer dumps all 40+ items when Visual Card Grid is active:</strong> previously showed every item in the facility until something was actually added to the booking. Now, before anything's added, it scopes to whichever model the user is currently browsing (the left-column click) — narrowing further to the exact kit(s) once actually selected, exactly as it already did. <strong>Scope:</strong> <code>_guessItemIcon()</code>'s keyword list and the type-overview fallback, <code>renderVisualCardGrid()</code>'s left column, and <code>renderCalendar()</code>'s display-set logic only — no change to how equipment category is saved/read, the kit cards themselves, or the booking/approval pipeline.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.40 &middot; &#127183; Zoom F6 Kits Not Grouping + Manager Note Reading From Wrong Column</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Zoom F6 kits each showing as their own "model" (1 Kit Available) instead of grouping like TASCAM (7 Kits Available):</strong> <code>algBaseName()</code>'s suffix-stripping regex only matched a trailing <code>"– Kit 8"</code> pattern (dash, "Kit", then digits) — TASCAM's kit names fit that exactly, but the Zoom F6 kits are named <code>"… Kit – Kit No 5"</code>, with "No" between "Kit" and the number, which the regex didn't account for, so each Zoom F6 kit kept its full name as its own base and never grouped with its siblings in the Visual Card Grid's left-column model list. <strong>Fix:</strong> regex now also matches an optional "No"/"No." before the trailing digits, so "Kit No 5", "Kit No. 5", and the existing "Kit 5" form all strip correctly. <strong>2. Manager Note still invisible after being confirmed live in Supabase:</strong> traced with a live COUNT/NULL check — <code>equipment.manager_note</code> is a real column, but <code>admAddEquipment()</code>'s <code>addSupaEquipment()</code> call never included it in the insert payload (only <code>kit_contents</code>/<code>equipment_type</code> were ever sent), so every row's <code>manager_note</code> stayed NULL regardless of what was typed on the form. Separately, <code>rebuildKitDBFromSupabase()</code>'s read-back mapper was looking for a column literally named <code>note</code> (which doesn't exist) instead of <code>manager_note</code> — a second, independent reason it would have stayed invisible even after the insert was fixed. Both now corrected: the insert sends <code>manager_note</code>, and the mapper reads <code>e.manager_note</code> first, falling back to the local-extras cache and the old wrong key for any pre-existing rows. <strong>Scope:</strong> <code>algBaseName()</code>, <code>admAddEquipment()</code>'s Supabase payload, and <code>rebuildKitDBFromSupabase()</code>'s equipment mapper only — no change to who can add/delete equipment (Admin/Manager add access and Admin-only delete are untouched), the kit-card display logic itself, or any other field.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.47 &middot; &#128269; Asset Usage Ledger Search &amp; Single-Student DRI Print</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>PATCH 3 — Ledger search:</strong> a search box was added above the Usage History list in the Asset Usage Ledger (<code>#asset-report-results</code>). <code>algLedgerRecordCardHTML()</code> now tags each already-rendered card with a <code>data-alg-search</code> attribute built from Equipment Name, Kit Name (<code>b.resource</code>/<code>b.equipList</code>), Issue Number, Student Name, and Student ID; a new <code>algFilterLedgerHistory(query)</code> toggles each card's visibility with a plain substring check against that attribute — pure client-side DOM filtering of records already rendered by <code>runAssetReport()</code>/<code>algBuildReport()</code>, no re-query, no schema change, no Analytics touched, layout otherwise identical. <strong>PATCH 4 — Single-student DRI print:</strong> a "🖨️ Print My DRI Record" button now renders inside a student's own DRI card, gated strictly to <code>window.currentRole==='Student'</code> inside <code>renderStudents()</code>'s card template — Admin/Professor roster views (which render many cards, not one) never see this button and are otherwise byte-for-byte unchanged. New <code>printSingleDRICard(sid)</code> clones just the matching <code>.scard[data-sid]</code> element and opens it in a clean popup via the same <code>window.print()</code> pattern already used by <code>printAnalyticsReport()</code>/<code>printLedgerReport()</code> — no PDF library, no new export path, no change to DRI scoring or data structure. <strong>Not touched:</strong> Analytics, equipment location logic, booking workflow, DRI data model, existing export/print functions.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.46 &middot; &#128202; Analytics Pending-Return Double-Count Fix &amp; Equipment Location Recording Bug</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>PATCH 1 — Pending Return double-counting:</strong> all four Analytics "Pending" tile/summary calculations matched only <code>status==='pending' || status==='issued'</code>, with no check for return evidence first — so a booking that already had <code>returned_at</code>/<code>receivedBy</code> set (return evidence per <code>anWasReturned()</code>) but whose status hadn't fully synced to <code>'returned'</code> could be counted as BOTH Returned and Pending Return simultaneously. Fixed by adding an <code>if(anWasReturned(b)) return false;</code> guard as the first line of all four pending filters (an2RenderTagFilterChips's initial summary, an2FilterRecords, an2ApplyRange, an2ApplyFilters) — a booking with genuine return evidence can never be classified Pending Return again, regardless of its raw status field. <strong>PATCH 2 — Equipment recorded under the wrong location:</strong> Film &amp; TV Studio equipment was displaying as "T1 Central Block" on booking records, timelines, and analytics after booking creation, despite the picker showing the correct location beforehand. <strong>Root cause:</strong> the <code>bookings</code> table has no <code>fac</code>/<code>location</code> column (removed as phantom columns back at V55), so both the Supabase <code>dbRows</code> refetch mapper and the optimistic post-submit local booking object hardcoded <code>fac:''/location:''</code> on every booking, and <code>fbBadgeText()</code> treats any non-<code>'film'</code> value as T1 by default — so every booking silently defaulted to T1 Central Block regardless of which facility's equipment was actually selected. <strong>Fix:</strong> new <code>resolveResourceFacKey(catKey, resourceName)</code> helper looks up the booking's own <code>resource_name</code> against the matching <code>adminData.equipment</code>/<code>editing</code>/<code>studios</code> record (the real source of truth for that item's facility) and returns its normalised fac key. Both the <code>dbRows</code> mapper and the optimistic <code>localBk</code> builder now call this instead of hardcoding blank, so the equipment's true location is preserved and flows automatically into every downstream view that already reads <code>b.fac</code>/<code>b.location</code> (booking record, Process Timeline, Analytics, reports) with no changes needed there. <strong>Not touched:</strong> equipment picker behaviour/filtering, approval/issue/return workflows, database schema, booking pipeline. <strong>Risk level: Low</strong> — two additive lookups reading existing local data, no new writes, no schema change.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.39 &middot; &#128683; Real Double-Booking Prevention + Kit Contents/Note Lookup Fix + Live Auto-Refresh</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>1. Kit Contents/Manager Note not showing — root cause found, not role-specific:</strong> reported as a Studio Manager visibility issue, but traced to <code>canonicalRecordHTML()</code>'s equipment lookup using an EXACT string match against <code>adminData.equipment</code>. Any booking made with the optional "Kit No. / Note" field filled in stores its resource name WITH the bracket baked in (e.g. <code>"TASCAM DR 05 – Kit 8 [Test]"</code> — see <code>_vcgKitCardHTML</code>), which can never exact-match the equipment record's real name — so Kit Contents/Manager Note silently never rendered for ANY viewer on that booking, not specifically Manager. Fixed to strip the bracket suffix before matching, reusing the exact same pattern already used correctly in three other places in this file (<code>getCalendarSelectedItems</code>, <code>checkEquipmentConflicts</code>). <strong>2. Double-booking was only ever a soft warning, never actually blocked:</strong> <code>checkEquipmentConflicts()</code> (live, as the time picker changes) has existed since earlier versions and correctly detects overlaps — but only ever shows a dismissible toast; nothing stopped <code>submitBooking()</code> itself from inserting a genuinely conflicting booking. <code>submitBooking()</code> now queries Supabase DIRECTLY for just the requested resource(s) immediately before insert (not the local <code>S.bookings</code> cache, which is exactly what was stale in the reported "showed booked only after a refresh" case) and refuses the insert outright — clear error, no booking created — if any active, non-cancelled/rejected booking already overlaps the requested window. Applies uniformly to Equipment, Editing Systems, and Studio Booking, since <code>resource_name</code> isn't category-specific — not equipment-only. Fails OPEN only if the check itself can't reach Supabase (network hiccup), never silently blocking a legitimate booking. <strong>Calendar color-coding itself was already correct</strong> — confirmed <code>approved</code> status already maps to the yellow "Booked/Pending" bucket in <code>renderCalendar()</code>'s <code>statusMap</code>; the visible gap was purely the stale-data problem #2 addresses, not a missing color rule. <strong>3. Auto-refresh added:</strong> Book and Manager screens now silently re-fetch bookings and re-render every 10 seconds via the same functions every other action already calls — skips the cycle entirely whenever an input/select/textarea is currently focused, so a user mid-pick or mid-typing is never interrupted. <strong>Scope:</strong> <code>canonicalRecordHTML()</code>'s equipment lookup, <code>submitBooking()</code>'s pre-insert check, <code>handleBookingSubmit()</code>'s error display, and one new interval — no change to the existing soft-warning conflict toast, the calendar's color/status logic, or the booking/approval pipeline itself.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.38 &middot; &#128221; Work Report Note &amp; Reported-To Not Surviving to Submitted Log — Two Root Causes Found</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> entered a Task Description and Reported-To for 3 separate activities on the Report screen — none of it showed up afterward, same class of symptom as the earlier equipment kit-contents/manager-note bug. <strong>Root cause 1 — Task Description, a real logic bug, not just missing display:</strong> the note box was read as ONE shared value only at final "Submit Work Log" time, applied identically to every pending activity in the batch — but <code>recordActivity()</code> clears that same box immediately after every "Record Activity" click, before Submit is ever reached. Typing a note for activity 1, recording it, then typing one for activity 2 wiped activity 1's note the instant "Record Activity" fired — only whatever was typed last (or nothing) ever reached Submit. <strong>Fix:</strong> the note is now captured into each pending activity's own <code>note</code> field at the moment it's recorded (mirroring the already-correct <code>reportingTo</code> pattern), and carried through per-activity at Submit instead of one shared value; the mandatory-note validation now checks each non-equipment activity individually instead of one shared flag. <strong>Root cause 2 — Reported To, pure display bug:</strong> this field was already being captured and saved correctly all along — <code>renderShiftLogs()</code>'s card template simply never had a row for it, so correct data was silently never shown. Added the missing row to both the pending (not-yet-submitted) and submitted card templates. <strong>Print/PDF report — investigated, found already correct, zero changes needed:</strong> traced <code>_wrBuildInnerHTML()</code>/<code>_wrBuildRows()</code> directly — the "Notes &amp; Reporting" column already reads <code>l.note</code>/<code>l.reportingTo</code> per log entry correctly; it was only ever starved of correct data by root cause 1 upstream. Once activities carry real per-entry notes, the printed report picks them up automatically with no template changes. <strong>Scope:</strong> <code>recordActivity()</code>, <code>submitLog()</code>, and <code>renderShiftLogs()</code> only — no change to the print template, hours/utilization calculations, or any other Report screen logic.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #6b7280;"><div style="font-size:10px;font-weight:800;color:#6b7280;margin-bottom:3px;">v80.37 &middot; &#128683; Mobile/Desktop Toggle Removed — Reverted to Pure Automatic PWA Fit</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Observed directly (screenshots):</strong> even after v80.35's fix matched the app's real <code>@media(max-width:480px)</code> mobile rule on both <code>html</code> and <code>body</code>, the "Mobile" button was still producing the full desktop-width layout in practice — the two modes weren't reliably distinguishing themselves. <strong>Decision:</strong> given this specific toggle had already needed two prior fixes (v80.32 → v80.35) and still wasn't behaving correctly on live testing, rather than chase a third edge case, removed the manual override entirely per the second option offered — "don't keep desktop choice, match the real device automatically." <strong>Removed:</strong> the two login-screen buttons, <code>setAppViewMode()</code>, and every <code>force-mobile-view</code>/<code>force-desktop-view</code> CSS rule — confirmed zero remaining references anywhere in the file. Also clears any <code>jsjc_view_mode</code> value already saved in a returning user's <code>localStorage</code> from v80.32–v80.35, so no device carries forward a class with no matching CSS. <strong>Net result:</strong> sizing is once again driven ONLY by the app's existing real <code>@media</code> breakpoints — exactly the actual device's real viewport, which is the accurate definition of "PWA fit" being asked for. No manual mode exists anymore to drift out of sync with it. <strong>Scope:</strong> touched only this toggle's own markup/CSS/JS — no other screen, breakpoint, or component was touched.</div></div>
@@ -9629,6 +9631,32 @@ function anWasReturned(b){
 }
 window.anWasApproved=anWasApproved; window.anWasIssued=anWasIssued; window.anWasReturned=anWasReturned;
 
+// v80.29 PATCH 2: resolve a booking's true facility key from the equipment/
+// editing/studio record its resource_name actually belongs to, instead of
+// ever defaulting to T1 Central Block. Root cause: the bookings table has no
+// fac/location column (removed as phantom columns at V55), so the dbRows
+// mapper below always wrote fac:''/location:'' on every Supabase refetch —
+// and every downstream display (fbBadgeText) treats a non-'film' fac as T1,
+// so Film & TV Studio equipment silently displayed as T1 Central Block on
+// every booking record, timeline, and analytics view. This looks up the
+// SAME resource_name the booking actually stores against adminData's
+// equipment/editing/studios list (whichever the booking's category is) and
+// reads that record's own fac/location — the true, non-hardcoded source of
+// truth for where that specific item lives.
+function resolveResourceFacKey(catKey, resourceName){
+  if(!resourceName) return '';
+  var src = catKey==='Editing Systems' ? (window.adminData && adminData.editing)
+          : catKey==='Studio Booking'  ? (window.adminData && adminData.studios)
+          : (window.adminData && adminData.equipment);
+  var rec = (src||[]).find(function(r){ return r && r.name===resourceName; });
+  if(!rec) return '';
+  var raw = rec.fac || rec.location || '';
+  if(raw==='Film & TV' || raw==='Film & TV Studio' || raw==='film') return 'film';
+  if(raw) return 't1';
+  return '';
+}
+window.resolveResourceFacKey = resolveResourceFacKey;
+
 function an2TodayStr(){
   // FIX v24: use IST date, not device-local date.
   // On a UTC server, device-local "today" would be UTC date, not IST.
@@ -9789,6 +9817,7 @@ function renderAnalyticsByDate(dateStr){
   var returned = records.filter(function(b){ return anWasReturned(b); }).length;
   // v49.10.1: Pending = unprocessed bookings + issued-but-not-returned (awaiting return)
   var pending  = records.filter(function(b){
+    if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
     return s === 'pending' || s === 'issued';
   }).length;
@@ -9995,6 +10024,7 @@ function an2FilterRecords(filter, cardEl){
     case 'pending':
       // v49.10.1: Pending = unprocessed bookings + issued-but-not-returned (awaiting return)
       filtered = all.filter(function(b){
+        if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
         var s = (b.status||'pending').toLowerCase();
         return s === 'pending' || s === 'issued';
       });
@@ -10155,6 +10185,7 @@ function an2ApplyRange(){
   var returned = records.filter(function(b){ return anWasReturned(b); }).length;
   // v49.10.1: Pending = unprocessed OR issued-not-yet-returned
   var pending  = records.filter(function(b){
+    if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
     return s === 'pending' || s === 'issued';
   }).length;
@@ -10315,6 +10346,7 @@ function an2ApplyFilters(){
   var returned = filtered.filter(function(b){ return anWasReturned(b); }).length;
   // v49.10.1: Pending = unprocessed OR issued-not-yet-returned
   var pending  = filtered.filter(function(b){
+    if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
     var s = (b.status||'pending').toLowerCase();
     return s === 'pending' || s === 'issued';
   }).length;
@@ -10720,9 +10752,35 @@ function algLedgerRecordCardHTML(b, i, multi, dimmed){
   var canon    = (typeof canonicalRecordHTML==='function') ? canonicalRecordHTML(b, rightBadgeHTML) : '';
   var pipeline = (typeof pipelineRecordHTML==='function')  ? pipelineRecordHTML(b) : '';
   var assetTag = multi ? '<div style="color:#7b1a1a;font-weight:700;font-size:12px;margin-bottom:8px;">🔧 '+algBaseName(b.resource)+'</div>' : '';
-  return '<div class="asset-detail-card"'+(dimmed?' style="opacity:.75;animation-delay:'+(i*.07)+'s;"':' style="animation-delay:'+(i*.07)+'s;"')+'>'
+  // v80.29 PATCH 3: pre-compute the searchable text for this card once, up
+  // front — Equipment Name, Kit Name (both live in b.resource/equipList),
+  // Issue Number, Student Name, Student ID — so algFilterLedgerHistory() can
+  // do a single cheap substring check per card instead of re-deriving fields.
+  var searchBits = [
+    b.resource, (b.equipList||[]).join(' '), b.issueNum, b.issue_number,
+    b.student, b.student_name, b.sid, b.student_id
+  ].filter(Boolean).join(' ').toLowerCase();
+  return '<div class="asset-detail-card" data-alg-search="'+searchBits.replace(/"/g,'&quot;')+'"'+(dimmed?' style="opacity:.75;animation-delay:'+(i*.07)+'s;"':' style="animation-delay:'+(i*.07)+'s;"')+'>'
     + assetTag + canon + pipeline + '</div>';
 }
+
+// v80.29 PATCH 3: client-side-only search filter for the Asset Usage
+// Ledger's rendered Usage History list. Filters the ALREADY-RENDERED
+// .asset-detail-card elements in #asset-report-results by the data-alg-search
+// attribute each card was tagged with in algLedgerRecordCardHTML() (Equipment
+// Name, Kit Name, Issue Number, Student Name, Student ID) — no re-fetch, no
+// re-query, no change to algBuildReport()/runAssetReport()'s data. Layout,
+// summary tiles, chart, and print output are untouched; only card visibility
+// toggles. Does not touch Analytics or any booking workflow.
+function algFilterLedgerHistory(query){
+  var q = (query||'').trim().toLowerCase();
+  var cards = document.querySelectorAll('#asset-report-results .asset-detail-card');
+  cards.forEach(function(card){
+    var hay = card.getAttribute('data-alg-search') || '';
+    card.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+  });
+}
+window.algFilterLedgerHistory = algFilterLedgerHistory;
 
 function runAssetReport(){
   if(!S.selectedAssets || !S.selectedAssets.length){toast('⚠️ Select at least one asset first');return;}
@@ -10815,6 +10873,11 @@ function runAssetReport(){
     </div>
 
     <div class="sec-lbl alg-noprint" style="font-size:13px;margin-top:4px;margin-bottom:8px;">Usage History</div>
+    <div class="alg-noprint" style="margin-bottom:10px;">
+      <input type="text" id="alg-ledger-search" placeholder="🔍 Search by equipment, kit, issue no., student name or ID…"
+             oninput="algFilterLedgerHistory(this.value)"
+             style="width:100%;padding:9px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:12px;font-family:inherit;box-sizing:border-box;"/>
+    </div>
     ${report.matches.map((b,i)=>algLedgerRecordCardHTML(b,i,multi)).join('')}
 
     ${report.notUsed.length ? `
@@ -11483,6 +11546,8 @@ function renderStudents(filter=''){
 
     return `<div class="scard" data-sid="${s.id}" style="${cardBorder}animation-delay:${i*.07}s;">
 
+      ${window.currentRole==='Student' ? '<button class="alg-noprint" onclick="printSingleDRICard(\''+String(s.id).replace(/'/g,"\\'")+'\')" style="float:right;background:#B89B72;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ Print My DRI Record</button>' : ''}
+
       <!-- ── Profile Header ── -->
       <div class="sc-profile-hd">
         <div class="sc-avatar">${initials}</div>
@@ -11613,6 +11678,37 @@ function renderStudents(filter=''){
     }
   });
 }
+
+// ── v80.29 PATCH 4: Single-student DRI print ──────────────────────────────
+// Prints ONLY the one student's DRI card (data-sid match), reusing the exact
+// same clean-popup + window.print() pattern already used by
+// printAnalyticsReport()/printLedgerReport() — no PDF library, no export
+// dependency. Scope is deliberately narrow: it clones just the matching
+// .scard element, so it never touches the Admin/Professor roster view (which
+// never renders this button — see the currentRole==='Student' gate above),
+// never changes DRI data structure/scoring, and doesn't touch any existing
+// export/print function.
+function printSingleDRICard(sid){
+  var cardEl = document.querySelector('.scard[data-sid="' + String(sid).replace(/"/g,'\\"') + '"]');
+  if(!cardEl){ toast('⚠️ Could not find this DRI record to print'); return; }
+  var content = cardEl.cloneNode(true);
+  // Strip the print button itself and any other no-print controls from the clone
+  content.querySelectorAll('.alg-noprint').forEach(function(el){ el.remove(); });
+  var win = window.open('', '_blank', 'width=520,height=760,menubar=yes,toolbar=yes');
+  if(!win){ toast('⚠️ Pop-up blocked — allow pop-ups and try again'); return; }
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
+    + '<title>DRI Record — JSJC</title>'
+    + '<style>'
+    + '*{box-sizing:border-box;}'
+    + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#2E2E2E;padding:20px;}'
+    + '.scard{max-width:480px;margin:0 auto;border:1px solid #E8DED0;border-radius:12px;padding:16px;}'
+    + '@media print{body{padding:0;}@page{margin:12mm;}}'
+    + '</style></head><body>' + content.outerHTML
+    + '<script>window.onload=function(){window.print();}<\/script>'
+    + '</body></html>');
+  win.document.close();
+}
+window.printSingleDRICard = printSingleDRICard;
 
 // Helper: render a single card (used for async re-render after discipline load)
 // Helper: render a single card (temporary fix)
@@ -16432,7 +16528,14 @@ window.fetchAndRenderBookings = async function(unfiltered) {
           if(b.student_id && typeof window.isUuidLike==='function' && !window.isUuidLike(b.student_id)) return b.student_id;
           return '';
         })(),
-        fac           : '',
+        // v80.29 PATCH 2 FIX: was hardcoded '' on every Supabase refetch — since
+        // the bookings table has no fac/location column, fbBadgeText('') always
+        // fell through to its T1 Central Block default, so Film & TV Studio
+        // equipment silently displayed as T1 Central Block everywhere (booking
+        // record, timeline, analytics). Now resolved from the actual equipment/
+        // editing/studio record the booking's own resource_name matches — the
+        // real, non-hardcoded location the user selected.
+        fac           : resolveResourceFacKey(b.resource_category || '', primary),
         location      : '',
         // V80.18 FIX: was hardcoded '' on every Supabase refetch — every b.cat==='Studio Booking'/
         // 'Editing Systems' check in the app (workflow routing, condition dropdown, issue/return
@@ -18715,6 +18818,11 @@ window.doLogin = function(role, name){
       // V55: cat/fac/location/strat are NOT schema columns — kept only as local UI fields
       resource_category: first.resource_category || '',
       cat:               first.resource_category || '', // local UI alias (display only — NOT sent to Supabase)
+      // v80.29 PATCH 2 FIX: was hardcoded '' with no fac at all, so fbBadgeText
+      // defaulted this brand-new booking to T1 Central Block until the next
+      // refetch overwrote it with the (now-fixed) dbRows mapper's resolved
+      // value. Resolved the same way here so it's correct immediately.
+      fac:               resolveResourceFacKey(first.resource_category || '', eqNames[0] || ''),
       location:          '',  // not a verified column; kept for local render compat
       joint_students:    first.joint_students    || null,
       purpose_type:      first.purpose_type      || first.strat    || 'general',
