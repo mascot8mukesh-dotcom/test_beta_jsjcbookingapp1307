@@ -996,6 +996,48 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 .adm-tab .t-ico{font-size:18px;line-height:1;}
 .adm-tab .t-lbl{font-size:7.5px;font-weight:700;letter-spacing:.3px;}
 .adm-tab.active{background:#1e3a8a;color:#fff;box-shadow:0 2px 8px rgba(30,58,138,.25);}
+/* v80.30E — Approval Workflow + Equipment Grouping (additive, matches existing adm-* language) */
+.pc-status-chip{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 9px;font-size:9.5px;font-weight:800;letter-spacing:.2px;white-space:nowrap;}
+.pc-status-Draft{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;}
+.pc-status-Pending{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.pc-status-Approved{background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;}
+.pc-status-ApprovedwithEdits{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;}
+.pc-status-Held{background:#ffedd5;color:#c2410c;border:1px solid #fed7aa;}
+.pc-status-Rejected{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;}
+.pc-status-Withdrawn{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;}
+.pc-group-card{background:#fff;border:1px solid #e8d5c4;border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.pc-group-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 12px;cursor:pointer;}
+.pc-group-title{font-size:12px;font-weight:800;color:#1f2937;}
+.pc-group-count{font-size:9.5px;color:#7b1a1a;font-weight:700;margin-top:2px;}
+.pc-group-caret{font-size:11px;color:#9ca3af;transition:transform .15s;}
+.pc-group-caret.open{transform:rotate(180deg);}
+.pc-group-children{display:none;border-top:1px solid #f1e8dd;background:#fdfaf6;padding:6px 8px;}
+.pc-group-children.open{display:block;}
+.pc-audit-line{font-size:9px;color:#8b7f70;margin-top:6px;line-height:1.6;border-top:1px dashed #eee0d2;padding-top:5px;}
+.pc-audit-line b{color:#5a3a28;}
+.pc-diff-table{width:100%;border-collapse:collapse;margin:8px 0;}
+.pc-diff-table td{font-size:10px;padding:4px 6px;border-bottom:1px solid #f1e8dd;vertical-align:top;}
+.pc-diff-table td.pc-diff-label{color:#8b7f70;font-weight:700;white-space:nowrap;width:32%;}
+.pc-diff-old{color:#dc2626;text-decoration:line-through;opacity:.75;}
+.pc-diff-new{color:#16a34a;font-weight:700;}
+.pc-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:700;align-items:center;justify-content:center;padding:16px;}
+.pc-modal-overlay.open{display:flex;}
+.pc-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.pc-modal-title{font-size:14px;font-weight:800;color:#1f2937;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.pc-modal-actions{display:flex;gap:8px;margin-top:14px;}
+.pc-btn{flex:1;border:none;border-radius:10px;padding:10px 12px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;}
+.pc-btn-approve{background:#16a34a;color:#fff;}
+.pc-btn-edits{background:#1d4ed8;color:#fff;}
+.pc-btn-hold{background:#ea580c;color:#fff;}
+.pc-btn-reject{background:#dc2626;color:#fff;}
+.pc-btn-cancel{background:#f1f5f9;color:#475569;}
+.pc-queue-card{background:#fff;border:1px solid #e8d5c4;border-radius:12px;padding:11px 12px;margin-bottom:10px;}
+.pc-queue-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+.pc-queue-actions button{flex:1;min-width:78px;border:none;border-radius:8px;padding:7px 8px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;}
+@media (min-width:760px){
+  .pc-modal{max-width:560px;}
+  .pc-queue-actions button{flex:none;padding:7px 14px;}
+}
 .adm-item{background:#fff;border-radius:12px;padding:11px 13px;margin-bottom:8px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.07);}
 .adm-item-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .adm-item-name{font-weight:700;font-size:13px;color:#111827;}
@@ -2988,7 +3030,9 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.59</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30K</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.30K &middot; 🐛 CRASH FIX — ReferenceError: esc is not defined in Admin Approvals</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin Approvals tab crashed with <code>ReferenceError: esc is not defined</code> at <code>pcQueueCardHTML()</code> → <code>renderPendingQueueHTML()</code> → <code>renderApprovalsTab()</code>. Approval records existed in Supabase, <code>pending_changes</code> inserts were working, and <code>renderApprovalsTab</code> correctly detected pending count &gt; 0 — the crash fired during the first card render. <strong>Root cause:</strong> <code>esc()</code> (the HTML-escaping helper) was referenced by <code>pcQueueCardHTML</code>, <code>pcOpenHistory</code>, and <code>pcDiffHTML</code> — all of which live inside the <code>&lt;script&gt;</code> block that begins at line 20136 (the Approval Workflow Engine block). That block never defined <code>esc()</code>. Five earlier role-specific IIFE/function blocks each declared their own local <code>esc()</code>, but those are local to their own script scopes and invisible at the module level of the Approval Engine block. <strong>Fix:</strong> added a single module-level <code>function esc(v){…}</code> declaration at the top of the Approval Engine script block, before <code>pcBaseName</code>, so every function in that block can reach it. Identical one-liner to the five copies already present elsewhere; no behaviour change anywhere. <strong>Untouched:</strong> all booking/approval workflow logic, database schema, other script blocks.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.60 &middot; 🗂️ Equipment Grouping · Approval Queue · My Requests</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Task 1 — Equipment Grouping:</strong> <code>admEquipmentListHTML()</code> rewritten so every Brand &amp; Model — including single-kit items — renders as a collapsible <code>pc-group-card</code> (icon · name · "N Kits Available · M Active" header, ▼ caret, expand on tap). Previously single-kit items bypassed the group chrome entirely and rendered as a flat card, making the Admin Equipment list visually inconsistent. Group ID is now stable (no length suffix) so toggling state survives a re-filter. Root cause of prior inconsistency: the <code>if(items.length &lt;= 1) return admEquipmentKitCardHTML(...)</code> early-return. Removed. <strong>Task 2 — Approval Queue UI (Admin):</strong> <code>fetchPendingApprovalQueue()</code> now fetches <code>status=in.(Pending,Held)</code> — previously Held items fell off the Admin queue entirely after being put on hold. <code>renderPendingQueueHTML()</code> replaced with a table-grouped layout (📷 Equipment / 🖥️ Editing Systems / 🎙️ Studios sub-headers), Pending and Held rows separated within each group. New <code>pcQueueCardHTML(r, isHeld)</code> shared renderer: human-friendly field labels in the diff table, orange left-border + "Held by [Admin] · [date]" note on Held cards, Held cards show "✓ Approve Anyway / 🚫 Reject" (not Hold/w-Edits — already held). Badge counter already correctly counted Pending+Held for Admin via the refreshed fetch. <strong>Task 3 — My Requests (Manager):</strong> <code>renderMyRequestsHTML()</code> rewritten: sorted by status priority (Pending → Held → Draft → Approved → Rejected → Withdrawn), colour-coded left-border per status, summary chips (N Pending / N On Hold) in the section header, top-3 proposed fields shown as a preview on each card, Held cards show the Admin's hold note, Approved cards show approver name/date, Rejected cards show rejector name/date. New <code>pcResubmit(id)</code>: Manager can resubmit a Held request (PATCHes status back to Pending, clears reviewed_by/reviewed_at). Resubmit button appears only on Held cards. <strong>Untouched:</strong> booking/approval pipeline, <code>pcApplyToLive()</code>, <code>pcDecide()</code>, all modal plumbing, <code>admEquipmentKitCardHTML()</code>, database schema, RLS policies.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.59 &middot; 🗑️ Manager Feedback Panel Removed from Analytics</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Removed:</strong> the "🌟 Manager Feedback" consolidated panel that appeared above the Single Day / Date Range toggle in Analytics. It was consuming significant screen space. The per-record Student Feedback insight (⭐ Student Feedback box with stars, "Rated by", and descriptive text) inside each individual booking card in the record list is untouched — rating data remains visible there. <strong>Three surgical removals:</strong> (1) the HTML panel (<code>#an2-mgr-feedback-panel</code> + <code>#an2-mgr-feedback-list</code>) from the Analytics screen, (2) the <code>an2ManagerFeedbackHTML(filtered)</code> call from <code>an2ApplyFilters()</code>, (3) the <code>an2ManagerFeedbackHTML()</code> function definition and its <code>window</code> export. <strong>Untouched:</strong> <code>an2EfficiencyInsightHTML()</code>, <code>an2StudentFeedbackInsightHTML()</code>, all analytics calculations, booking workflow, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.58 &middot; ⭐ Rating Scale &amp; Vocabulary Correction — Good=5★, Average=3★, Bad=1★</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> <code>rateManagerEmoji()</code>'s <code>numMap</code> mapped <code>good→3</code>, <code>average→2</code>, <code>bad→1</code>. When a student selected "Good 😃", the stored value was <strong>3</strong> — which then flowed into <code>pipelineRecordHTML()</code>'s <code>starMap[3]='⭐⭐⭐'</code> (Timeline) and <code>an2StudentFeedbackInsightHTML()</code>'s <code>insightMap[3]='satisfactory support'</code> (Analytics/Manager Feedback panel). Everything downstream was correct for its input — the error was entirely in the write-time mapping. <strong>Two surgical changes only:</strong> (1) <code>numMap</code> in <code>rateManagerEmoji()</code> corrected to <code>{bad:1, average:3, good:5}</code> — Good now stores 5, Average stores 3, Bad stores 1. (2) <code>insightMap</code> key 1 text updated in all three category branches of <code>an2StudentFeedbackInsightHTML()</code>: "poor support" → "a disappointing experience" (per spec). <strong>No other changes:</strong> <code>starMap</code> in <code>pipelineRecordHTML()</code> was already correct (maps 5→⭐⭐⭐⭐⭐); <code>ratingColors/ratingBg/ratingBorder</code> already correct (5 is teal/green); <code>an2ManagerFeedbackHTML()</code> stars display already correct; no database schema change; no workflow logic change; no UI redesign; no new tables; no booking completion behaviour change. Existing ratings already stored in Supabase as <code>rating:'good'</code> (the string label) will display correctly on reload — the string label stored there is unchanged; only the local numeric value derived from it changes on new ratings going forward.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #d97706;"><div style="font-size:10px;font-weight:800;color:#d97706;margin-bottom:3px;">v80.57 &middot; &#11088; Student Feedback — Confirmed Below Manager Efficiency, Hardened for Partial Data</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audit finding:</strong> <code>an2StudentFeedbackInsightHTML(b)</code> was already called immediately after <code>an2EfficiencyInsightHTML(b)</code> at both existing call sites — <code>an2BuildRecordHTML()</code> (the per-record Analytics document card) and the new v80.55 <code>an2ManagerFeedbackHTML()</code> panel — so "Student Feedback directly below Manager Efficiency" was already true structurally; no reordering was needed. <strong>What changed:</strong> (1) added a "Rated by &lt;student&gt;" line to the Student Feedback box itself (previously only showed inside the Manager Feedback panel's own header, inconsistently with the per-record card). (2) Hardened for partial/malformed data per spec: a rating with no mappable insight text now shows stars + "Rated by" alone instead of an empty description line; the function now separately checks for rating and for a (currently nonexistent) free-text comment field so a genuine future comment-only case would show the comment alone with no fabricated stars — today's data model only ever writes the rating (<code>rateManagerEmoji()</code> sets <code>managerRating</code>/<code>ratedAt</code> only, no separate comment column), so in practice this still renders exactly as before for every existing booking. (3) Icon changed 🌟→⭐ to match the requested header exactly ("⭐ Student Feedback"). (4) Removed the now-duplicate stars/"Rated by" line from <code>an2ManagerFeedbackHTML()</code>'s own card header, since the shared function supplies it. <strong>Applies uniformly</strong> to Equipment/Studio/Editing via the existing category-aware <code>insightMap</code>, unchanged. <strong>Untouched:</strong> Analytics calculations, Timeline logic, cancellation flow, denial flow, booking workflow, database schema.</div></div>
@@ -3735,6 +3779,7 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
         <button class="adm-tab active" id="admtab-equipment"   onclick="setAdminTab('equipment',this)"><span class="t-ico">📷</span><span class="t-lbl">Equipment</span></button>
         <button class="adm-tab" id="admtab-editing"     onclick="setAdminTab('editing',this)"><span class="t-ico">🖥️</span><span class="t-lbl">Editing</span></button>
         <button class="adm-tab" id="admtab-studio"      onclick="setAdminTab('studio',this)"><span class="t-ico">🎙️</span><span class="t-lbl">Studios</span></button>
+        <button class="adm-tab" id="admtab-approvals" onclick="setAdminTab('approvals',this)" style="position:relative;"><span class="t-ico">✅</span><span class="t-lbl" id="admtab-approvals-lbl">Approvals</span><span id="admtab-approvals-badge" style="display:none;position:absolute;top:2px;right:6px;background:#dc2626;color:#fff;border-radius:20px;font-size:8px;font-weight:800;padding:1px 5px;min-width:14px;">0</span></button>
         <button class="adm-tab" id="admtab-students"    onclick="setAdminTab('students',this)"><span class="t-ico">🎓</span><span class="t-lbl">Students</span></button>
         <button class="adm-tab" id="admtab-professors"  onclick="setAdminTab('professors',this)"><span class="t-ico">👨‍🏫</span><span class="t-lbl">Faculty</span></button>
         <button class="adm-tab" id="admtab-managers"    onclick="setAdminTab('managers',this)"><span class="t-ico">🛠️</span><span class="t-lbl">Managers</span></button>
@@ -3742,10 +3787,65 @@ ALTER TABLE bookings ADD CONSTRAINT chk_joint_students_json
         <button class="adm-tab" id="admtab-bookings"    onclick="setAdminTab('bookings',this)"><span class="t-ico">📅</span><span class="t-lbl">Bookings</span></button>
         <button class="adm-tab" id="admtab-password"    onclick="setAdminTab('password',this)"><span class="t-ico">🔑</span><span class="t-lbl">Password</span></button>
       </div>
-      <div id="admin-manager-note" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:10.5px;color:#1e40af;">ℹ️ As Studio Manager you can add new Equipment, Editing Systems, and Studios, and view the full inventory. Removing entries is restricted to Admin.</div>
+      <div id="admin-manager-note" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:10.5px;color:#1e40af;">ℹ️ As Studio Manager, additions and edits to Equipment, Editing Systems, and Studios are submitted to Admin for approval before they go live — track them under the <strong>My Requests</strong> tab. Removing entries is restricted to Admin.</div>
 
       <!-- Dynamic content area -->
       <div id="admin-panel-content"></div>
+    </div>
+
+    <!-- v80.30E: Approval workflow modals (Approve with Edits / Hold / Reject) — same overlay
+         pattern as #admin-pin-overlay, kept in the DOM once and populated/opened per-record -->
+    <div class="pc-modal-overlay" id="pc-edits-overlay">
+      <div class="pc-modal">
+        <div class="pc-modal-title">✏️ Approve with Edits</div>
+        <div style="font-size:10.5px;color:#6b7280;margin-bottom:10px;">Review and adjust the Manager's submission before it goes live. Fields left as-is use the Manager's proposed value.</div>
+        <div id="pc-edits-fields"></div>
+        <div style="font-size:10px;font-weight:700;color:#6b7280;margin:8px 0 4px;">Note to Manager (optional)</div>
+        <textarea class="finput" id="pc-edits-note" rows="2" style="resize:vertical;" placeholder="e.g. Corrected the kit number to match the label on the case"></textarea>
+        <div class="pc-modal-actions">
+          <button class="pc-btn pc-btn-cancel" onclick="pcCloseModal('pc-edits-overlay')">Cancel</button>
+          <button class="pc-btn pc-btn-edits" onclick="pcSubmitEdits()">✅ Save &amp; Approve</button>
+        </div>
+      </div>
+    </div>
+    <div class="pc-modal-overlay" id="pc-hold-overlay">
+      <div class="pc-modal">
+        <div class="pc-modal-title">⏸️ Hold Request</div>
+        <div style="font-size:10.5px;color:#6b7280;margin-bottom:10px;">The request stays visible to the Manager as Held, with your note, until you Approve or Reject it later. Nothing is written to the live inventory.</div>
+        <textarea class="finput" id="pc-hold-note" rows="3" style="resize:vertical;" placeholder="e.g. Need to confirm serial number with you before this goes live"></textarea>
+        <div class="pc-modal-actions">
+          <button class="pc-btn pc-btn-cancel" onclick="pcCloseModal('pc-hold-overlay')">Cancel</button>
+          <button class="pc-btn pc-btn-hold" onclick="pcSubmitHold()">⏸️ Hold</button>
+        </div>
+      </div>
+    </div>
+    <div class="pc-modal-overlay" id="pc-reject-overlay">
+      <div class="pc-modal">
+        <div class="pc-modal-title">🚫 Reject Request</div>
+        <div style="font-size:10.5px;color:#6b7280;margin-bottom:10px;">The Manager will see this request marked Rejected with your reason. Nothing is written to the live inventory.</div>
+        <textarea class="finput" id="pc-reject-note" rows="3" style="resize:vertical;" placeholder="e.g. Duplicate of an existing kit already in inventory"></textarea>
+        <div class="pc-modal-actions">
+          <button class="pc-btn pc-btn-cancel" onclick="pcCloseModal('pc-reject-overlay')">Cancel</button>
+          <button class="pc-btn pc-btn-reject" onclick="pcSubmitReject()">🚫 Reject</button>
+        </div>
+      </div>
+    </div>
+    <div class="pc-modal-overlay" id="pc-history-overlay">
+      <div class="pc-modal">
+        <div class="pc-modal-title">🕘 Approval History</div>
+        <div id="pc-history-body"></div>
+        <div class="pc-modal-actions"><button class="pc-btn pc-btn-cancel" onclick="pcCloseModal('pc-history-overlay')">Close</button></div>
+      </div>
+    </div>
+    <div class="pc-modal-overlay" id="pc-editrec-overlay">
+      <div class="pc-modal">
+        <div class="pc-modal-title" id="pc-editrec-title">✏️ Edit Record</div>
+        <div id="pc-editrec-fields"></div>
+        <div class="pc-modal-actions">
+          <button class="pc-btn pc-btn-cancel" onclick="pcCloseModal('pc-editrec-overlay')">Cancel</button>
+          <button class="pc-btn pc-btn-edits" id="pc-editrec-submit" onclick="pcSubmitEditRecord()">Save</button>
+        </div>
+      </div>
     </div>
 
   </div><!-- /screens -->
@@ -4673,6 +4773,14 @@ function applyRoleUI(role){
     if(resetReportsBtn) resetReportsBtn.style.display='';
     if(heroSub)   heroSub.textContent   = 'Admin Control Panel';
     if(heroBadge) heroBadge.textContent = 'MASTER ACCESS';
+  }
+  // v80.30E: Approvals tab reads either as "My Requests" (Manager) or
+  // "Pending Approvals" (Admin) — same tab, role-appropriate content and label,
+  // so nothing new appears in the nav for either role, per "extend, don't redesign."
+  var pcTabLbl = document.getElementById('admtab-approvals-lbl');
+  if(pcTabLbl) pcTabLbl.textContent = (role === 'Studio Manager') ? 'My Requests' : 'Approvals';
+  if(role === 'Studio Manager' || role === 'Admin'){
+    if(typeof refreshApprovalsBadge === 'function') refreshApprovalsBadge();
   }
 
   // Facility selector: students see inferred location, others see selector
@@ -13463,6 +13571,10 @@ async function setAdminTab(tab, el){
       break;
     case 'bookings':  c.innerHTML=renderAdminBookings();break;
     case 'assignments':c.innerHTML=renderAdminAssignments();break;
+    case 'approvals':
+      c.innerHTML='<div style="text-align:center;padding:20px;color:#9ca3af;font-size:11px;">Loading approval workflow…</div>';
+      await renderApprovalsTab(c);
+      break;
     case 'password':
       c.innerHTML='<div style="text-align:center;padding:20px;color:#9ca3af;font-size:11px;">Loading PIN history…</div>';
       await admFetchPinHistory();
@@ -13481,6 +13593,14 @@ function admDelBtn(onclick){
 function admApproveBtn(onclick){
   return `<button class="adm-del-btn" style="background:#dcfce7;color:#16a34a;" onclick='${onclick}'>✓ Approve</button>`;
 }
+// v80.30E: Manager gets an Edit button (routes through pending_changes); Admin gets the
+// same button but edits go live immediately — same pattern admDelBtn already uses to
+// branch UI by role, just for editing instead of removing.
+function admEditBtn(table, id, idx){
+  var label = (window.currentRole === 'Studio Manager') ? '✏️ Request Edit' : '✏️ Edit';
+  return `<button class="adm-del-btn" style="background:#eff6ff;color:#1e40af;" onclick="pcOpenEditRecord('${table}','${id}',${idx})">${label}</button>`;
+}
+window.admEditBtn = admEditBtn;
 // V80.19: traceability log for resource additions — Added By / Date & Time / Resource
 // Type / Resource Name. Persisted to localStorage (survives refresh/session) and
 // best-effort mirrored to Supabase's resource_audit_log table if one exists — silent
@@ -13596,21 +13716,73 @@ function renderAdminEquipment(){
 // v80.36: card list extracted so admFilterEquipmentList() can re-render just
 // this part on every keystroke/dropdown change, without touching the Add
 // Equipment form above it (which would lose whatever the Admin was mid-typing).
+// v80.30E: cards now group by Brand & Model (same " – " split the rest of the
+// app already uses for kit grouping — see v80.28A journal entry) instead of
+// listing every kit as its own flat card. A single-kit item (no " – " suffix,
+// or only one kit under that base name) still renders as a plain card with no
+// group chrome, so nothing changes visually for equipment that was never a
+// multi-kit family to begin with.
 function admEquipmentListHTML(list){
+  // v80.60: every Brand & Model — including single-kit items — renders as a
+  // collapsible group card. Consistent expand/collapse for all equipment.
   if(!list.length) return '<div style="text-align:center;padding:22px 10px;color:#9ca3af;font-size:11px;">No equipment matches this search/filter.</div>';
-  return list.map(function(e){
-    var i = adminData.equipment.indexOf(e); // real index into the unfiltered array, for delete
-    return `
-    <div class="adm-item">
+  var groups = {}; var order = [];
+  list.forEach(function(e){
+    var base = (typeof pcBaseName==='function') ? pcBaseName(e.name) : e.name;
+    if(base==null || base==='') base = e.name || 'Unnamed Equipment';
+    if(!groups[base]){ groups[base]=[]; order.push(base); }
+    groups[base].push(e);
+  });
+  return order.map(function(base){
+    var items = groups[base];
+    // Stable gid — not length-dependent so toggling survives re-filter
+    var gid = 'pcg-' + base.replace(/[^a-z0-9]/gi,'_').slice(0,40);
+    var repIcon = EQUIPMENT_CATEGORY_ICONS[items[0].itemCategory] || items[0].icon || '📷';
+    var kitLabel = items.length === 1 ? '1 Kit' : items.length + ' Kits Available';
+    var activeCount = items.filter(function(e){ return !e.status || e.status === 'Active'; }).length;
+    var availLabel = activeCount < items.length ? ' &middot; ' + activeCount + ' Active' : '';
+    return '<div class="pc-group-card">'
+      + '<div class="pc-group-hd" onclick="pcToggleGroup(\'' + gid + '\')">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div class="pc-group-title">' + repIcon + ' ' + String(base==null?'':base).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>'
+      + '<div class="pc-group-count">' + kitLabel + availLabel + '</div>'
+      + '</div>'
+      + '<div class="pc-group-caret" id="' + gid + '-caret">▼</div>'
+      + '</div>'
+      + '<div class="pc-group-children" id="' + gid + '">'
+      + items.map(function(e){ return admEquipmentKitCardHTML(e, false); }).join('')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+function pcToggleGroup(gid){
+  var body = document.getElementById(gid);
+  var caret = document.getElementById(gid+'-caret');
+  if(!body) return;
+  var open = body.classList.toggle('open');
+  if(caret) caret.classList.toggle('open', open);
+}
+window.pcToggleGroup = pcToggleGroup;
+// Single-kit card, reused both standalone and inside an expanded group —
+// unchanged from the original per-kit content, plus the audit line and the
+// new role-aware Edit button.
+function admEquipmentKitCardHTML(e, standalone){
+  var i = adminData.equipment.indexOf(e); // real index into the unfiltered array, for delete/edit
+  return `
+    <div class="adm-item" style="${standalone?'':'margin:0 0 6px;'}">
       <div class="adm-item-hd">
         <div><div class="adm-item-name">${(EQUIPMENT_CATEGORY_ICONS[e.itemCategory] || e.icon || '📷')} ${e.name}</div><div class="adm-item-sub">${e.itemCategory?e.itemCategory+' · ':''}${e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film} · <span style="color:${e.status==='Active'?'#16a34a':e.status==='Maintenance'?'#ea580c':'#6b7280'}">${e.status}</span></div>
         ${e.kitContents?`<div style="font-size:9.5px;color:#374151;margin-top:5px;">🎒 <strong>Contains:</strong> ${e.kitContents}</div>`:''}
-        ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}</div>
-        ${admDelBtn(`admDeleteEquipment(${i})`)}
+        ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}
+        ${typeof pcAuditLineHTML==='function' ? pcAuditLineHTML(e) : ''}</div>
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+          ${typeof admEditBtn==='function' ? admEditBtn('equipment', e.id||'', i) : ''}
+          ${admDelBtn(`admDeleteEquipment(${i})`)}
+        </div>
       </div>
     </div>`;
-  }).join('');
 }
+window.admEquipmentKitCardHTML = admEquipmentKitCardHTML;
 function admFilterEquipmentList(){
   var qEl = document.getElementById('adm-eq-search');
   var catEl = document.getElementById('adm-eq-filter-cat');
@@ -13705,8 +13877,12 @@ function renderAdminEditing(){
       <div class="adm-item-hd">
         <div><div class="adm-item-name">${e.icon||'🖥️'} ${e.name}</div><div class="adm-item-sub">${e.location||(e.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film)} · ${e.os}</div>
         ${e.software?`<div style="font-size:9.5px;color:#374151;margin-top:5px;">💿 <strong>Software:</strong> ${e.software}</div>`:''}
-        ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}</div>
-        ${admDelBtn(`admDeleteEditing(${i})`)}
+        ${e.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${e.note}</div>`:''}
+        ${typeof pcAuditLineHTML==='function' ? pcAuditLineHTML(e) : ''}</div>
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+          ${typeof admEditBtn==='function' ? admEditBtn('systems', e.id||'', i) : ''}
+          ${admDelBtn(`admDeleteEditing(${i})`)}
+        </div>
       </div>
     </div>`).join('')}`;
 }
@@ -13781,8 +13957,12 @@ function renderAdminStudios(){
     <div class="adm-item">
       <div class="adm-item-hd">
         <div><div class="adm-item-name">${s.icon||'🎙️'} ${s.name}</div><div class="adm-item-sub">${s.location||(s.fac==='T1 Central'?adminData.facilityLabels.t1:adminData.facilityLabels.film)} · ${s.type} · Capacity: ${s.capacity}</div>
-        ${s.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${s.note}</div>`:''}</div>
-        ${admDelBtn(`admDeleteStudio(${i})`)}
+        ${s.note?`<div style="font-size:9.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:4px 7px;margin-top:5px;">🔒 <strong>Manager Note:</strong> ${s.note}</div>`:''}
+        ${typeof pcAuditLineHTML==='function' ? pcAuditLineHTML(s) : ''}</div>
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+          ${typeof admEditBtn==='function' ? admEditBtn('studios', s.id||'', i) : ''}
+          ${admDelBtn(`admDeleteStudio(${i})`)}
+        </div>
       </div>
     </div>`).join('')}`;
 }
@@ -14514,6 +14694,14 @@ function admAddEquipment(){
   const category=document.getElementById('adm-eq-cat').value;
   const icon=(document.getElementById('adm-eq-icon')||{}).value || EQUIPMENT_CATEGORY_ICONS[category] || '📷';
   if(!name){toast('⚠️ Enter Brand & Model');return;}
+  // v80.30E: Studio Manager submissions no longer touch adminData/Supabase
+  // directly — they're routed into pending_changes for Admin review. Admin's
+  // own path below is completely unchanged (still goes live immediately, per
+  // the business model: Admin has direct CRUD, Manager submits requests only).
+  if(window.currentRole === 'Studio Manager' && typeof pcSubmitEquipmentBatch === 'function'){
+    pcSubmitEquipmentBatch(name, category, icon);
+    return;
+  }
   // V80.21: Brand & Model + Category are entered once and apply to every kit
   // block below — this is what lets a manager add multiple kits of the same
   // item without retyping the shared fields each time.
@@ -14536,7 +14724,14 @@ function admAddEquipment(){
     // and sending unknown fields would 400 the whole insert (same PGRST204 class of
     // bug fixed in earlier versions). See the v80.20 journal entry for the ALTER
     // TABLE SQL to run if you want these persisted server-side/cross-device too.
-    adminData.equipment.push({id,name:fullName,fac,cat:'Equipment',itemCategory:category,kitContents,status,icon,note});
+    // v80.30E audit fields: Admin's direct-add path stamps Created By/On immediately
+    // (this record went live with no approval step, so Admin is both creator and approver
+    // of record — reflected below). cacheEqLocalExtra persists these the same way
+    // itemCategory/kitContents/note already do, since there's no matching Supabase column.
+    var _pcNow = new Date().toISOString();
+    adminData.equipment.push({id,name:fullName,fac,cat:'Equipment',itemCategory:category,kitContents,status,icon,note,
+      createdBy: window.currentUser||'Admin', createdOn: _pcNow, modifiedBy:'', modifiedOn:'',
+      approvedBy: window.currentUser||'Admin', approvedOn: _pcNow});
     const facKey=fac==='T1 Central'?'t1':'film';
     if(!kitDB[facKey]['Equipment'])kitDB[facKey]['Equipment']=[];
     kitDB[facKey]['Equipment'].push(fullName);
@@ -14555,7 +14750,7 @@ function admAddEquipment(){
     // (see cacheEqLocalExtra below) so they at least survive same-session
     // refetches; ALTER TABLE SQL for those two is in this changelog entry
     // if permanent cross-device persistence of them is wanted too.
-    cacheEqLocalExtra(fullName, {itemCategory:category, kitContents, note});
+    cacheEqLocalExtra(fullName, {itemCategory:category, kitContents, note, createdBy:_pcNow&&(window.currentUser||'Admin'), createdOn:_pcNow, approvedBy:window.currentUser||'Admin', approvedOn:_pcNow});
     if(typeof window.addSupaEquipment==='function'){
       // v80.26.1: equipment_type is now a confirmed live column — send it so
       // the type badge survives a cross-device refetch via rebuildKitDBFromSupabase.
@@ -14613,6 +14808,11 @@ function admAddEditing(){
   const fac = locMatch ? locMatch[1] : 'T1 Central';
   const os=document.getElementById('adm-ed-os').value;
   const icon=(document.getElementById('adm-ed-icon')||{}).value || (os==='Windows'?'🪟':'🍎');
+  // v80.30E: same Manager→pending_changes routing as Equipment above.
+  if(window.currentRole === 'Studio Manager' && typeof pcSubmitEditingBatch === 'function'){
+    pcSubmitEditingBatch(location, fac, os, icon);
+    return;
+  }
   // V80.21: OS + Location are entered once and apply to every system block below.
   var blocks = document.querySelectorAll('#adm-ed-sys-blocks .adm-sys-block');
   var addedNames = [];
@@ -14625,7 +14825,9 @@ function admAddEditing(){
     const fullName = suite ? name + ' – ' + suite : name;
     // V80.20: location/software are new fields, stored locally (see equipment note
     // above re: not sending unmapped columns to Supabase to avoid a 400 on insert).
-    adminData.editing.push({id:adminData.editing.length+1,name:fullName,fac,location,seats:1,os,software,icon,note});
+    var _pcNow = new Date().toISOString();
+    adminData.editing.push({id:adminData.editing.length+1,name:fullName,fac,location,seats:1,os,software,icon,note,
+      createdBy:window.currentUser||'Admin', createdOn:_pcNow, modifiedBy:'', modifiedOn:'', approvedBy:window.currentUser||'Admin', approvedOn:_pcNow});
     const facKey=fac==='T1 Central'?'t1':'film';
     if(!kitDB[facKey]['Editing Systems'])kitDB[facKey]['Editing Systems']=[];
     kitDB[facKey]['Editing Systems'].push(fullName);
@@ -14684,9 +14886,16 @@ function admAddStudio(){
   const icon=(document.getElementById('adm-st-icon')||{}).value || STUDIO_PURPOSE_ICONS[purpose] || '🎙️';
   const note=(document.getElementById('adm-st-note')||{}).value.trim()||'';
   if(!name){toast('⚠️ Enter studio name');return;}
+  // v80.30E: same Manager→pending_changes routing as Equipment/Editing above.
+  if(window.currentRole === 'Studio Manager' && typeof pcSubmitStudioBatch === 'function'){
+    pcSubmitStudioBatch(name, purpose, location, fac, cap, type, icon, note);
+    return;
+  }
   // V80.20: purpose/location are new fields, stored locally (see equipment note
   // above re: not sending unmapped columns to Supabase to avoid a 400 on insert).
-  adminData.studios.push({id:adminData.studios.length+1,name,fac,location,purpose,capacity:cap,type,icon,note});
+  var _pcNow = new Date().toISOString();
+  adminData.studios.push({id:adminData.studios.length+1,name,fac,location,purpose,capacity:cap,type,icon,note,
+    createdBy:window.currentUser||'Admin', createdOn:_pcNow, modifiedBy:'', modifiedOn:'', approvedBy:window.currentUser||'Admin', approvedOn:_pcNow});
   const facKey=fac==='T1 Central'?'t1':'film';
   if(!kitDB[facKey]['Studio Booking'])kitDB[facKey]['Studio Booking']=[];
   kitDB[facKey]['Studio Booking'].push(name);
@@ -19440,7 +19649,17 @@ function rebuildKitDBFromSupabase() {
         // Confirmed live column is manager_note (not "note") — read that
         // back first, falling back to local-extras for rows saved before
         // this was wired, then the old wrong key just in case.
-        note: e.manager_note || extra.note || e.note || ''
+        note: e.manager_note || extra.note || e.note || '',
+        // v80.30E: audit fields have no matching Supabase columns yet (same class
+        // of gap as itemCategory/note above) — restored from the local-extras
+        // cache so Created/Modified/Approved By/On survive a same-session refetch;
+        // a genuinely cross-device audit trail needs matching columns added later.
+        createdBy: extra.createdBy || e.createdBy || '',
+        createdOn: extra.createdOn || e.createdOn || '',
+        modifiedBy: extra.modifiedBy || e.modifiedBy || '',
+        modifiedOn: extra.modifiedOn || e.modifiedOn || '',
+        approvedBy: extra.approvedBy || e.approvedBy || '',
+        approvedOn: extra.approvedOn || e.approvedOn || ''
       });
     });
     // V80.26.8W2: software/note already get mapped from specifications/
@@ -19913,6 +20132,724 @@ window.appPrompt = function(message, defaultValue, opts){
     input.onkeydown = function(e){ if(e.key==='Enter'){ cleanup(input.value); } };
   });
 };
+</script>
+
+<script>
+/* ======================================================================
+   v80.30E — APPROVAL WORKFLOW ENGINE
+   Additive only. Uses the already-created pending_changes / change_approval_log
+   Supabase tables. No Supabase Auth (per explicit instruction) — identity is
+   the same client-side window.currentUser/currentRole this app already uses
+   everywhere else (admin_pin_layers gate). Reads/writes go through the same
+   raw fetch()+SUPABASE_URL+HEADERS pattern as every other Supabase call in
+   this file — nothing new introduced architecturally.
+   ====================================================================== */
+
+// ---- shared helpers -----------------------------------------------------
+// v80.30K: esc() was referenced by pcQueueCardHTML, pcOpenHistory and
+// pcDiffHTML but was never defined in THIS script block — it exists only
+// inside the earlier role-specific IIFE blocks (Student/Professor/Manager/
+// Analytics), each of which declared their own local copy. Those local
+// copies are invisible here at module scope, causing a ReferenceError
+// ("esc is not defined") the moment renderApprovalsTab() tried to build
+// its first queue card. Fix: declare a module-level copy here, before any
+// function in this block that calls it.
+function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Same Brand & Model splitter the rest of the app already standardised on
+// for kit grouping (see v80.28A journal entry) — reused here so equipment
+// groups in Admin/Manager match the same families students see in booking.
+function pcBaseName(name){
+  if(!name) return name;
+  var parts = String(name).split(' – ');
+  return parts[0].trim();
+}
+window.pcBaseName = pcBaseName;
+
+function pcNow(){ return new Date().toISOString(); }
+function pcActorName(){ return window.currentUser || window.currentRole || 'Unknown'; }
+
+// v80.30J: pending_changes.status has a DB check constraint allowing only
+// draft/pending/approved/approved_with_edits/held/rejected/withdrawn (lowercase,
+// underscored) — but every comparison/display in this file uses the capitalized
+// labels below. Rather than touch every r.status==='Pending' style check across
+// this engine, normalize once at the write boundary (label -> db) and once at
+// the read boundary (db -> label) so the rest of the code needs zero changes.
+var PC_STATUS_TO_DB = {
+  'Draft':'draft', 'Pending':'pending', 'Approved':'approved',
+  'Approved with Edits':'approved_with_edits', 'Held':'held',
+  'Rejected':'rejected', 'Withdrawn':'withdrawn'
+};
+var PC_STATUS_FROM_DB = {
+  draft:'Draft', pending:'Pending', approved:'Approved',
+  approved_with_edits:'Approved with Edits', held:'Held',
+  rejected:'Rejected', withdrawn:'Withdrawn'
+};
+function pcStatusToDb(label){ return PC_STATUS_TO_DB[label] || String(label||'').toLowerCase(); }
+function pcStatusFromDb(dbVal){ return PC_STATUS_FROM_DB[dbVal] || dbVal; }
+// Applied to every array of rows fetched from pending_changes so downstream
+// code keeps seeing the capitalized labels it already expects.
+function pcNormalizeRows(rows){
+  (rows||[]).forEach(function(r){ if(r && r.status) r.status = pcStatusFromDb(r.status); });
+  return rows;
+}
+window.pcStatusToDb = pcStatusToDb;
+window.pcStatusFromDb = pcStatusFromDb;
+
+function pcStatusClass(status){ return 'pc-status-' + String(status||'').replace(/\s+/g,''); }
+function pcStatusChipHTML(status){
+  return '<span class="pc-status-chip ' + pcStatusClass(status) + '">' + (status||'Pending') + '</span>';
+}
+
+// table registry — maps the workflow's generic 'target_table' key to this
+// app's actual local arrays/kitDB buckets/Supabase endpoints, so the rest of
+// this engine can stay table-agnostic instead of re-branching everywhere.
+var PC_TABLES = {
+  equipment: { local: function(){ return adminData.equipment; }, supa: 'equipment', label: 'Equipment', kitBucket: 'Equipment' },
+  systems:   { local: function(){ return adminData.editing; },   supa: 'systems',   label: 'Editing System', kitBucket: 'Editing Systems' },
+  studios:   { local: function(){ return adminData.studios; },   supa: 'studios',   label: 'Studio', kitBucket: 'Studio Booking' }
+};
+
+// ---- audit line, shown on every Equipment/Editing/Studio card -----------
+function pcAuditLineHTML(rec){
+  if(!rec) return '';
+  var lines = [];
+  if(rec.createdBy)  lines.push('<b>Created:</b> ' + rec.createdBy + (rec.createdOn ? ' · ' + pcFmtDate(rec.createdOn) : ''));
+  if(rec.modifiedBy) lines.push('<b>Last Modified:</b> ' + rec.modifiedBy + (rec.modifiedOn ? ' · ' + pcFmtDate(rec.modifiedOn) : ''));
+  if(rec.approvedBy) lines.push('<b>Approved:</b> ' + rec.approvedBy + (rec.approvedOn ? ' · ' + pcFmtDate(rec.approvedOn) : ''));
+  if(!lines.length) return '';
+  var histBtn = rec.id ? ' <a href="javascript:void(0)" onclick="pcOpenHistory(\'' + (rec._pcTable||'') + '\',\'' + rec.id + '\',\'' + encodeURIComponent(rec.name||'') + '\')" style="color:#1d4ed8;font-weight:700;text-decoration:none;">🕘 View History</a>' : '';
+  return '<div class="pc-audit-line">' + lines.join('<br>') + histBtn + '</div>';
+}
+window.pcAuditLineHTML = pcAuditLineHTML;
+function pcFmtDate(iso){
+  try{ var d = new Date(iso); return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return iso; }
+}
+
+// ---- submit: pending_changes INSERT (Manager side) -----------------------
+async function submitPendingChange(targetTable, action, targetId, proposedData, currentSnapshot){
+  try{
+    // v80.30I: submitted_by is a UUID column, but this app has no Supabase Auth —
+    // there is no real UUID for the logged-in user, only a plain-text name
+    // (window.currentUser). Writing that name into a uuid column throws
+    // "invalid input syntax for type uuid". Fix: leave submitted_by out of the
+    // insert (stays null — a valid uuid value) and carry the human name inside
+    // proposed_data instead, which is jsonb and has no type constraint.
+    var proposedWithActor = Object.assign({}, proposedData, { _submittedByName: pcActorName() });
+    var body = {
+      target_table: targetTable,
+      target_id: targetId ? String(targetId) : null,
+      change_type: action,
+      proposed_data: proposedWithActor,
+      current_data: currentSnapshot || null,
+      status: pcStatusToDb('Pending')
+    };
+    var res = await fetch(SUPABASE_URL + '/rest/v1/pending_changes', {
+      method:'POST',
+      headers: Object.assign({}, HEADERS, {'Content-Type':'application/json', Prefer:'return=representation'}),
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){ var t = await res.text(); console.warn('[v80.30E] pending_changes insert failed:', t); toast('⚠️ Could not submit request — check connection'); return null; }
+    var rows = await res.json();
+    return rows && rows[0];
+  }catch(err){
+    console.warn('[v80.30E] submitPendingChange error:', err);
+    toast('⚠️ Could not submit request — check connection');
+    return null;
+  }
+}
+
+// Reads the submitter's name back out of proposed_data (see submitPendingChange
+// above) since pending_changes.submitted_by is a UUID column this app can't
+// populate. Falls back to the raw column in case it's ever populated for real.
+function pcSubmittedByName(r){
+  var pd = (r && r.proposed_data) || {};
+  return pd._submittedByName || r.submitted_by || 'Unknown';
+}
+window.pcSubmittedByName = pcSubmittedByName;
+
+// Equipment: one form submission can contain several kit blocks — each kit
+// becomes its own pending_changes row (mirrors how admAddEquipment() already
+// pushes one adminData.equipment row per kit block on the Admin path).
+async function pcSubmitEquipmentBatch(name, category, icon){
+  var blocks = document.querySelectorAll('#adm-eq-kit-blocks .adm-kit-block');
+  var submitted = 0;
+  for(var bi=0; bi<blocks.length; bi++){
+    var block = blocks[bi];
+    var kit = (block.querySelector('.adm-eq-kit')||{}).value.trim();
+    var fac = (block.querySelector('.adm-eq-fac')||{}).value || 'T1 Central';
+    var status = (block.querySelector('.adm-eq-status')||{}).value || 'Active';
+    var kitContents = (block.querySelector('.adm-eq-kitcontents')||{}).value.trim()||'';
+    var note = (block.querySelector('.adm-eq-note')||{}).value.trim()||'';
+    if(bi>0 && !kit && !kitContents && !note) continue;
+    var fullName = kit ? name + ' – ' + kit : name;
+    var proposed = { name: fullName, baseName: name, kitNumber: kit, fac: fac, itemCategory: category, kitContents: kitContents, status: status, icon: icon, note: note };
+    var row = await submitPendingChange('equipment', 'create', null, proposed, null);
+    if(row) submitted++;
+  }
+  if(!submitted){ toast('⚠️ Nothing to submit'); return; }
+  toast('📝 Submitted ' + submitted + ' kit(s) for Admin approval — track under My Requests');
+  logResourceAudit('Equipment (Pending)', name);
+  setAdminTab('equipment', document.querySelectorAll('.adm-tab')[0]);
+  if(typeof refreshApprovalsBadge === 'function') refreshApprovalsBadge();
+}
+window.pcSubmitEquipmentBatch = pcSubmitEquipmentBatch;
+
+async function pcSubmitEditingBatch(location, fac, os, icon){
+  var blocks = document.querySelectorAll('#adm-ed-sys-blocks .adm-sys-block');
+  var submitted = 0;
+  for(var bi=0; bi<blocks.length; bi++){
+    var block = blocks[bi];
+    var name = (block.querySelector('.adm-ed-name')||{}).value.trim();
+    if(!name) continue;
+    var suite = (block.querySelector('.adm-ed-suite')||{}).value.trim();
+    var software = (block.querySelector('.adm-ed-software')||{}).value.trim()||'';
+    var note = (block.querySelector('.adm-ed-note')||{}).value.trim()||'';
+    var fullName = suite ? name + ' – ' + suite : name;
+    var proposed = { name: fullName, fac: fac, location: location, os: os, software: software, icon: icon, note: note, seats: 1 };
+    var row = await submitPendingChange('systems', 'create', null, proposed, null);
+    if(row) submitted++;
+  }
+  if(!submitted){ toast('⚠️ Enter at least one system name'); return; }
+  toast('📝 Submitted ' + submitted + ' system(s) for Admin approval — track under My Requests');
+  logResourceAudit('Editing System (Pending)', location);
+  setAdminTab('editing', document.querySelectorAll('.adm-tab')[1]);
+  if(typeof refreshApprovalsBadge === 'function') refreshApprovalsBadge();
+}
+window.pcSubmitEditingBatch = pcSubmitEditingBatch;
+
+async function pcSubmitStudioBatch(name, purpose, location, fac, cap, type, icon, note){
+  if(!name){ toast('⚠️ Enter studio name'); return; }
+  var proposed = { name: name, fac: fac, location: location, purpose: purpose, capacity: cap, type: type, icon: icon, note: note };
+  var row = await submitPendingChange('studios', 'create', null, proposed, null);
+  if(!row){ return; }
+  toast('📝 Submitted for Admin approval — track under My Requests');
+  logResourceAudit('Studio (Pending)', name);
+  setAdminTab('studio', document.querySelectorAll('.adm-tab')[2]);
+  if(typeof refreshApprovalsBadge === 'function') refreshApprovalsBadge();
+}
+window.pcSubmitStudioBatch = pcSubmitStudioBatch;
+
+// ---- fetch queues ----------------------------------------------------
+async function fetchMyPendingChanges(){
+  try{
+    var url = SUPABASE_URL + '/rest/v1/pending_changes?proposed_data->>_submittedByName=eq.' + encodeURIComponent(pcActorName()) + '&order=submitted_at.desc';
+    var res = await fetch(url, { headers: HEADERS });
+    if(!res.ok) return [];
+    return pcNormalizeRows(await res.json());
+  }catch(e){ console.warn('[v80.30E] fetchMyPendingChanges error:', e); return []; }
+}
+async function fetchPendingApprovalQueue(){
+  try{
+    // v80.60: fetch Pending AND Held so Admin sees all outstanding requests in one queue
+    var url = SUPABASE_URL + '/rest/v1/pending_changes?status=in.(' + pcStatusToDb('Pending') + ',' + pcStatusToDb('Held') + ')&order=submitted_at.asc';
+    var res = await fetch(url, { headers: HEADERS });
+    if(!res.ok) return [];
+    return pcNormalizeRows(await res.json());
+  }catch(e){ console.warn('[v80.60] fetchPendingApprovalQueue error:', e); return []; }
+}
+async function fetchAllMyOrAllPendingChanges(){
+  // used by the badge counter + Held/history views — broader than just 'Pending'
+  try{
+    var url = (window.currentRole === 'Studio Manager')
+      ? SUPABASE_URL + '/rest/v1/pending_changes?proposed_data->>_submittedByName=eq.' + encodeURIComponent(pcActorName()) + '&order=submitted_at.desc'
+      : SUPABASE_URL + '/rest/v1/pending_changes?order=submitted_at.desc';
+    var res = await fetch(url, { headers: HEADERS });
+    if(!res.ok) return [];
+    return pcNormalizeRows(await res.json());
+  }catch(e){ return []; }
+}
+
+async function refreshApprovalsBadge(){
+  var badge = document.getElementById('admtab-approvals-badge');
+  if(!badge) return;
+  try{
+    var rows = (window.currentRole === 'Admin') ? await fetchPendingApprovalQueue() : (await fetchMyPendingChanges()).filter(function(r){ return r.status==='Held'; });
+    var n = rows.length;
+    badge.textContent = n > 99 ? '99+' : String(n);
+    badge.style.display = n > 0 ? '' : 'none';
+  }catch(e){ badge.style.display='none'; }
+}
+window.refreshApprovalsBadge = refreshApprovalsBadge;
+
+// ---- Approvals tab (My Requests / Pending Queue) ------------------------
+window._pcQueueCache = {}; // id -> row, populated on every render so modal actions can look records up without refetching
+async function renderApprovalsTab(container){
+  if(window.currentRole === 'Studio Manager'){
+    var mine = await fetchAllMyOrAllPendingChanges();
+    mine.forEach(function(r){ window._pcQueueCache[r.id] = r; });
+    container.innerHTML = renderMyRequestsHTML(mine);
+  } else {
+    var pending = await fetchPendingApprovalQueue();
+    pending.forEach(function(r){ window._pcQueueCache[r.id] = r; });
+    container.innerHTML = renderPendingQueueHTML(pending);
+  }
+  refreshApprovalsBadge();
+}
+window.renderApprovalsTab = renderApprovalsTab;
+
+function renderMyRequestsHTML(rows){
+  // v80.60: status-sorted, colour-coded cards; Held items show Admin note + Resubmit button
+  if(!rows.length) return '<div style="text-align:center;padding:26px 10px;color:#9ca3af;font-size:11px;">No requests submitted yet.<br><span style="font-size:10px;">Anything you add or edit under Equipment / Editing / Studios will appear here.</span></div>';
+
+  var STATUS_RANK = { Pending:0, Held:1, Draft:2, Approved:3, 'Approved with Edits':4, Rejected:5, Withdrawn:6 };
+  var sorted = rows.slice().sort(function(a,b){
+    var ra = STATUS_RANK[a.status] !== undefined ? STATUS_RANK[a.status] : 99;
+    var rb = STATUS_RANK[b.status] !== undefined ? STATUS_RANK[b.status] : 99;
+    if(ra !== rb) return ra - rb;
+    return (b.submitted_at||'').localeCompare(a.submitted_at||'');
+  });
+
+  var activeCounts = { Pending:0, Held:0, Draft:0 };
+  sorted.forEach(function(r){ if(activeCounts[r.status] !== undefined) activeCounts[r.status]++; });
+  var summaryParts = [];
+  if(activeCounts.Pending) summaryParts.push('<span style="background:#dcfce7;color:#16a34a;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;">' + activeCounts.Pending + ' Pending</span>');
+  if(activeCounts.Held)    summaryParts.push('<span style="background:#fff7ed;color:#c2410c;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;">' + activeCounts.Held + ' On Hold</span>');
+  if(activeCounts.Draft)   summaryParts.push('<span style="background:#f3f4f6;color:#374151;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;">' + activeCounts.Draft + ' Draft</span>');
+
+  var html = '<div class="sec-lbl" style="display:flex;align-items:center;justify-content:space-between;">📋 My Requests <span style="display:flex;gap:4px;">' + summaryParts.join('') + '</span></div>';
+
+  var FIELD_LABELS = { name:'Name', baseName:'Brand & Model', kitNumber:'Kit #', fac:'Facility',
+    itemCategory:'Category', kitContents:'Kit Contents', status:'Status', note:'Manager Note',
+    location:'Location', os:'OS', software:'Software', capacity:'Capacity', type:'Type', purpose:'Purpose' };
+  var SKIP_FIELDS = { icon:1, cat:1, seats:1, _submittedByName:1 };
+  var STATUS_COLORS = {
+    Pending:             { bg:'#f0fdf4', border:'#16a34a' },
+    Held:                { bg:'#fff7ed', border:'#fb923c' },
+    Draft:               { bg:'#f9fafb', border:'#d1d5db' },
+    Approved:            { bg:'#eff6ff', border:'#3b82f6' },
+    'Approved with Edits':{ bg:'#f5f3ff', border:'#6366f1' },
+    Rejected:            { bg:'#fef2f2', border:'#ef4444' },
+    Withdrawn:           { bg:'#f9fafb', border:'#9ca3af' }
+  };
+
+  sorted.forEach(function(r){
+    var tbl = PC_TABLES[r.target_table] || {label: r.target_table};
+    var proposed = r.proposed_data || {};
+    var name = proposed.name || proposed.baseName || '(unnamed)';
+    var baseName = (typeof pcBaseName==='function') ? pcBaseName(name) : name;
+    var isEdit = (r.change_type !== 'create');
+    var sc = STATUS_COLORS[r.status] || { bg:'#f9fafb', border:'#d1d5db' };
+
+    var summaryFields = Object.keys(proposed).filter(function(k){
+      return !SKIP_FIELDS[k] && proposed[k] !== '' && proposed[k] !== null && proposed[k] !== undefined;
+    }).slice(0,3);
+    var summaryHTML = summaryFields.map(function(k){
+      return '<span style="font-size:9px;color:#6b7280;margin-right:8px;"><strong>' + (FIELD_LABELS[k]||k) + ':</strong> ' + esc(String(proposed[k])) + '</span>';
+    }).join('');
+
+    var holdNoteHTML = '';
+    if(r.status === 'Held' && r.admin_note){
+      holdNoteHTML = '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:7px;padding:7px 10px;margin:8px 0 4px;font-size:9.5px;color:#92400e;">'
+        + '⏸️ <strong>Admin note — ' + esc(r.admin_note) + '</strong>'
+        + (r.last_updated_at ? ' &middot; ' + pcFmtDate(r.last_updated_at) : '')
+        + '</div>';
+    }
+    var approvalNoteHTML = '';
+    if((r.status === 'Approved' || r.status === 'Approved with Edits') && r.admin_note){
+      approvalNoteHTML = '<div style="font-size:9px;color:#16a34a;margin-top:5px;">✅ Approved by <strong>' + esc(r.admin_note) + '</strong>' + (r.last_updated_at ? ' &middot; ' + pcFmtDate(r.last_updated_at) : '') + '</div>';
+    }
+    var rejectionNoteHTML = '';
+    if(r.status === 'Rejected' && r.admin_note){
+      rejectionNoteHTML = '<div style="font-size:9px;color:#dc2626;margin-top:5px;">🚫 Rejected by <strong>' + esc(r.admin_note) + '</strong>' + (r.last_updated_at ? ' &middot; ' + pcFmtDate(r.last_updated_at) : '') + '</div>';
+    }
+
+    var actionsHTML = '';
+    if(r.status === 'Pending' || r.status === 'Draft'){
+      actionsHTML = '<div class="pc-queue-actions"><button style="background:#fee2e2;color:#dc2626;" onclick="pcWithdraw(\'' + r.id + '\')">↩️ Withdraw</button></div>';
+    } else if(r.status === 'Held'){
+      actionsHTML = '<div class="pc-queue-actions">'
+        + '<button style="background:#dbeafe;color:#1d4ed8;" onclick="pcResubmit(\'' + r.id + '\')">🔄 Resubmit</button>'
+        + '<button style="background:#fee2e2;color:#dc2626;" onclick="pcWithdraw(\'' + r.id + '\')">↩️ Withdraw</button>'
+        + '</div>';
+    }
+
+    html += '<div class="pc-queue-card" style="border-left:3px solid ' + sc.border + ';background:' + sc.bg + ';">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:11px;font-weight:800;color:#1f2937;">' + esc(baseName) + '</div>'
+      + (name !== baseName ? '<div style="font-size:9px;color:#6b7280;">Kit: ' + esc(name) + '</div>' : '')
+      + '<div style="font-size:9px;color:#9ca3af;margin-top:1px;">' + esc(tbl.label||r.target_table) + ' &middot; ' + (isEdit ? 'Edit request' : 'New entry') + ' &middot; ' + pcFmtDate(r.submitted_at) + '</div>'
+      + '</div>'
+      + pcStatusChipHTML(r.status)
+      + '</div>'
+      + (summaryHTML ? '<div style="margin-top:6px;line-height:1.9;">' + summaryHTML + '</div>' : '')
+      + holdNoteHTML + approvalNoteHTML + rejectionNoteHTML
+      + actionsHTML
+      + '</div>';
+  });
+  return html;
+}
+
+function renderPendingQueueHTML(rows){
+  // v80.60: grouped by target_table; Pending and Held shown in separate sub-sections per table
+  if(!rows.length) return '<div style="text-align:center;padding:26px 10px;color:#9ca3af;font-size:11px;">✅ No pending requests — inbox zero.</div>';
+
+  var TABLE_ORDER  = ['equipment','systems','studios'];
+  var TABLE_LABELS = { equipment:'📷 Equipment', systems:'🖥️ Editing Systems', studios:'🎙️ Studios' };
+  var byTable = {};
+  rows.forEach(function(r){
+    var t = r.target_table || 'other';
+    if(!byTable[t]) byTable[t] = [];
+    byTable[t].push(r);
+  });
+  var tableKeys = TABLE_ORDER.filter(function(t){ return byTable[t] && byTable[t].length; });
+  Object.keys(byTable).forEach(function(t){ if(TABLE_ORDER.indexOf(t)===-1) tableKeys.push(t); });
+
+  var totalPending = rows.filter(function(r){ return r.status==='Pending'; }).length;
+  var totalHeld    = rows.filter(function(r){ return r.status==='Held'; }).length;
+  var chips = '';
+  if(totalPending) chips += '<span style="background:#dcfce7;color:#16a34a;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;">' + totalPending + ' Pending</span> ';
+  if(totalHeld)    chips += '<span style="background:#fff7ed;color:#c2410c;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;">' + totalHeld + ' On Hold</span>';
+
+  var html = '<div class="sec-lbl" style="display:flex;align-items:center;justify-content:space-between;">Approval Queue <span style="display:flex;gap:4px;">' + chips + '</span></div>';
+
+  tableKeys.forEach(function(t){
+    var tRows = byTable[t];
+    var label = TABLE_LABELS[t] || t;
+    var pendingRows = tRows.filter(function(r){ return r.status==='Pending'; });
+    var heldRows    = tRows.filter(function(r){ return r.status==='Held'; });
+
+    html += '<div style="margin:12px 0 4px;font-size:9px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.8px;">' + label + '</div>';
+    pendingRows.forEach(function(r){ html += pcQueueCardHTML(r, false); });
+
+    if(heldRows.length){
+      html += '<div style="font-size:8.5px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.6px;padding:6px 0 3px;border-top:1px dashed #fed7aa;margin-top:6px;">⏸️ On Hold</div>';
+      heldRows.forEach(function(r){ html += pcQueueCardHTML(r, true); });
+    }
+  });
+  return html;
+}
+
+// v80.60: single card renderer shared by renderPendingQueueHTML for both Pending and Held rows
+function pcQueueCardHTML(r, isHeld){
+  var proposed = r.proposed_data || {};
+  var name = proposed.name || proposed.baseName || '(unnamed)';
+  var baseName = (typeof pcBaseName==='function') ? pcBaseName(name) : name;
+  var isEdit = (r.change_type !== 'create');
+
+  var FIELD_LABELS = { name:'Name', baseName:'Brand & Model', kitNumber:'Kit #', fac:'Facility',
+    itemCategory:'Category', kitContents:'Kit Contents', status:'Status', note:'Manager Note',
+    icon:'Icon', location:'Location', os:'OS', software:'Software',
+    capacity:'Capacity', type:'Type', purpose:'Purpose' };
+  var SKIP_FIELDS = { icon:1, cat:1, seats:1, _submittedByName:1 };
+
+  var cur = r.current_data || {};
+  var fieldRows = Object.keys(proposed).filter(function(k){ return !SKIP_FIELDS[k]; }).map(function(k){
+    var oldV = cur[k]; var newV = proposed[k];
+    if(oldV === newV || (!oldV && !newV)) return '';
+    var label = FIELD_LABELS[k] || k;
+    var oldCell = (oldV !== undefined && oldV !== null && oldV !== '')
+      ? '<span class="pc-diff-old">' + esc(String(oldV)) + '</span>' : '<span style="color:#c7c7c7;">—</span>';
+    var newCell = (newV !== undefined && newV !== null && newV !== '')
+      ? '<span class="pc-diff-new">' + esc(String(newV)) + '</span>' : '<span style="color:#c7c7c7;">—</span>';
+    return '<tr><td class="pc-diff-label">' + label + '</td><td>' + oldCell + (isEdit ? ' → ' + newCell : ' ' + newCell) + '</td></tr>';
+  }).filter(Boolean).join('');
+  var diffHTML = fieldRows ? '<table class="pc-diff-table" style="margin:8px 0 4px;">' + fieldRows + '</table>' : '';
+
+  var holdNoteHTML = '';
+  if(isHeld && r.admin_note){
+    holdNoteHTML = '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:7px;padding:6px 9px;margin:7px 0 2px;font-size:9.5px;color:#92400e;">'
+      + '⏸️ <strong>Held by ' + esc(r.admin_note) + '</strong>'
+      + (r.last_updated_at ? ' &middot; ' + pcFmtDate(r.last_updated_at) : '')
+      + '</div>';
+  }
+
+  var actions = isHeld
+    ? '<div class="pc-queue-actions">'
+        + '<button style="background:#dcfce7;color:#16a34a;" onclick="pcQuickApprove(\'' + r.id + '\')">✓ Approve Anyway</button>'
+        + '<button style="background:#fee2e2;color:#dc2626;" onclick="pcOpenReject(\'' + r.id + '\')">🚫 Reject</button>'
+        + '</div>'
+    : '<div class="pc-queue-actions">'
+        + '<button style="background:#dcfce7;color:#16a34a;" onclick="pcQuickApprove(\'' + r.id + '\')">✓ Approve</button>'
+        + '<button style="background:#dbeafe;color:#1d4ed8;" onclick="pcOpenEdits(\'' + r.id + '\')">✏️ w/ Edits</button>'
+        + '<button style="background:#ffedd5;color:#c2410c;" onclick="pcOpenHold(\'' + r.id + '\')">⏸️ Hold</button>'
+        + '<button style="background:#fee2e2;color:#dc2626;" onclick="pcOpenReject(\'' + r.id + '\')">🚫 Reject</button>'
+        + '</div>';
+
+  return '<div class="pc-queue-card" style="border-left:3px solid ' + (isHeld ? '#fb923c' : '#16a34a') + ';' + (isHeld ? 'opacity:.92;' : '') + '">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'
+    + '<div style="flex:1;min-width:0;">'
+    + '<div style="font-size:12px;font-weight:800;color:#1f2937;">' + esc(baseName)
+      + (isEdit ? ' <span style="font-size:9px;font-weight:600;color:#6b7280;">(edit)</span>' : '') + '</div>'
+    + (name !== baseName ? '<div style="font-size:9px;color:#6b7280;margin-top:1px;">Kit: ' + esc(name) + '</div>' : '')
+    + '<div style="font-size:9.5px;color:#9ca3af;margin-top:2px;">by <strong>' + esc(pcSubmittedByName(r)) + '</strong> &middot; ' + pcFmtDate(r.submitted_at) + '</div>'
+    + '</div>'
+    + pcStatusChipHTML(r.status)
+    + '</div>'
+    + holdNoteHTML
+    + diffHTML
+    + actions
+    + '</div>';
+}
+window.pcQueueCardHTML = pcQueueCardHTML;
+
+// simple field-by-field diff — current_data is null for a brand-new record,
+// so every proposed field renders as an addition rather than a change
+function pcDiffHTML(current, proposed){
+  if(!proposed) return '';
+  var cur = current || {};
+  var rows = Object.keys(proposed).map(function(k){
+    var oldV = cur[k]; var newV = proposed[k];
+    if(oldV === newV || (!oldV && !newV)) return '';
+    var oldCell = (oldV!==undefined && oldV!==null && oldV!=='') ? '<span class="pc-diff-old">' + oldV + '</span>' : '<span style="color:#c7c7c7;">—</span>';
+    return '<tr><td class="pc-diff-label">' + k + '</td><td>' + oldCell + ' → <span class="pc-diff-new">' + (newV!==undefined&&newV!==null&&newV!=='' ? newV : '—') + '</span></td></tr>';
+  }).filter(Boolean).join('');
+  if(!rows) return '';
+  return '<table class="pc-diff-table">' + rows + '</table>';
+}
+
+// ---- withdraw (Manager) --------------------------------------------------
+async function pcWithdraw(id){
+  try{
+    await fetch(SUPABASE_URL + '/rest/v1/pending_changes?id=eq.' + encodeURIComponent(id), {
+      method:'PATCH', headers: Object.assign({}, HEADERS, {'Content-Type':'application/json'}),
+      body: JSON.stringify({ status:pcStatusToDb('Withdrawn') })
+    });
+    toast('↩️ Request withdrawn');
+    setAdminTab('approvals', document.getElementById('admtab-approvals'));
+  }catch(e){ toast('⚠️ Could not withdraw — check connection'); }
+}
+window.pcWithdraw = pcWithdraw;
+
+// v80.60: Manager can resubmit a Held request back to Pending for Admin to re-review
+async function pcResubmit(id){
+  try{
+    await fetch(SUPABASE_URL + '/rest/v1/pending_changes?id=eq.' + encodeURIComponent(id), {
+      method:'PATCH',
+      headers: Object.assign({}, HEADERS, {'Content-Type':'application/json'}),
+      body: JSON.stringify({ status:pcStatusToDb('Pending'), admin_note: null })
+    });
+    toast('🔄 Request resubmitted for Admin approval');
+    setAdminTab('approvals', document.getElementById('admtab-approvals'));
+    if(typeof refreshApprovalsBadge === 'function') refreshApprovalsBadge();
+  }catch(e){ toast('⚠️ Could not resubmit — check connection'); }
+}
+window.pcResubmit = pcResubmit;
+
+// ---- modal plumbing -------------------------------------------------
+window._pcActiveId = null;
+function pcCloseModal(overlayId){ var el = document.getElementById(overlayId); if(el) el.classList.remove('open'); window._pcActiveId = null; }
+window.pcCloseModal = pcCloseModal;
+
+function pcOpenHold(id){ window._pcActiveId = id; var n=document.getElementById('pc-hold-note'); if(n) n.value=''; document.getElementById('pc-hold-overlay').classList.add('open'); }
+window.pcOpenHold = pcOpenHold;
+function pcOpenReject(id){ window._pcActiveId = id; var n=document.getElementById('pc-reject-note'); if(n) n.value=''; document.getElementById('pc-reject-overlay').classList.add('open'); }
+window.pcOpenReject = pcOpenReject;
+
+function pcOpenEdits(id){
+  window._pcActiveId = id;
+  var r = window._pcQueueCache[id];
+  if(!r){ toast('⚠️ Could not load request'); return; }
+  var proposed = r.proposed_data || {};
+  var fields = Object.keys(proposed).filter(function(k){ return typeof proposed[k] !== 'object' && k !== '_submittedByName'; });
+  var html = fields.map(function(k){
+    return '<div style="margin-bottom:8px;"><div style="font-size:9.5px;font-weight:700;color:#6b7280;margin-bottom:3px;">' + k + '</div>'
+      + '<input class="finput" style="margin-bottom:0;" data-pc-field="' + k + '" value="' + String(proposed[k]!==undefined&&proposed[k]!==null?proposed[k]:'').replace(/"/g,'&quot;') + '"/></div>';
+  }).join('');
+  document.getElementById('pc-edits-fields').innerHTML = html;
+  var noteEl = document.getElementById('pc-edits-note'); if(noteEl) noteEl.value = '';
+  document.getElementById('pc-edits-overlay').classList.add('open');
+}
+window.pcOpenEdits = pcOpenEdits;
+
+function pcSubmitEdits(){
+  var id = window._pcActiveId; if(!id) return;
+  var finalData = {};
+  document.querySelectorAll('#pc-edits-fields [data-pc-field]').forEach(function(inp){ finalData[inp.getAttribute('data-pc-field')] = inp.value; });
+  var note = (document.getElementById('pc-edits-note')||{}).value || '';
+  pcCloseModal('pc-edits-overlay');
+  pcDecide(id, 'approve_with_edits', finalData, note);
+}
+window.pcSubmitEdits = pcSubmitEdits;
+
+function pcSubmitHold(){
+  var id = window._pcActiveId; if(!id) return;
+  var note = (document.getElementById('pc-hold-note')||{}).value || '';
+  if(!note.trim()){ toast('⚠️ Add a short note for the Manager'); return; }
+  pcCloseModal('pc-hold-overlay');
+  pcDecide(id, 'hold', null, note);
+}
+window.pcSubmitHold = pcSubmitHold;
+
+function pcSubmitReject(){
+  var id = window._pcActiveId; if(!id) return;
+  var note = (document.getElementById('pc-reject-note')||{}).value || '';
+  if(!note.trim()){ toast('⚠️ Add a reason for the Manager'); return; }
+  pcCloseModal('pc-reject-overlay');
+  pcDecide(id, 'reject', null, note);
+}
+window.pcSubmitReject = pcSubmitReject;
+
+function pcQuickApprove(id){ pcDecide(id, 'approve', null, ''); }
+window.pcQuickApprove = pcQuickApprove;
+
+// ---- the core decision handler ------------------------------------------
+// Note: this app has no Edge Function / service_role in this pass (explicitly
+// scoped out — "not implementing Supabase Auth yet"), so Approve writes to the
+// live table using the same anon-key fetch() pattern every other admin write
+// in this file already uses. RLS hardening to move this behind a real
+// server-side gate is a follow-on step, not a blocker for shipping the workflow.
+async function pcDecide(id, decision, finalData, note){
+  var r = window._pcQueueCache[id];
+  if(!r){
+    // fall back to a direct fetch if the row wasn't in the last rendered batch
+    try{
+      var res = await fetch(SUPABASE_URL + '/rest/v1/pending_changes?id=eq.' + encodeURIComponent(id), { headers: HEADERS });
+      var rows = pcNormalizeRows(await res.json());
+      r = rows && rows[0];
+    }catch(e){}
+  }
+  if(!r){ toast('⚠️ Could not load this request'); return; }
+  if(r.status !== 'Pending' && r.status !== 'Held'){ toast('⚠️ This request was already resolved'); setAdminTab('approvals', document.getElementById('admtab-approvals')); return; }
+
+  var newStatus = decision==='approve' ? 'Approved' : decision==='approve_with_edits' ? 'Approved with Edits' : decision==='hold' ? 'Held' : 'Rejected';
+  var appliedData = null;
+
+  if(decision === 'approve' || decision === 'approve_with_edits'){
+    appliedData = finalData || r.proposed_data;
+    var ok = await pcApplyToLive(r.target_table, r.change_type, r.target_id, appliedData, pcSubmittedByName(r));
+    if(!ok){
+      // zero-data-loss guarantee: if the live write fails, the request stays
+      // Pending — never marked Approved with nothing actually written.
+      toast('⚠️ Could not write to inventory — request stays Pending, try again');
+      return;
+    }
+  }
+
+  try{
+    await fetch(SUPABASE_URL + '/rest/v1/pending_changes?id=eq.' + encodeURIComponent(id), {
+      method:'PATCH', headers: Object.assign({}, HEADERS, {'Content-Type':'application/json'}),
+      body: JSON.stringify({ status:pcStatusToDb(newStatus), admin_note: pcActorName() })
+    });
+    var logNote = pcActorName() + (note ? (' — ' + note) : '');
+    await fetch(SUPABASE_URL + '/rest/v1/change_approval_log', {
+      method:'POST', headers: Object.assign({}, HEADERS, {'Content-Type':'application/json'}),
+      body: JSON.stringify({ pending_change_id: id, decision: decision, note: logNote, final_data: appliedData, decided_at: pcNow() })
+    });
+  }catch(e){ console.warn('[v80.30E] approval-log write failed (non-fatal, live data already updated):', e); }
+
+  var msgMap = { approve:'✅ Approved — now live', approve_with_edits:'✅ Approved with edits — now live', hold:'⏸️ Held', reject:'🚫 Rejected' };
+  toast(msgMap[decision] || 'Done');
+  setAdminTab('approvals', document.getElementById('admtab-approvals'));
+}
+window.pcDecide = pcDecide;
+
+// Writes an approved change into adminData/kitDB/Supabase live table — same
+// three-place update admAddEquipment()/admAddEditing()/admAddStudio() already
+// do on the Admin direct-add path, just parameterised by table.
+async function pcApplyToLive(targetTable, action, targetId, data, originalSubmitter){
+  var tbl = PC_TABLES[targetTable];
+  if(!tbl) return false;
+  if(data && data._submittedByName !== undefined){ data = Object.assign({}, data); delete data._submittedByName; }
+  var arr = tbl.local();
+  var now = pcNow();
+  try{
+    if(action === 'create'){
+      var id = arr.length + 1;
+      var rec = Object.assign({}, data, { id: id, cat: targetTable==='equipment'?'Equipment':undefined,
+        createdBy: originalSubmitter || pcActorName(), createdOn: now, modifiedBy:'', modifiedOn:'',
+        approvedBy: pcActorName(), approvedOn: now });
+      arr.push(rec);
+      var facKey = (rec.fac==='T1 Central' || !rec.fac) ? 't1' : 'film';
+      if(!kitDB[facKey][tbl.kitBucket]) kitDB[facKey][tbl.kitBucket] = [];
+      kitDB[facKey][tbl.kitBucket].push(rec.name);
+      cacheEqLocalExtra(rec.name, { itemCategory: rec.itemCategory, kitContents: rec.kitContents, note: rec.note,
+        createdBy: rec.createdBy, createdOn: rec.createdOn, approvedBy: rec.approvedBy, approvedOn: rec.approvedOn });
+      // best-effort mirror to Supabase's live table, confirmed-columns-only per
+      // the v80.28C lesson (unknown columns 400 the whole insert silently)
+      if(targetTable==='equipment' && typeof window.addSupaEquipment==='function'){
+        window.addSupaEquipment({ name: rec.name, kit_number: rec.kitNumber||null, location: rec.fac, status: rec.status });
+      } else if(targetTable==='systems' && typeof window.addSupaEditing==='function'){
+        window.addSupaEditing({ system_name: rec.name, location: rec.fac, edit_suite: rec.location, os: rec.os, specifications: rec.software, manager_note: rec.note });
+      } else if(targetTable==='studios' && typeof window.addSupaStudio==='function'){
+        window.addSupaStudio({ studio_name: rec.name, location: rec.fac, capacity: rec.capacity, studio_type: rec.type });
+      }
+      logResourceAudit(tbl.label + ' (Approved)', rec.name);
+    } else { // update
+      var idx = arr.findIndex(function(x){ return String(x.id)===String(targetId); });
+      var existing = idx>-1 ? arr[idx] : {};
+      var merged = Object.assign({}, existing, data, { modifiedBy: originalSubmitter || pcActorName(), modifiedOn: now, approvedBy: pcActorName(), approvedOn: now });
+      if(idx>-1) arr[idx] = merged; else arr.push(Object.assign({id:targetId}, merged));
+      cacheEqLocalExtra(merged.name, { itemCategory: merged.itemCategory, kitContents: merged.kitContents, note: merged.note,
+        modifiedBy: merged.modifiedBy, modifiedOn: merged.modifiedOn, approvedBy: merged.approvedBy, approvedOn: merged.approvedOn });
+      logResourceAudit(tbl.label + ' (Edit Approved)', merged.name);
+    }
+    populateKit();
+    saveAdminData();
+    return true;
+  }catch(e){ console.warn('[v80.30E] pcApplyToLive error:', e); return false; }
+}
+
+// ---- Edit Existing Record (Manager → pending update / Admin → direct) ----
+function pcOpenEditRecord(table, id, idx){
+  var tbl = PC_TABLES[table]; if(!tbl) return;
+  var rec = tbl.local()[idx];
+  if(!rec){ toast('⚠️ Could not find this record'); return; }
+  var editableKeys = table==='equipment' ? ['name','status','kitContents','note']
+    : table==='systems' ? ['name','software','note']
+    : ['name','capacity','note'];
+  document.getElementById('pc-editrec-title').textContent = (window.currentRole==='Studio Manager' ? '✏️ Request Edit — ' : '✏️ Edit — ') + rec.name;
+  document.getElementById('pc-editrec-fields').innerHTML = editableKeys.map(function(k){
+    return '<div style="margin-bottom:8px;"><div style="font-size:9.5px;font-weight:700;color:#6b7280;margin-bottom:3px;">' + k + '</div>'
+      + '<input class="finput" style="margin-bottom:0;" data-pc-field="' + k + '" value="' + String(rec[k]!==undefined&&rec[k]!==null?rec[k]:'').replace(/"/g,'&quot;') + '"/></div>';
+  }).join('');
+  document.getElementById('pc-editrec-submit').textContent = window.currentRole==='Studio Manager' ? '📝 Submit for Approval' : '💾 Save';
+  window._pcEditTable = table; window._pcEditId = rec.id; window._pcEditSnapshot = Object.assign({}, rec);
+  document.getElementById('pc-editrec-overlay').classList.add('open');
+}
+window.pcOpenEditRecord = pcOpenEditRecord;
+
+async function pcSubmitEditRecord(){
+  var table = window._pcEditTable, id = window._pcEditId, snapshot = window._pcEditSnapshot;
+  if(!table){ return; }
+  var proposed = {};
+  document.querySelectorAll('#pc-editrec-fields [data-pc-field]').forEach(function(inp){ proposed[inp.getAttribute('data-pc-field')] = inp.value; });
+  pcCloseModal('pc-editrec-overlay');
+  if(window.currentRole === 'Studio Manager'){
+    var row = await submitPendingChange(table, 'update', id, proposed, snapshot);
+    if(row){ toast('📝 Edit submitted for Admin approval'); if(typeof refreshApprovalsBadge==='function') refreshApprovalsBadge(); }
+  } else {
+    var ok = await pcApplyToLive(table, 'update', id, proposed, snapshot.createdBy || 'Admin');
+    if(ok){ toast('💾 Saved'); }
+    // re-render whichever admin tab is currently active so the edited card refreshes
+    var activeTab = document.querySelector('.adm-tab.active');
+    if(activeTab) activeTab.click();
+  }
+}
+window.pcSubmitEditRecord = pcSubmitEditRecord;
+
+// ---- Approval History panel (per record) ---------------------------------
+async function pcOpenHistory(table, id, encodedName){
+  document.getElementById('pc-history-body').innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:11px;">Loading…</div>';
+  document.getElementById('pc-history-overlay').classList.add('open');
+  try{
+    var url = SUPABASE_URL + '/rest/v1/pending_changes?target_table=eq.' + encodeURIComponent(table) + '&target_id=eq.' + encodeURIComponent(id) + '&order=submitted_at.desc';
+    var res = await fetch(url, { headers: HEADERS });
+    var pcs = res.ok ? pcNormalizeRows(await res.json()) : [];
+    if(!pcs.length){
+      document.getElementById('pc-history-body').innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:11px;">No pending_changes history for this record — it was likely created directly by Admin before this workflow existed.</div>';
+      return;
+    }
+    var ids = pcs.map(function(p){ return p.id; });
+    var logUrl = SUPABASE_URL + '/rest/v1/change_approval_log?pending_change_id=in.(' + ids.join(',') + ')&order=decided_at.desc';
+    var logRes = await fetch(logUrl, { headers: HEADERS });
+    var logs = logRes.ok ? await logRes.json() : [];
+    var html = pcs.map(function(p){
+      var relatedLogs = logs.filter(function(l){ return String(l.pending_change_id)===String(p.id); });
+      return '<div style="border:1px solid #f1e8dd;border-radius:10px;padding:9px;margin-bottom:8px;">'
+        + '<div style="display:flex;justify-content:space-between;"><div style="font-size:10.5px;font-weight:700;">' + (p.change_type==='create'?'New entry':'Edit request') + ' by ' + esc(pcSubmittedByName(p)) + '</div>' + pcStatusChipHTML(p.status) + '</div>'
+        + '<div style="font-size:9px;color:#9ca3af;margin-top:2px;">' + pcFmtDate(p.submitted_at) + '</div>'
+        + relatedLogs.map(function(l){ return '<div style="font-size:9.5px;color:#374151;margin-top:6px;border-top:1px dashed #eee;padding-top:5px;"><b>' + l.decision + '</b> · ' + pcFmtDate(l.decided_at) + (l.note?('<br><i>"' + esc(l.note) + '"</i>'):'') + '</div>'; }).join('')
+        + '</div>';
+    }).join('');
+    document.getElementById('pc-history-body').innerHTML = html;
+  }catch(e){
+    document.getElementById('pc-history-body').innerHTML = '<div style="text-align:center;padding:16px;color:#dc2626;font-size:11px;">Could not load history — check connection.</div>';
+  }
+}
+window.pcOpenHistory = pcOpenHistory;
 </script>
 
 <div id="wr-print-area"></div>
