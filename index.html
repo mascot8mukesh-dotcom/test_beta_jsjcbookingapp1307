@@ -3030,8 +3030,11 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30K</div>
-              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.30K &middot; 🐛 CRASH FIX — ReferenceError: esc is not defined in Admin Approvals</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Admin Approvals tab crashed with <code>ReferenceError: esc is not defined</code> at <code>pcQueueCardHTML()</code> → <code>renderPendingQueueHTML()</code> → <code>renderApprovalsTab()</code>. Approval records existed in Supabase, <code>pending_changes</code> inserts were working, and <code>renderApprovalsTab</code> correctly detected pending count &gt; 0 — the crash fired during the first card render. <strong>Root cause:</strong> <code>esc()</code> (the HTML-escaping helper) was referenced by <code>pcQueueCardHTML</code>, <code>pcOpenHistory</code>, and <code>pcDiffHTML</code> — all of which live inside the <code>&lt;script&gt;</code> block that begins at line 20136 (the Approval Workflow Engine block). That block never defined <code>esc()</code>. Five earlier role-specific IIFE/function blocks each declared their own local <code>esc()</code>, but those are local to their own script scopes and invisible at the module level of the Approval Engine block. <strong>Fix:</strong> added a single module-level <code>function esc(v){…}</code> declaration at the top of the Approval Engine script block, before <code>pcBaseName</code>, so every function in that block can reach it. Identical one-liner to the five copies already present elsewhere; no behaviour change anywhere. <strong>Untouched:</strong> all booking/approval workflow logic, database schema, other script blocks.</div></div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30N</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.30N &middot; 🎨 Edit Modal Layout — Matches Add Equipment Form Design</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Edit modal fields were loosely stacked with individual label divs and inconsistent wrappers — did not match the Add Equipment form design. <strong>Fix (display-only, no logic change):</strong> restructured <code>pcOpenEditRecord()</code>'s equipment HTML to mirror the Add Equipment UI layout exactly: (1) Brand &amp; Model input and Category dropdown appear at the top, matching the <code>adm-add-panel</code> header — no more blue wrapper box around just Brand &amp; Model. (2) Facility, Status, Kit Contents, and Manager Note are now wrapped inside the same <code>adm-kit-block</code> bordered card (1px solid #e8d5c4, border-radius 10px, 9px padding) used in Add Equipment — giving the edit form the same visual weight as the entry form. (3) Kit identifier line (the read-only suffix) moved inside the kit block with a dashed bottom border, matching where Kit # sits in the Add Equipment block. The icon-auto hint line is preserved. <strong>No change to</strong> field collection, name reconstruction, Supabase PATCH, Manager pending-change path, Systems/Studios branch, or any other logic.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.30M &middot; 🐛 CRASH FIX — ReferenceError: esc is not defined in Equipment Edit modal</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Clicking the ✏️ Edit button on any equipment card threw <code>Uncaught ReferenceError: esc is not defined</code> at <code>pcOpenEditRecord()</code> — the modal never opened. <strong>Root cause:</strong> v80.30L introduced <code>esc()</code> calls inside <code>pcOpenEditRecord()</code> (to safely render the Brand &amp; Model field and all other equipment values). <code>pcOpenEditRecord</code> lives in the Approval Workflow Engine script block (starts line 20155), which has never had a module-level <code>esc()</code> definition — the five earlier role-specific IIFE blocks each declared their own local copy, but those are scoped to their own blocks and invisible here. v80.30K had fixed this same missing <code>esc</code> for the Approval Queue crash, but v80.30L was built from J (not K), so the K fix was never carried forward. <strong>Fix:</strong> added <code>function esc(v){…}</code> at the top of the Approval Engine script block, before <code>pcBaseName</code> — identical one-liner to all other copies in this file. Now covers every <code>esc()</code> call in this block: <code>pcOpenEditRecord</code>, <code>pcQueueCardHTML</code>, <code>pcOpenHistory</code>, <code>pcDiffHTML</code>. <strong>Untouched:</strong> all workflow logic, modal HTML, database schema.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.30L &middot; ✏️ Brand &amp; Model Editing — Regroup Kits by Renaming</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> The Equipment Edit modal only exposed <code>name / status / kitContents / note</code> — no way to change the Brand &amp; Model (baseName). This made it impossible to fix mis-grouped items (e.g. 3 "SONY MDR" kits that should be "SONY MDR EX 15LP Earphones") without removing and re-adding them. <strong>Fix — <code>pcOpenEditRecord()</code>:</strong> Equipment now renders a rich form matching the Add Equipment UI style, with a highlighted Brand &amp; Model input at the top, Category and Facility dropdowns (matching the booking-entry form design), Status dropdown, Kit Contents, and Manager Note. The kit suffix (everything after " – " in the full stored name) is shown read-only below the Brand &amp; Model input — it is always preserved unchanged; only the base changes. Systems and Studios continue to use the existing simple key-input list. <strong>Fix — <code>pcSubmitEditRecord()</code>:</strong> Reconstructs the full <code>name</code> field as <code>newBase + " – " + kitSuffix</code> (or just <code>newBase</code> if no suffix), then calls <code>pcApplyToLive()</code> as before. When the name changed, also fires <code>patchSupaEquipmentName(id, newName)</code> to PATCH the confirmed-live <code>name</code> column in Supabase so the rename survives page reload and cross-device refetch. <strong>New helper — <code>patchSupaEquipmentName(id, name)</code>:</strong> fire-and-forget PATCH to <code>/rest/v1/equipment?id=eq.{id}</code> using only the <code>name</code> column (confirmed live per v80.28C). No schema change — <code>name</code> was already a real column. <strong>Regrouping:</strong> automatic — <code>admEquipmentListHTML()</code> already groups by <code>pcBaseName(e.name)</code> on every render, so once the local array and Supabase row both carry the corrected name, all kits merge into the correct parent group on the next tab click. <strong>Manager path:</strong> Brand &amp; Model is included in the pending-change <code>proposed_data</code> (as both <code>name</code> and the <code>_baseName</code>/<code>_kitSuffix</code> working fields, the latter stripped before submission). The Supabase PATCH is Admin-only — Manager changes go through the approval workflow as before. <strong>Untouched:</strong> <code>pcApplyToLive()</code>, <code>submitPendingChange()</code>, <code>admEquipmentListHTML()</code> grouping logic, all delete/add flows, database schema, booking pipeline.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.62 &middot; 🔗 Manager Ratings — Full booking_id Bigint Integration</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Following DB migration (booking_id uuid → bigint, FK to bookings.id confirmed).</strong> Four surgical code changes, no schema change, no SQL. <strong>1. rateManagerEmoji() INSERT:</strong> <code>booking_id: b.id</code> (integer) replaces the previous <code>null</code> placeholder — the rating row is now correctly linked to its booking in Supabase. <strong>2. fetchAndRenderBookings() hydration pass:</strong> replaced the fragile <code>student_id</code> join (which silently assigned the same rating to all bookings by a student) with <code>Number(r.booking_id) === Number(b.id)</code> — one unambiguous rating per booking, correct across devices and sessions. Local <code>_localExtras</code> cache (set optimistically at rate-time) still takes precedence. <strong>3. getManagerRatingSummary():</strong> now guards on <code>mgr.supa_id</code> presence before filtering, removes the old <code>mgr.id</code> synthetic-key comparison that always returned 0. Aggregate summary (Good/Avg/Bad totals per manager) joins on <code>manager_id ↔ mgr.supa_id</code> — correct for this use case (all ratings for a manager, not per-booking). <strong>4. Admin Managers panel conduct avg:</strong> <code>mRatings</code> and <code>mAvg</code> now read from <code>supaManagerRatings</code> (DB-backed, cross-device) instead of <code>S.bookings</code> local cache, which held ratings only on the session that submitted them. Untouched: booking/approval/issue/return workflow, <code>applyLocalExtras()</code>, <code>an2StudentFeedbackInsightHTML()</code>, <code>pipelineRecordHTML()</code>, all Pending RTN filter sites, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #16a34a;"><div style="font-size:10px;font-weight:800;color:#16a34a;margin-bottom:3px;">v80.60 &middot; 🗂️ Equipment Grouping · Approval Queue · My Requests</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Task 1 — Equipment Grouping:</strong> <code>admEquipmentListHTML()</code> rewritten so every Brand &amp; Model — including single-kit items — renders as a collapsible <code>pc-group-card</code> (icon · name · "N Kits Available · M Active" header, ▼ caret, expand on tap). Previously single-kit items bypassed the group chrome entirely and rendered as a flat card, making the Admin Equipment list visually inconsistent. Group ID is now stable (no length suffix) so toggling state survives a re-filter. Root cause of prior inconsistency: the <code>if(items.length &lt;= 1) return admEquipmentKitCardHTML(...)</code> early-return. Removed. <strong>Task 2 — Approval Queue UI (Admin):</strong> <code>fetchPendingApprovalQueue()</code> now fetches <code>status=in.(Pending,Held)</code> — previously Held items fell off the Admin queue entirely after being put on hold. <code>renderPendingQueueHTML()</code> replaced with a table-grouped layout (📷 Equipment / 🖥️ Editing Systems / 🎙️ Studios sub-headers), Pending and Held rows separated within each group. New <code>pcQueueCardHTML(r, isHeld)</code> shared renderer: human-friendly field labels in the diff table, orange left-border + "Held by [Admin] · [date]" note on Held cards, Held cards show "✓ Approve Anyway / 🚫 Reject" (not Hold/w-Edits — already held). Badge counter already correctly counted Pending+Held for Admin via the refreshed fetch. <strong>Task 3 — My Requests (Manager):</strong> <code>renderMyRequestsHTML()</code> rewritten: sorted by status priority (Pending → Held → Draft → Approved → Rejected → Withdrawn), colour-coded left-border per status, summary chips (N Pending / N On Hold) in the section header, top-3 proposed fields shown as a preview on each card, Held cards show the Admin's hold note, Approved cards show approver name/date, Rejected cards show rejector name/date. New <code>pcResubmit(id)</code>: Manager can resubmit a Held request (PATCHes status back to Pending, clears reviewed_by/reviewed_at). Resubmit button appears only on Held cards. <strong>Untouched:</strong> booking/approval pipeline, <code>pcApplyToLive()</code>, <code>pcDecide()</code>, all modal plumbing, <code>admEquipmentKitCardHTML()</code>, database schema, RLS policies.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.59 &middot; 🗑️ Manager Feedback Panel Removed from Analytics</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Removed:</strong> the "🌟 Manager Feedback" consolidated panel that appeared above the Single Day / Date Range toggle in Analytics. It was consuming significant screen space. The per-record Student Feedback insight (⭐ Student Feedback box with stars, "Rated by", and descriptive text) inside each individual booking card in the record list is untouched — rating data remains visible there. <strong>Three surgical removals:</strong> (1) the HTML panel (<code>#an2-mgr-feedback-panel</code> + <code>#an2-mgr-feedback-list</code>) from the Analytics screen, (2) the <code>an2ManagerFeedbackHTML(filtered)</code> call from <code>an2ApplyFilters()</code>, (3) the <code>an2ManagerFeedbackHTML()</code> function definition and its <code>window</code> export. <strong>Untouched:</strong> <code>an2EfficiencyInsightHTML()</code>, <code>an2StudentFeedbackInsightHTML()</code>, all analytics calculations, booking workflow, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.58 &middot; ⭐ Rating Scale &amp; Vocabulary Correction — Good=5★, Average=3★, Bad=1★</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> <code>rateManagerEmoji()</code>'s <code>numMap</code> mapped <code>good→3</code>, <code>average→2</code>, <code>bad→1</code>. When a student selected "Good 😃", the stored value was <strong>3</strong> — which then flowed into <code>pipelineRecordHTML()</code>'s <code>starMap[3]='⭐⭐⭐'</code> (Timeline) and <code>an2StudentFeedbackInsightHTML()</code>'s <code>insightMap[3]='satisfactory support'</code> (Analytics/Manager Feedback panel). Everything downstream was correct for its input — the error was entirely in the write-time mapping. <strong>Two surgical changes only:</strong> (1) <code>numMap</code> in <code>rateManagerEmoji()</code> corrected to <code>{bad:1, average:3, good:5}</code> — Good now stores 5, Average stores 3, Bad stores 1. (2) <code>insightMap</code> key 1 text updated in all three category branches of <code>an2StudentFeedbackInsightHTML()</code>: "poor support" → "a disappointing experience" (per spec). <strong>No other changes:</strong> <code>starMap</code> in <code>pipelineRecordHTML()</code> was already correct (maps 5→⭐⭐⭐⭐⭐); <code>ratingColors/ratingBg/ratingBorder</code> already correct (5 is teal/green); <code>an2ManagerFeedbackHTML()</code> stars display already correct; no database schema change; no workflow logic change; no UI redesign; no new tables; no booking completion behaviour change. Existing ratings already stored in Supabase as <code>rating:'good'</code> (the string label) will display correctly on reload — the string label stored there is unchanged; only the local numeric value derived from it changes on new ratings going forward.</div></div>
@@ -14143,12 +14146,18 @@ function renderAdminManagers(){
   </div>
   <div class="sec-lbl">${adminData.managers.length} Managers</div>
   ${adminData.managers.map((m,i)=>{
-    var mRatings = (S.bookings||[]).filter(function(b){ return (b.issuedBy===m.name || b.receivedBy===m.name) && b.managerRating>0; }).map(function(b){ return b.managerRating; });
-    var mAvg = mRatings.length ? (mRatings.reduce(function(a,r){return a+r;},0)/mRatings.length) : 0;
+    // v80.62: derive conduct avg directly from supaManagerRatings (DB-backed,
+    // survives reload/cross-device) rather than S.bookings local cache.
+    // Join: manager_ratings.manager_id = mgr.supa_id (uuid).
+    var liveSummary = (typeof window.getManagerRatingSummary==='function') ? window.getManagerRatingSummary(m.name) : {good:0,average:0,bad:0,total:0};
+    var numMap62 = {bad:1, average:3, good:5};
+    var mRatings = (window.supaManagerRatings||[])
+      .filter(function(r){ return m.supa_id && String(r.manager_id)===String(m.supa_id); })
+      .map(function(r){ return numMap62[r.rating]||0; })
+      .filter(function(v){ return v>0; });
+    var mAvg = mRatings.length ? (mRatings.reduce(function(a,v){return a+v;},0)/mRatings.length) : 0;
     var moodFaces = ['','😡','😐','😀','😀','😀'];
     var mMood = mAvg ? moodFaces[Math.round(mAvg)] : '';
-    // Pull live emoji breakdown from manager_ratings table
-    var liveSummary = (typeof window.getManagerRatingSummary==='function') ? window.getManagerRatingSummary(m.name) : {good:0,average:0,bad:0,total:0};
     return `
     <div class="adm-item">
       <div class="adm-item-hd">
@@ -16268,6 +16277,24 @@ window.deleteSupaEquipment = async function(id) {
   } catch(err) { console.error('deleteSupaEquipment error:', err.message); return false; }
 };
 
+// v80.30L: PATCH the equipment.name column in Supabase after an Admin renames
+// the Brand & Model via pcOpenEditRecord(). name is a confirmed-live column
+// (see v80.28C), so this survives page reload and cross-device refetch.
+// Fire-and-forget from pcSubmitEditRecord — the local adminData array was
+// already updated by pcApplyToLive(), so the UI is always current even if
+// this PATCH lags or fails on a flaky connection.
+async function patchSupaEquipmentName(id, newName){
+  try{
+    var res = await fetch(SUPABASE_URL + '/rest/v1/equipment?id=eq.' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ name: newName })
+    });
+    if(!res.ok){ console.warn('[v80.30L] patchSupaEquipmentName failed:', await res.text()); }
+  }catch(e){ console.warn('[v80.30L] patchSupaEquipmentName error:', e); }
+}
+window.patchSupaEquipmentName = patchSupaEquipmentName;
+
 // ── EDITING SYSTEMS ────────────────────────────────────────────
 
 window.supaEditing = [];
@@ -16509,11 +16536,15 @@ window.fetchManagerRatings = async function(managerId) {
   } catch(err){ console.warn('manager_ratings fetch error (table may not exist yet):', err.message); return []; }
 };
 
-// Aggregate ratings for a booking's manager and return summary { good, average, bad, total }
+// Aggregate ratings for a manager — returns { good, average, bad, total }.
+// v80.62: primary join is manager_id ↔ mgr.supa_id (uuid, unchanged by
+// migration). booking_id is now the per-booking join key used in hydration;
+// this summary aggregates ALL ratings for a given manager across bookings.
 window.getManagerRatingSummary = function(managerName) {
-  var ratings = window.supaManagerRatings.filter(function(r){
-    var mgr = adminData.managers.find(function(m){ return m.name===managerName; });
-    return mgr && String(r.manager_id) === String(mgr.id);
+  var mgr = adminData.managers.find(function(m){ return m.name===managerName; });
+  if(!mgr || !mgr.supa_id) return {good:0, average:0, bad:0, total:0};
+  var ratings = (window.supaManagerRatings||[]).filter(function(r){
+    return String(r.manager_id) === String(mgr.supa_id);
   });
   var s = {good:0, average:0, bad:0, total:ratings.length};
   ratings.forEach(function(r){ if(s[r.rating]!==undefined) s[r.rating]++; });
@@ -17283,6 +17314,32 @@ window.fetchAndRenderBookings = async function(unfiltered) {
     // Re-apply locally-cached return/rating extras — guards against the
     // bookings table not having these columns yet (see _localExtras above).
     applyLocalExtras();
+    // v80.62: hydrate managerRating onto booking objects from supaManagerRatings.
+    // Join key: manager_ratings.booking_id (bigint) = bookings.id (int8).
+    // This is now the canonical, unambiguous join — one rating row per booking.
+    // Replaces the previous student_id join which was wrong for students with
+    // multiple bookings (it matched the first booking found, not the rated one).
+    // _localExtras values (set optimistically at rate-time) take precedence and
+    // are already applied above — only fill in bookings still at default 0.
+    (function(){
+      var mr = window.supaManagerRatings;
+      if(!mr || !mr.length) return;
+      var numMap = {bad:1, average:3, good:5};
+      S.bookings.forEach(function(b){
+        if(b.managerRating) return; // local cache already set — trust it
+        if(b.id == null) return;
+        var row = null;
+        for(var i=0; i<mr.length; i++){
+          if(mr[i].booking_id != null && Number(mr[i].booking_id) === Number(b.id)){
+            row = mr[i]; break;
+          }
+        }
+        if(!row) return;
+        var numVal = numMap[row.rating] || 0;
+        if(numVal) b.managerRating = numVal;
+        if(row.created_at && !b.ratedAt) b.ratedAt = row.created_at;
+      });
+    })();
     // Notify students whose booking just auto-cancelled for no-show — once
     // only per booking, tracked locally so the 30s poll doesn't resend it.
     window._noShowNotified = window._noShowNotified || {};
@@ -18514,11 +18571,12 @@ window.rateManagerEmoji = async function(bookingId, label) {
     var mgrRec = adminData.managers.find(function(m){ return m.name===b.issuedBy||m.name===b.receivedBy; });
     var mgrId = mgrRec && mgrRec.supa_id ? mgrRec.supa_id : null;
     var stuRec = (typeof window.findStudentByName==='function') ? window.findStudentByName(b.student) : null;
-    // b.sid (fallback) is a student_id/roll-number string, not a UUID — only
-    // safe to use stuRec.id (the real students-table UUID); otherwise omit.
     var stuId = stuRec && stuRec.id ? stuRec.id : null;
+    // v80.62: booking_id is now bigint (DB migration confirmed). Send b.id
+    // (the integer PK) directly. This is the canonical join key between
+    // manager_ratings and bookings — one unambiguous rating per booking.
     var payload = {
-      booking_id : sid,
+      booking_id : b.id,
       student_id : stuId,
       manager_id : mgrId,
       rating     : label,   // 'good' | 'average' | 'bad'
@@ -20146,14 +20204,12 @@ window.appPrompt = function(message, defaultValue, opts){
    ====================================================================== */
 
 // ---- shared helpers -----------------------------------------------------
-// v80.30K: esc() was referenced by pcQueueCardHTML, pcOpenHistory and
-// pcDiffHTML but was never defined in THIS script block — it exists only
-// inside the earlier role-specific IIFE blocks (Student/Professor/Manager/
-// Analytics), each of which declared their own local copy. Those local
-// copies are invisible here at module scope, causing a ReferenceError
-// ("esc is not defined") the moment renderApprovalsTab() tried to build
-// its first queue card. Fix: declare a module-level copy here, before any
-// function in this block that calls it.
+// v80.30M: esc() was referenced by pcOpenEditRecord (introduced in v80.30L),
+// pcQueueCardHTML, pcOpenHistory, and pcDiffHTML — all inside this script
+// block — but was never defined here. The five earlier role-specific IIFE
+// blocks each declared their own local copy; those are invisible at this
+// module scope. v80.30K first added this fix for the Approval Queue crash;
+// v80.30L rebuilt from J (not K) so the fix was lost. Re-applied here.
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // Same Brand & Model splitter the rest of the app already standardised on
@@ -20783,20 +20839,76 @@ async function pcApplyToLive(targetTable, action, targetId, data, originalSubmit
 }
 
 // ---- Edit Existing Record (Manager → pending update / Admin → direct) ----
+// v80.30L: Equipment edit now uses a rich form matching the Add Equipment UI
+// design, exposing Brand & Model (baseName) as an editable field so Admin can
+// rename the model and automatically regroup kits under the new name. The kit
+// suffix (everything after " – " in the full name) is preserved unchanged;
+// only the base changes. Systems/Studios continue with the simple key list.
 function pcOpenEditRecord(table, id, idx){
   var tbl = PC_TABLES[table]; if(!tbl) return;
   var rec = tbl.local()[idx];
   if(!rec){ toast('⚠️ Could not find this record'); return; }
-  var editableKeys = table==='equipment' ? ['name','status','kitContents','note']
-    : table==='systems' ? ['name','software','note']
-    : ['name','capacity','note'];
-  document.getElementById('pc-editrec-title').textContent = (window.currentRole==='Studio Manager' ? '✏️ Request Edit — ' : '✏️ Edit — ') + rec.name;
-  document.getElementById('pc-editrec-fields').innerHTML = editableKeys.map(function(k){
-    return '<div style="margin-bottom:8px;"><div style="font-size:9.5px;font-weight:700;color:#6b7280;margin-bottom:3px;">' + k + '</div>'
-      + '<input class="finput" style="margin-bottom:0;" data-pc-field="' + k + '" value="' + String(rec[k]!==undefined&&rec[k]!==null?rec[k]:'').replace(/"/g,'&quot;') + '"/></div>';
-  }).join('');
-  document.getElementById('pc-editrec-submit').textContent = window.currentRole==='Studio Manager' ? '📝 Submit for Approval' : '💾 Save';
+  var isManager = (window.currentRole === 'Studio Manager');
+  document.getElementById('pc-editrec-title').textContent = (isManager ? '✏️ Request Edit — ' : '✏️ Edit — ') + rec.name;
+  document.getElementById('pc-editrec-submit').textContent = isManager ? '📝 Submit for Approval' : '💾 Save';
   window._pcEditTable = table; window._pcEditId = rec.id; window._pcEditSnapshot = Object.assign({}, rec);
+
+  if(table === 'equipment'){
+    // Derive baseName and kit suffix from the stored full name
+    var fullName = rec.name || '';
+    var dashIdx  = fullName.indexOf(' \u2013 '); // em-dash " – "
+    if(dashIdx === -1) dashIdx = fullName.indexOf(' - ');  // plain hyphen fallback
+    var currentBase = dashIdx !== -1 ? fullName.slice(0, dashIdx) : fullName;
+    var kitSuffix   = dashIdx !== -1 ? fullName.slice(dashIdx + 3) : ''; // 3 = length of " – "
+
+    // Category select options
+    var catOptions = Object.keys(EQUIPMENT_CATEGORY_ICONS).map(function(c){
+      var sel = (c === rec.itemCategory) ? ' selected' : '';
+      return '<option value="' + esc(c) + '"' + sel + '>' + EQUIPMENT_CATEGORY_ICONS[c] + ' ' + esc(c) + '</option>';
+    }).join('');
+
+    // Status options
+    var statusOptions = ['Active','Maintenance','Retired'].map(function(s){
+      return '<option value="' + s + '"' + (rec.status === s ? ' selected' : '') + '>' + s + '</option>';
+    }).join('');
+
+    // Facility options
+    var facOptions = [
+      ['T1 Central', (window.adminData && adminData.facilityLabels ? adminData.facilityLabels.t1 : 'T1 Central Block')],
+      ['Film & TV',  (window.adminData && adminData.facilityLabels ? adminData.facilityLabels.film : 'Film & TV Studio')]
+    ].map(function(pair){
+      return '<option value="' + pair[0] + '"' + (rec.fac === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+    }).join('');
+
+    // v80.30N: restructured to match Add Equipment UI layout exactly —
+    // Brand & Model + Category at top (mirroring the adm-add-panel header),
+    // then kit-specific fields (Facility, Status, Kit Contents, Manager Note)
+    // wrapped inside the same adm-kit-block bordered card used in Add Equipment.
+    document.getElementById('pc-editrec-fields').innerHTML =
+      // ── Top section: Brand & Model + Category (matches adm-add-panel top) ──
+      '<input class="finput" style="font-weight:700;" data-pc-field="_baseName" value="' + esc(currentBase).replace(/"/g,'&quot;') + '" placeholder="Brand &amp; Model (e.g. SONY MDR EX 15LP Earphones)"/>'
+      + '<select class="fselect" data-pc-field="itemCategory">' + catOptions + '</select>'
+      + '<div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Icon is set automatically from the category above</div>'
+      // ── Kit block: mirrors adm-kit-block from Add Equipment ──
+      + '<div style="font-size:10px;font-weight:700;color:#6b7280;margin:0 0 4px;">Kit details</div>'
+      + '<div style="border:1px solid #e8d5c4;border-radius:10px;padding:9px;margin-bottom:8px;position:relative;">'
+      + (kitSuffix ? '<div style="font-size:9px;color:#6b7280;margin-bottom:7px;padding-bottom:7px;border-bottom:1px dashed #f1e8dd;">Kit identifier: <strong>' + esc(kitSuffix) + '</strong> (unchanged)</div>' : '')
+      + '<input type="hidden" data-pc-field="_kitSuffix" value="' + esc(kitSuffix).replace(/"/g,'&quot;') + '"/>'
+      + '<select class="fselect" data-pc-field="fac">' + facOptions + '</select>'
+      + '<select class="fselect" data-pc-field="status">' + statusOptions + '</select>'
+      + '<input class="finput" data-pc-field="kitContents" value="' + esc(String(rec.kitContents||'')).replace(/"/g,'&quot;') + '" placeholder="Kit Contents — what\'s inside e.g. Recorder + ATR100 mic + Senn Headphones"/>'
+      + '<input class="finput" style="margin-bottom:0;" data-pc-field="note" value="' + esc(String(rec.note||'')).replace(/"/g,'&quot;') + '" placeholder="🔒 Manager Note (internal only) — e.g. bag torn, no handle…"/>'
+      + '</div>';
+  } else {
+    // Systems / Studios: simple key list, unchanged
+    var editableKeys = table==='systems' ? ['name','software','note'] : ['name','capacity','note'];
+    document.getElementById('pc-editrec-fields').innerHTML = editableKeys.map(function(k){
+      var FIELD_LABELS_E = { name:'Name', software:'Software / Specs', note:'Manager Note', capacity:'Capacity' };
+      return '<div style="margin-bottom:8px;"><div style="font-size:9.5px;font-weight:700;color:#6b7280;margin-bottom:3px;">' + (FIELD_LABELS_E[k]||k) + '</div>'
+        + '<input class="finput" style="margin-bottom:0;" data-pc-field="' + k + '" value="' + esc(String(rec[k]!==undefined&&rec[k]!==null?rec[k]:'')).replace(/"/g,'&quot;') + '"/></div>';
+    }).join('');
+  }
+
   document.getElementById('pc-editrec-overlay').classList.add('open');
 }
 window.pcOpenEditRecord = pcOpenEditRecord;
@@ -20804,15 +20916,44 @@ window.pcOpenEditRecord = pcOpenEditRecord;
 async function pcSubmitEditRecord(){
   var table = window._pcEditTable, id = window._pcEditId, snapshot = window._pcEditSnapshot;
   if(!table){ return; }
+
+  // Collect all data-pc-field inputs/selects
   var proposed = {};
-  document.querySelectorAll('#pc-editrec-fields [data-pc-field]').forEach(function(inp){ proposed[inp.getAttribute('data-pc-field')] = inp.value; });
+  document.querySelectorAll('#pc-editrec-fields [data-pc-field]').forEach(function(el){
+    proposed[el.getAttribute('data-pc-field')] = el.value;
+  });
+
+  // v80.30L: Equipment — reconstruct 'name' from _baseName + _kitSuffix so
+  // changing Brand & Model propagates into the full kit name and regrouping
+  // happens automatically on the next admEquipmentListHTML() render pass.
+  if(table === 'equipment'){
+    var newBase   = (proposed['_baseName']   || '').trim();
+    var kitSuffix = (proposed['_kitSuffix']  || '').trim();
+    if(!newBase){ toast('⚠️ Brand & Model cannot be blank'); return; }
+    proposed['name'] = kitSuffix ? (newBase + ' \u2013 ' + kitSuffix) : newBase;
+    delete proposed['_baseName'];
+    delete proposed['_kitSuffix'];
+  }
+
   pcCloseModal('pc-editrec-overlay');
+
   if(window.currentRole === 'Studio Manager'){
+    // Manager path — submit as a pending change for Admin approval
+    // Include _submittedByName inside proposed (submitPendingChange does this
+    // automatically via Object.assign, so just pass proposed as-is).
     var row = await submitPendingChange(table, 'update', id, proposed, snapshot);
     if(row){ toast('📝 Edit submitted for Admin approval'); if(typeof refreshApprovalsBadge==='function') refreshApprovalsBadge(); }
   } else {
+    // Admin path — apply directly to live
     var ok = await pcApplyToLive(table, 'update', id, proposed, snapshot.createdBy || 'Admin');
-    if(ok){ toast('💾 Saved'); }
+    if(ok){
+      // v80.30L: if the equipment name changed, PATCH Supabase's name column too
+      // so the change survives a page reload (name is a confirmed-live column).
+      if(table === 'equipment' && proposed['name'] && proposed['name'] !== snapshot.name){
+        patchSupaEquipmentName(id, proposed['name']);
+      }
+      toast('💾 Saved');
+    }
     // re-render whichever admin tab is currently active so the edited card refreshes
     var activeTab = document.querySelector('.adm-tab.active');
     if(activeTab) activeTab.click();
