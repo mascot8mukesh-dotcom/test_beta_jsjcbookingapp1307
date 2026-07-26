@@ -2487,17 +2487,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             <div id="an2-support-hours-list" class="an2-ins-grid"></div>
           </div>
 
-          <!-- ── v80.55 PHASE 4: Manager Feedback Panel — surfaces existing
-               b.managerRating / b.ratedAt data (already captured on the
-               booking, already shown per-record via an2EfficiencyInsightHTML/
-               an2StudentFeedbackInsightHTML) as one consolidated Analytics
-               section, filtered/updated by the same filter bar as everything
-               else on this screen. No new data source, no schema change. ── -->
-          <div class="an2-insights an2-noprint" id="an2-mgr-feedback-panel" style="display:none;">
-            <div class="an2-insights-title">🌟 Manager Feedback</div>
-            <div id="an2-mgr-feedback-list"></div>
-          </div>
-
           <!-- Calendar date filter — Single Day / Date Range toggle (v49.7) -->
           <div class="an2-noprint" style="margin-bottom:8px;">
             <!-- Mode toggle -->
@@ -2999,7 +2988,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.58</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.59</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.59 &middot; 🗑️ Manager Feedback Panel Removed from Analytics</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Removed:</strong> the "🌟 Manager Feedback" consolidated panel that appeared above the Single Day / Date Range toggle in Analytics. It was consuming significant screen space. The per-record Student Feedback insight (⭐ Student Feedback box with stars, "Rated by", and descriptive text) inside each individual booking card in the record list is untouched — rating data remains visible there. <strong>Three surgical removals:</strong> (1) the HTML panel (<code>#an2-mgr-feedback-panel</code> + <code>#an2-mgr-feedback-list</code>) from the Analytics screen, (2) the <code>an2ManagerFeedbackHTML(filtered)</code> call from <code>an2ApplyFilters()</code>, (3) the <code>an2ManagerFeedbackHTML()</code> function definition and its <code>window</code> export. <strong>Untouched:</strong> <code>an2EfficiencyInsightHTML()</code>, <code>an2StudentFeedbackInsightHTML()</code>, all analytics calculations, booking workflow, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7b1a1a;"><div style="font-size:10px;font-weight:800;color:#7b1a1a;margin-bottom:3px;">v80.58 &middot; ⭐ Rating Scale &amp; Vocabulary Correction — Good=5★, Average=3★, Bad=1★</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> <code>rateManagerEmoji()</code>'s <code>numMap</code> mapped <code>good→3</code>, <code>average→2</code>, <code>bad→1</code>. When a student selected "Good 😃", the stored value was <strong>3</strong> — which then flowed into <code>pipelineRecordHTML()</code>'s <code>starMap[3]='⭐⭐⭐'</code> (Timeline) and <code>an2StudentFeedbackInsightHTML()</code>'s <code>insightMap[3]='satisfactory support'</code> (Analytics/Manager Feedback panel). Everything downstream was correct for its input — the error was entirely in the write-time mapping. <strong>Two surgical changes only:</strong> (1) <code>numMap</code> in <code>rateManagerEmoji()</code> corrected to <code>{bad:1, average:3, good:5}</code> — Good now stores 5, Average stores 3, Bad stores 1. (2) <code>insightMap</code> key 1 text updated in all three category branches of <code>an2StudentFeedbackInsightHTML()</code>: "poor support" → "a disappointing experience" (per spec). <strong>No other changes:</strong> <code>starMap</code> in <code>pipelineRecordHTML()</code> was already correct (maps 5→⭐⭐⭐⭐⭐); <code>ratingColors/ratingBg/ratingBorder</code> already correct (5 is teal/green); <code>an2ManagerFeedbackHTML()</code> stars display already correct; no database schema change; no workflow logic change; no UI redesign; no new tables; no booking completion behaviour change. Existing ratings already stored in Supabase as <code>rating:'good'</code> (the string label) will display correctly on reload — the string label stored there is unchanged; only the local numeric value derived from it changes on new ratings going forward.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #d97706;"><div style="font-size:10px;font-weight:800;color:#d97706;margin-bottom:3px;">v80.57 &middot; &#11088; Student Feedback — Confirmed Below Manager Efficiency, Hardened for Partial Data</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Audit finding:</strong> <code>an2StudentFeedbackInsightHTML(b)</code> was already called immediately after <code>an2EfficiencyInsightHTML(b)</code> at both existing call sites — <code>an2BuildRecordHTML()</code> (the per-record Analytics document card) and the new v80.55 <code>an2ManagerFeedbackHTML()</code> panel — so "Student Feedback directly below Manager Efficiency" was already true structurally; no reordering was needed. <strong>What changed:</strong> (1) added a "Rated by &lt;student&gt;" line to the Student Feedback box itself (previously only showed inside the Manager Feedback panel's own header, inconsistently with the per-record card). (2) Hardened for partial/malformed data per spec: a rating with no mappable insight text now shows stars + "Rated by" alone instead of an empty description line; the function now separately checks for rating and for a (currently nonexistent) free-text comment field so a genuine future comment-only case would show the comment alone with no fabricated stars — today's data model only ever writes the rating (<code>rateManagerEmoji()</code> sets <code>managerRating</code>/<code>ratedAt</code> only, no separate comment column), so in practice this still renders exactly as before for every existing booking. (3) Icon changed 🌟→⭐ to match the requested header exactly ("⭐ Student Feedback"). (4) Removed the now-duplicate stars/"Rated by" line from <code>an2ManagerFeedbackHTML()</code>'s own card header, since the shared function supplies it. <strong>Applies uniformly</strong> to Equipment/Studio/Editing via the existing category-aware <code>insightMap</code>, unchanged. <strong>Untouched:</strong> Analytics calculations, Timeline logic, cancellation flow, denial flow, booking workflow, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.56 &middot; &#128100; Process Timeline — "Manager Manager" Name-Resolution Fix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Process Timeline showed "Equipment received by Manager Manager." <strong>Root cause — two independent generic fallbacks concatenating:</strong> <code>resVocab()</code>'s Equipment <code>receivedVerb</code> had the literal word "Manager" baked directly into the action text ("Equipment received by Manager"), while the actor name appended right after it separately fell back to the same literal string <code>'Manager'</code> whenever <code>b.receivedBy</code> wasn't a real name (e.g. <code>window.currentUser</code> was empty on the device/session that ran <code>markReceived()</code>). Studio and Editing never showed this because their <code>receivedVerb</code> strings correctly end at "by" with nothing baked in — Equipment's was the one inconsistent entry. <strong>Fix:</strong> (1) Equipment's <code>receivedVerb</code> in <code>resVocab()</code> now reads "Equipment received by" — no baked-in placeholder, matching Studio/Editing. (2) New single resolver <code>_pipeActor()</code> inside <code>pipelineRecordHTML()</code>, applied to every manager-attributed row (Manager Acknowledged, Kit/Studio/Workstation Ready, Issued/Opened/Session Started, Handed Over/Access Granted, Received/Partially Received) — tries the specific field for that stage first, falls back across the OTHER manager fields already on the same booking (<code>kitPrepBy</code>/<code>kitReadyBy</code>/<code>issuedBy</code>/<code>receivedBy</code> — usually the same person handled the whole booking), and only falls back to the literal "Manager" if genuinely nothing usable is found. It also explicitly rejects known-bad placeholder values (<code>'manager'</code>, <code>'manager manager'</code>, <code>'undefined'</code>, <code>'null'</code>, empty string) so a corrupted/legacy value can never resurface as-is. <strong>Result:</strong> "Equipment received by Mukesh Mohankumar" when a real name is available anywhere on the booking; plain "Equipment received by Manager" (never doubled) when truly nothing is available. <strong>Untouched:</strong> booking/approval/issue/return workflow, database schema, <code>markReceived()</code>'s own PATCH logic (the underlying "why was <code>currentUser</code> empty" question is a separate investigation if it keeps recurring — this fix makes the display correct regardless of that root data gap).</div></div>
@@ -10676,10 +10666,6 @@ function an2ApplyFilters(){
   // v80.55 PHASE 3: Studio & Editing Support Hours — same filtered set.
   an2SupportHoursHTML(filtered);
 
-  // v80.55 PHASE 4: Manager Feedback section — same filtered set as
-  // everything else on this screen, so it respects every existing filter.
-  an2ManagerFeedbackHTML(filtered);
-
   // Record list
   // Keep existing status-filter active
   var activeStatusFilter = window._an2ActiveFilter || 'all';
@@ -10823,51 +10809,7 @@ function an2SupportHoursHTML(records){
 }
 window.an2SupportHoursHTML = an2SupportHoursHTML;
 
-// ── v80.55 PHASE 4: MANAGER FEEDBACK ANALYTICS SECTION ──────────────────
-// Consolidates existing per-record data (b.managerRating, b.ratedAt,
-// b.receivedBy, the same kitPreparationStartedAt→issuedAt evidence
-// an2EfficiencyInsightHTML already reads) into one Analytics section
-// instead of it only being visible one record at a time inside the
-// Process Timeline / record cards. Reuses an2EfficiencyInsightHTML() and
-// an2StudentFeedbackInsightHTML() verbatim — no new scoring, no new
-// persistence, no schema change. Bookings with no b.managerRating are
-// simply not included (never fabricated).
-function an2ManagerFeedbackHTML(records){
-  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  var rated = (records||[]).filter(function(b){
-    var r = parseInt(b.managerRating,10);
-    return r >= 1 && r <= 5;
-  });
-  // Most recent first — falls back to booking start_time if ratedAt is missing.
-  rated.sort(function(a,b){
-    var ta = new Date(a.ratedAt || a.start_time || 0).getTime();
-    var tb = new Date(b.ratedAt || b.start_time || 0).getTime();
-    return tb - ta;
-  });
-  var panel = document.getElementById('an2-mgr-feedback-panel');
-  var list  = document.getElementById('an2-mgr-feedback-list');
-  if(!panel || !list) return;
-  if(!rated.length){ panel.style.display='none'; list.innerHTML=''; return; }
-  panel.style.display='';
-  var starMap = {1:'★☆☆☆☆',2:'★★☆☆☆',3:'★★★☆☆',4:'★★★★☆',5:'★★★★★'};
-  list.innerHTML = rated.map(function(b){
-    var typeLabel = b.cat || '—';
-    var ref = b.bookingCode || b.code || b.issueNum || b.id || '—';
-    var effHTML = (typeof an2EfficiencyInsightHTML==='function') ? an2EfficiencyInsightHTML(b) : '';
-    // v80.57: an2StudentFeedbackInsightHTML() now supplies its own stars +
-    // "Rated by" line — no longer duplicated in this card's own header.
-    var fbHTML  = (typeof an2StudentFeedbackInsightHTML==='function') ? an2StudentFeedbackInsightHTML(b) : '';
-    return '<div style="background:#FFFDF7;border:1px solid #E8DED0;border-radius:11px;padding:10px 12px;margin-bottom:9px;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
-      +   '<span style="font-size:9px;font-weight:700;color:#6B6256;">' + esc(typeLabel) + ' · ' + esc(ref) + '</span>'
-      +   (b.receivedBy ? '<span style="font-size:9px;font-weight:700;color:#6B6256;">Manager: <strong style="color:#2E2E2E;">' + esc(b.receivedBy) + '</strong></span>' : '')
-      + '</div>'
-      + effHTML
-      + fbHTML
-      + '</div>';
-  }).join('');
-}
-window.an2ManagerFeedbackHTML = an2ManagerFeedbackHTML;
+// an2ManagerFeedbackHTML removed v80.59 — panel removed from Analytics to reclaim screen space.
 
 // ═══════════════════════════════════════════════════
 //  ALG — Asset Usage Ledger (item-based, date-range report)
