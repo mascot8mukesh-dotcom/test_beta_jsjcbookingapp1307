@@ -3030,7 +3030,9 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30N</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30P</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.30P &middot; 🔓 Kit Number Unlocked in Equipment Edit — Was Still a Frozen Suffix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Gap found:</strong> v80.30L/N made Brand &amp; Model and Category editable, but the rest of the stored name (everything after the " – ") was still shown as a read-only "Kit identifier… (unchanged)" line via a hidden <code>_kitSuffix</code> field — so a mis-entered Kit Number (e.g. wanting "Kit 1" instead of "EX 15LP Earphones – Earphones 1") could not be fixed at all, and the Edit modal still didn't fully mirror Add Equipment's own field set. <strong>Fix — <code>pcOpenEditRecord()</code>:</strong> that read-only line is replaced with a real editable text input, <code>data-pc-field="_kitNumber"</code>, using the identical placeholder text and position as Add Equipment's own Kit Number field in <code>admEqKitBlockHTML()</code>. The Edit modal's field set (Brand &amp; Model, Category, Kit Number, Location/Facility, Status, Kit Contents, Manager Note) is now field-for-field identical to Add Equipment. <strong>Fix — <code>pcSubmitEditRecord()</code>:</strong> rebuilds <code>name</code> from <code>_baseName + " – " + _kitNumber</code> (or just <code>_baseName</code> if blank) — the exact same rule <code>admAddEquipment()</code> uses — and also sets <code>proposed.kitNumber</code> so the local record carries the field explicitly rather than only encoding it inside the composite <code>name</code> string. <strong>Fix — <code>patchSupaEquipmentName()</code>:</strong> now accepts an optional third <code>newKitNumber</code> argument and, when given, PATCHes Supabase's <code>kit_number</code> column (the same confirmed-live column <code>admAddEquipment()</code> already writes on insert) in the same request as the name PATCH, so an edited Kit Number survives reload and cross-device refetch exactly like a Brand &amp; Model edit already did. <strong>Grouping:</strong> unaffected by this change — still keyed on Brand &amp; Model + Category per v80.30O, so editing Kit Number alone (leaving Brand &amp; Model/Category untouched) correctly keeps the item in the same group, only its kit-level label changes. <strong>Untouched:</strong> Add Equipment, delete flows, Manager pending-change/approval path, database schema, Systems/Studios edit forms.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80.30O &middot; 🗂️ Grouping Now Derived from Brand &amp; Model + Category (Not Name Alone)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Gap found:</strong> v80.30L/N made Category editable in the rich Equipment Edit modal and reconstructed <code>name</code> from the new Brand &amp; Model on save, but <code>admEquipmentListHTML()</code>'s grouping key was still <code>pcBaseName(e.name)</code> alone — Category changes made without also renaming Brand &amp; Model wouldn't move the item to a new group card, and a group's displayed icon (<code>items[0].itemCategory</code>) could end up mismatched if same-named items ever carried different categories. <strong>Fix:</strong> the group key is now <code>baseName + Category</code> combined (Category shown separately in each kit's sub-line, so the group title still just shows Brand &amp; Model). Editing either field in the Edit modal and saving now moves the record into the correct existing group or spins up a new one automatically on the next render — no manual regrouping, confirming the example in the request (Sony Alpha A7 IV / Camera Kit leaves the Headphones group and joins/creates the Camera Kit group for that name). <strong>Also:</strong> each group's DOM id now derives from the combined key instead of baseName alone, avoiding an id collision in the rare case of two categories sharing a Brand &amp; Model string. <strong>Untouched:</strong> the Edit modal fields/layout itself (already correct per v80.30L/N), <code>pcSubmitEditRecord()</code>'s name reconstruction and Supabase PATCH, Add Equipment, delete flows, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.30N &middot; 🎨 Edit Modal Layout — Matches Add Equipment Form Design</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Edit modal fields were loosely stacked with individual label divs and inconsistent wrappers — did not match the Add Equipment form design. <strong>Fix (display-only, no logic change):</strong> restructured <code>pcOpenEditRecord()</code>'s equipment HTML to mirror the Add Equipment UI layout exactly: (1) Brand &amp; Model input and Category dropdown appear at the top, matching the <code>adm-add-panel</code> header — no more blue wrapper box around just Brand &amp; Model. (2) Facility, Status, Kit Contents, and Manager Note are now wrapped inside the same <code>adm-kit-block</code> bordered card (1px solid #e8d5c4, border-radius 10px, 9px padding) used in Add Equipment — giving the edit form the same visual weight as the entry form. (3) Kit identifier line (the read-only suffix) moved inside the kit block with a dashed bottom border, matching where Kit # sits in the Add Equipment block. The icon-auto hint line is preserved. <strong>No change to</strong> field collection, name reconstruction, Supabase PATCH, Manager pending-change path, Systems/Studios branch, or any other logic.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #dc2626;"><div style="font-size:10px;font-weight:800;color:#dc2626;margin-bottom:3px;">v80.30M &middot; 🐛 CRASH FIX — ReferenceError: esc is not defined in Equipment Edit modal</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Clicking the ✏️ Edit button on any equipment card threw <code>Uncaught ReferenceError: esc is not defined</code> at <code>pcOpenEditRecord()</code> — the modal never opened. <strong>Root cause:</strong> v80.30L introduced <code>esc()</code> calls inside <code>pcOpenEditRecord()</code> (to safely render the Brand &amp; Model field and all other equipment values). <code>pcOpenEditRecord</code> lives in the Approval Workflow Engine script block (starts line 20155), which has never had a module-level <code>esc()</code> definition — the five earlier role-specific IIFE blocks each declared their own local copy, but those are scoped to their own blocks and invisible here. v80.30K had fixed this same missing <code>esc</code> for the Approval Queue crash, but v80.30L was built from J (not K), so the K fix was never carried forward. <strong>Fix:</strong> added <code>function esc(v){…}</code> at the top of the Approval Engine script block, before <code>pcBaseName</code> — identical one-liner to all other copies in this file. Now covers every <code>esc()</code> call in this block: <code>pcOpenEditRecord</code>, <code>pcQueueCardHTML</code>, <code>pcOpenHistory</code>, <code>pcDiffHTML</code>. <strong>Untouched:</strong> all workflow logic, modal HTML, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #1d4ed8;"><div style="font-size:10px;font-weight:800;color:#1d4ed8;margin-bottom:3px;">v80.30L &middot; ✏️ Brand &amp; Model Editing — Regroup Kits by Renaming</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> The Equipment Edit modal only exposed <code>name / status / kitContents / note</code> — no way to change the Brand &amp; Model (baseName). This made it impossible to fix mis-grouped items (e.g. 3 "SONY MDR" kits that should be "SONY MDR EX 15LP Earphones") without removing and re-adding them. <strong>Fix — <code>pcOpenEditRecord()</code>:</strong> Equipment now renders a rich form matching the Add Equipment UI style, with a highlighted Brand &amp; Model input at the top, Category and Facility dropdowns (matching the booking-entry form design), Status dropdown, Kit Contents, and Manager Note. The kit suffix (everything after " – " in the full stored name) is shown read-only below the Brand &amp; Model input — it is always preserved unchanged; only the base changes. Systems and Studios continue to use the existing simple key-input list. <strong>Fix — <code>pcSubmitEditRecord()</code>:</strong> Reconstructs the full <code>name</code> field as <code>newBase + " – " + kitSuffix</code> (or just <code>newBase</code> if no suffix), then calls <code>pcApplyToLive()</code> as before. When the name changed, also fires <code>patchSupaEquipmentName(id, newName)</code> to PATCH the confirmed-live <code>name</code> column in Supabase so the rename survives page reload and cross-device refetch. <strong>New helper — <code>patchSupaEquipmentName(id, name)</code>:</strong> fire-and-forget PATCH to <code>/rest/v1/equipment?id=eq.{id}</code> using only the <code>name</code> column (confirmed live per v80.28C). No schema change — <code>name</code> was already a real column. <strong>Regrouping:</strong> automatic — <code>admEquipmentListHTML()</code> already groups by <code>pcBaseName(e.name)</code> on every render, so once the local array and Supabase row both carry the corrected name, all kits merge into the correct parent group on the next tab click. <strong>Manager path:</strong> Brand &amp; Model is included in the pending-change <code>proposed_data</code> (as both <code>name</code> and the <code>_baseName</code>/<code>_kitSuffix</code> working fields, the latter stripped before submission). The Supabase PATCH is Admin-only — Manager changes go through the approval workflow as before. <strong>Untouched:</strong> <code>pcApplyToLive()</code>, <code>submitPendingChange()</code>, <code>admEquipmentListHTML()</code> grouping logic, all delete/add flows, database schema, booking pipeline.</div></div>
@@ -13729,17 +13731,25 @@ function admEquipmentListHTML(list){
   // v80.60: every Brand & Model — including single-kit items — renders as a
   // collapsible group card. Consistent expand/collapse for all equipment.
   if(!list.length) return '<div style="text-align:center;padding:22px 10px;color:#9ca3af;font-size:11px;">No equipment matches this search/filter.</div>';
+  // v80.30O: group key is Brand & Model (baseName) + Category combined — not
+  // baseName alone. This means editing EITHER field on an item (via the rich
+  // Edit modal) causes it to leave its old group and join/create the correct
+  // one on next render, with no manual regrouping step. Display label still
+  // shows just the baseName (Category already shown in each kit card's sub-line).
   var groups = {}; var order = [];
   list.forEach(function(e){
     var base = (typeof pcBaseName==='function') ? pcBaseName(e.name) : e.name;
     if(base==null || base==='') base = e.name || 'Unnamed Equipment';
-    if(!groups[base]){ groups[base]=[]; order.push(base); }
-    groups[base].push(e);
+    var cat = e.itemCategory || '';
+    var gkey = base + '\u2016' + cat; // \u2016 unlikely to appear in real names
+    if(!groups[gkey]){ groups[gkey]={ base: base, items: [] }; order.push(gkey); }
+    groups[gkey].items.push(e);
   });
-  return order.map(function(base){
-    var items = groups[base];
+  return order.map(function(gkey){
+    var base = groups[gkey].base;
+    var items = groups[gkey].items;
     // Stable gid — not length-dependent so toggling survives re-filter
-    var gid = 'pcg-' + base.replace(/[^a-z0-9]/gi,'_').slice(0,40);
+    var gid = 'pcg-' + gkey.replace(/[^a-z0-9]/gi,'_').slice(0,40);
     var repIcon = EQUIPMENT_CATEGORY_ICONS[items[0].itemCategory] || items[0].icon || '📷';
     var kitLabel = items.length === 1 ? '1 Kit' : items.length + ' Kits Available';
     var activeCount = items.filter(function(e){ return !e.status || e.status === 'Active'; }).length;
@@ -16283,12 +16293,20 @@ window.deleteSupaEquipment = async function(id) {
 // Fire-and-forget from pcSubmitEditRecord — the local adminData array was
 // already updated by pcApplyToLive(), so the UI is always current even if
 // this PATCH lags or fails on a flaky connection.
-async function patchSupaEquipmentName(id, newName){
+// v80.30P: now optionally also PATCHes kit_number in the same request — Kit
+// Number became a real editable field in the Edit modal (previously frozen),
+// and kit_number is the same confirmed-live column admAddEquipment() already
+// writes on insert (see its addSupaEquipment call), so this keeps Edit and
+// Add writing to identical Supabase columns. newKitNumber is optional so
+// existing callers (name-only rename) keep working unchanged.
+async function patchSupaEquipmentName(id, newName, newKitNumber){
   try{
+    var body = { name: newName };
+    if(newKitNumber !== undefined) body.kit_number = newKitNumber || null;
     var res = await fetch(SUPABASE_URL + '/rest/v1/equipment?id=eq.' + encodeURIComponent(id), {
       method: 'PATCH',
       headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ name: newName })
+      body: JSON.stringify(body)
     });
     if(!res.ok){ console.warn('[v80.30L] patchSupaEquipmentName failed:', await res.text()); }
   }catch(e){ console.warn('[v80.30L] patchSupaEquipmentName error:', e); }
@@ -20889,11 +20907,12 @@ function pcOpenEditRecord(table, id, idx){
       '<input class="finput" style="font-weight:700;" data-pc-field="_baseName" value="' + esc(currentBase).replace(/"/g,'&quot;') + '" placeholder="Brand &amp; Model (e.g. SONY MDR EX 15LP Earphones)"/>'
       + '<select class="fselect" data-pc-field="itemCategory">' + catOptions + '</select>'
       + '<div style="font-size:9.5px;color:#9ca3af;margin:-6px 0 9px 2px;">Icon is set automatically from the category above</div>'
-      // ── Kit block: mirrors adm-kit-block from Add Equipment ──
+      // ── Kit block: mirrors adm-kit-block from Add Equipment exactly —
+      // Kit Number is now a real editable input (data-pc-field="_kitNumber"),
+      // not a locked read-only suffix, matching Add Equipment field-for-field.
       + '<div style="font-size:10px;font-weight:700;color:#6b7280;margin:0 0 4px;">Kit details</div>'
       + '<div style="border:1px solid #e8d5c4;border-radius:10px;padding:9px;margin-bottom:8px;position:relative;">'
-      + (kitSuffix ? '<div style="font-size:9px;color:#6b7280;margin-bottom:7px;padding-bottom:7px;border-bottom:1px dashed #f1e8dd;">Kit identifier: <strong>' + esc(kitSuffix) + '</strong> (unchanged)</div>' : '')
-      + '<input type="hidden" data-pc-field="_kitSuffix" value="' + esc(kitSuffix).replace(/"/g,'&quot;') + '"/>'
+      + '<input class="finput" data-pc-field="_kitNumber" value="' + esc(kitSuffix).replace(/"/g,'&quot;') + '" placeholder="Kit number (e.g. Kit 1) — leave blank if N/A"/>'
       + '<select class="fselect" data-pc-field="fac">' + facOptions + '</select>'
       + '<select class="fselect" data-pc-field="status">' + statusOptions + '</select>'
       + '<input class="finput" data-pc-field="kitContents" value="' + esc(String(rec.kitContents||'')).replace(/"/g,'&quot;') + '" placeholder="Kit Contents — what\'s inside e.g. Recorder + ATR100 mic + Senn Headphones"/>'
@@ -20923,16 +20942,22 @@ async function pcSubmitEditRecord(){
     proposed[el.getAttribute('data-pc-field')] = el.value;
   });
 
-  // v80.30L: Equipment — reconstruct 'name' from _baseName + _kitSuffix so
-  // changing Brand & Model propagates into the full kit name and regrouping
-  // happens automatically on the next admEquipmentListHTML() render pass.
+  // v80.30P: Equipment — reconstruct 'name' from the now-editable _baseName
+  // (Brand & Model) + _kitNumber (Kit Number) fields, using the exact same
+  // naming rule as admAddEquipment(): "name" alone if no kit number, else
+  // "name – kitNumber". Both fields are real, editable inputs now (Kit Number
+  // is no longer a frozen read-only suffix), so Admin can correct either or
+  // both — grouping (admEquipmentListHTML, keyed on baseName+Category) and
+  // the Supabase kit_number column both stay in sync with whatever is saved.
+  var newKitNumber = ''; // used below for the Supabase PATCH too
   if(table === 'equipment'){
-    var newBase   = (proposed['_baseName']   || '').trim();
-    var kitSuffix = (proposed['_kitSuffix']  || '').trim();
+    var newBase = (proposed['_baseName'] || '').trim();
+    newKitNumber = (proposed['_kitNumber'] || '').trim();
     if(!newBase){ toast('⚠️ Brand & Model cannot be blank'); return; }
-    proposed['name'] = kitSuffix ? (newBase + ' \u2013 ' + kitSuffix) : newBase;
+    proposed['name'] = newKitNumber ? (newBase + ' \u2013 ' + newKitNumber) : newBase;
+    proposed['kitNumber'] = newKitNumber;
     delete proposed['_baseName'];
-    delete proposed['_kitSuffix'];
+    delete proposed['_kitNumber'];
   }
 
   pcCloseModal('pc-editrec-overlay');
@@ -20949,8 +20974,8 @@ async function pcSubmitEditRecord(){
     if(ok){
       // v80.30L: if the equipment name changed, PATCH Supabase's name column too
       // so the change survives a page reload (name is a confirmed-live column).
-      if(table === 'equipment' && proposed['name'] && proposed['name'] !== snapshot.name){
-        patchSupaEquipmentName(id, proposed['name']);
+      if(table === 'equipment' && proposed['name'] && (proposed['name'] !== snapshot.name || newKitNumber !== (snapshot.kitNumber||''))){
+        patchSupaEquipmentName(id, proposed['name'], newKitNumber);
       }
       toast('💾 Saved');
     }
