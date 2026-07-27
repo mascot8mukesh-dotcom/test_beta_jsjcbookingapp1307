@@ -2263,25 +2263,8 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <option value="production">🎬 Production</option>
           <option value="post">🖥️ Post Production</option>
           <option value="classwork">📚 Class Work</option>
-          <option value="equipment">📦 Equipment Issuing</option>
-          <option value="mgmt">🛠️ Studio/Edit Suite Support Management</option>
           <option value="others">🔧 Others / Admin</option>
         </select>
-
-        <!-- Equipment Issuing: no manual time entry — fixed-time logic applies -->
-        <div id="equipment-fixed-block" style="display:none;">
-          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:9px 11px;font-size:11px;color:#1e40af;margin:4px 0 10px;line-height:1.45;">
-            Equipment handling time is auto-calculated at 10 minutes per item issued and 5 minutes per item collected on return — reflecting the actual time involved in each transaction.
-          </div>
-          <label class="flabel">Equipment Issued</label>
-          <div class="num-row"><input class="num-inp" id="eq-issued" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces issued this shift"/><span class="num-hint">pieces issued this shift</span></div>
-          <label class="flabel">Equipment Returned by Student</label>
-          <div class="num-row"><input class="num-inp" id="eq-returned" type="number" min="0" max="99" value="0" oninput="updateEquipmentFixedPreview()" aria-label="Pieces returned this shift"/><span class="num-hint">pieces received by Manager this shift</span></div>
-          <div id="eq-autofill-hint" style="font-size:9.5px;color:#0891b2;margin:2px 0 4px;"></div>
-          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:9px 11px;font-size:11.5px;color:#374151;display:flex;justify-content:space-between;margin-top:4px;">
-            <span>Calculated Time</span><strong id="equipment-fixed-preview" style="font-family:monospace;">0 hrs 0 mins</strong>
-          </div>
-        </div>
 
         <label class="flabel">Task Description / Note <span id="note-mandatory-star" style="color:#dc2626;">*mandatory</span></label>
         <textarea class="ftarea" id="task-desc" placeholder="Describe activities, incidents, or notes from this shift…"></textarea>
@@ -2295,6 +2278,13 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
         <div style="font-size:9.5px;color:#9ca3af;text-align:center;margin-top:6px;">Logged automatically under <strong id="logged-as-manager">—</strong></div>
       </div>
+
+      <!-- v80.31Q: Equipment Issuing and Studio/Edit Suite Support Management are
+           NEVER manually logged — read-only analytics-generated cards only.
+           Populated by renderAnalyticsActivityCards(); auto-refreshes with the
+           selected period/date. No manual entry, no notes, no mandatory fields. -->
+      <div id="analytics-activity-cards" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
+
       <hr class="dv"/>
       <div style="font-size:13px;font-weight:800;color:#111827;margin-bottom:8px;">Activity Distribution</div>
       <div class="per-row">
@@ -2527,6 +2517,17 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           <div class="an2-insights an2-noprint" id="an2-support-hours-panel" style="display:none;">
             <div class="an2-insights-title">🛠️ Studio &amp; Editing Support Hours</div>
             <div id="an2-support-hours-list" class="an2-ins-grid"></div>
+          </div>
+
+          <!-- ── v80.32Q: Unassigned Operational Activity — issued/returned
+               transactions where issuedBy/receivedBy AND every fallback
+               field (kitPrepBy/kitReadyBy/approved_by) came back blank.
+               Real activity must never silently disappear from reporting
+               just because attribution is missing — surfaced here instead. ── -->
+          <div class="an2-insights an2-noprint" id="an2-unassigned-panel" style="display:none;border-left:3px solid #b45309;">
+            <div class="an2-insights-title">⚠️ Unassigned Operational Activity</div>
+            <div style="font-size:10.5px;color:#92400e;margin-bottom:6px;">Issued or returned transactions with no manager attribution on any known field — not excluded, shown here for follow-up.</div>
+            <div id="an2-unassigned-list" class="an2-ins-grid"></div>
           </div>
 
           <!-- Calendar date filter — Single Day / Date Range toggle (v49.7) -->
@@ -3030,7 +3031,10 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30P</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30Q</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b45309;"><div style="font-size:10px;font-weight:800;color:#b45309;margin-bottom:3px;">v80.32Q &middot; 🔗 Operational Manager Attribution — Permanent Fix + Unassigned Operational Activity Visibility</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> <code>anWasIssued()</code>/<code>anWasReturned()</code> count a booking as issued/returned from <code>status</code>/timestamps alone — never required <code>issuedBy</code>/<code>receivedBy</code> to be populated (a known, separately-documented gap: v80.49 "receivedBy hardcoded '' in dbRows mapper", v80.4 "issuedBy blank when currentUser was empty at markReceived() time"). Meanwhile <code>_wrCategoryAggregate()</code> (Work Report cards) required an exact <code>issuedBy</code>/<code>receivedBy</code> match with zero fallback — so any booking with a blank field counted in Analytics but credited nobody's Work Report. Same object (<code>S.bookings</code>), same source — this was an attribution gap, not a data-source or table mismatch. <strong>Fix — new <code>resolveOperationalManager(b, stage)</code></strong> (factored out of the exact fallback/placeholder-rejection logic already proven in <code>pipelineRecordHTML()</code>'s <code>_pipeActor()</code>): tries <code>issuedBy</code>/<code>receivedBy</code> first, then falls back across <code>kitPrepBy</code>, <code>kitReadyBy</code>, and <code>approved_by</code> — real operational-ownership fields already written to every booking — before giving up. <code>_wrCategoryAggregate()</code> now uses this resolver instead of a strict equality check, so a manager who ran kit prep or approved the booking gets credited even when <code>issuedBy</code>/<code>receivedBy</code> itself is blank. <strong>New <code>isUnassignedOperationalActivity(b)</code></strong> flags a booking only when NO field anywhere resolves to a usable name — these are never silently dropped: new Analytics panel "⚠️ Unassigned Operational Activity" (<code>an2UnassignedActivityHTML()</code>, wired into the same <code>an2ApplyFilters()</code> pass as Support Hours) lists them by item/student/category for manual follow-up. <strong>New <code>debugAttributionAudit()</code></strong> (console-only, run manually) prints the exact SELECT-style breakdown requested — blank <code>issuedBy</code>/<code>receivedBy</code> counts, <code>issuedBy</code>/<code>receivedBy</code>='Admin' counts, real-manager-name matches, and before/after unassigned counts per this fix, plus a full <code>console.table</code> of every issued booking's raw fields vs. resolved actor. <strong>Untouched:</strong> <code>anWasApproved()/anWasIssued()/anWasReturned()</code> themselves, Analytics' own count math, database schema, booking/approval/issue/return workflow, Process Timeline display logic.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.31Q &middot; 🚫 Equipment Issuing / Studio-Edit Suite Support — Manual Entry Removed at Source, Read-Only Analytics Cards Added</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Investigation (separate from this fix):</strong> confirmed the new-account 0.0 hrs / 0% Utilization report was correct behaviour, not a bug — <code>_wrAutoLogsFromBookings()</code> correctly returns nothing when <code>S.bookings</code> is genuinely empty (a brand-new account with zero Supabase rows; production runs with <code>JSJC_DEMO_MODE=false</code>, so no seed fallback masks this). <strong>This pass:</strong> per explicit instruction, Equipment Issuing and Studio/Edit Suite Support Management were removed from <code>#act-select</code> entirely — not hidden — so managers can never manually log either category again. Removed: the two dropdown <code>&lt;option&gt;</code>s, the <code>#equipment-fixed-block</code> markup (Equipment Issued/Returned inputs, autofill hint, Calculated Time preview), the <code>isEquip</code> branch in <code>onActivityTypeChange()</code> and <code>recordActivity()</code>, the now-uncallable <code>autofillEquipmentCounts()</code>, and the dead <code>act!=='equipment'</code> exclusion in <code>submitLog()</code>'s mandatory-note check. The dropdown now lists only Radio JSJC Broadcast, Production, Post Production, Class Work, and Others/Admin — all still plain manual Task Description/Reporting To/Record Activity entries, untouched. <strong>Replacement:</strong> new <code>#analytics-activity-cards</code> container renders three read-only cards — Equipment Activity, Studio Support Activity, Edit Suite Support Activity — via new <code>renderAnalyticsActivityCards()</code>/<code>_wrCategoryAggregate()</code>/<code>_wrResolvePeriodRange()</code>. Each aggregates <code>S.bookings</code> for the current manager over the selected Day/Week/Month/(Admin)Semester period using the same verified-transaction evidence <code>_wrAutoLogsFromBookings()</code> already trusts (issuedBy+issued_at, receivedBy+returned_at) and the same efficiency/rating sanity-gates as <code>an2EfficiencyInsightHTML()</code>/<code>an2StudentFeedbackInsightHTML()</code>, aggregated instead of per-booking. Cards auto-refresh on period-chip change (<code>setPeriod()</code>), Shift Date change (<code>_onPickerChange</code>), and initial Report-screen load (<code>workReportLoadForToday()</code>). Empty state per category is the exact neutral copy specified — no "enter manually," no "submit a report," no "record activity," no mandatory-notes language. <strong>Underlying auto-population math unchanged:</strong> <code>_wrAutoLogsFromBookings()</code> itself, its 10-min-issue/5-min-return/10-min-session constants, and its merge into <code>S.workLogs</code> for the pie chart/Total Logged Hours are untouched — this pass only removed the manual-entry UI/validation surface and added the new read-only cards alongside it. <strong>Future requirement satisfied:</strong> when real Supabase booking data exists for a manager, the cards populate automatically from it; with none, they show the specified empty-state text; there is no code path left by which a manager can manually create an Equipment Issuing or Studio/Edit Suite Support Management entry.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.30Q &middot; 📊 Work Report Auto-Population — Full Dashboard Coverage (Activity Distribution, Pie Chart, App-Bar, All Period Views)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> The Manager Work Report showed 0.00 hrs / 0% Utilization / D 0/100 Efficiency for every manager even when real equipment issuing, studio, and edit suite operational activity had been verified by the platform. The report only ever read manually submitted <code>shiftLogs</code> from localStorage — if a manager hadn't manually clicked "Record Activity → Submit Work Log" for Equipment Issuing or Studio/Edit Suite Support Management that day, the report was blank regardless of what was actually in the bookings database. <strong>Root cause:</strong> <code>_wrBuildInnerHTML()</code>'s per-manager loop only sourced data from <code>snap.shiftLogs</code> / <code>S.shiftLogs</code>. No path existed to auto-populate hours from <code>S.bookings</code> analytics. <strong>Fix — new <code>_wrAutoLogsFromBookings(mgrName, dateStr)</code>:</strong> scans <code>S.bookings</code> for all bookings where the manager is recorded as <code>issuedBy</code>/<code>receivedBy</code> on the given IST date. Derives synthetic log entries per the spec §5 time allocation standards: Equipment Issue = 10 min/item, Equipment Return = 5 min/item, Studio Support = 10 min/session (cat = "Studio Booking"), Edit Suite Support = 10 min/session (cat = "Editing Systems"). Only <code>anWasIssued()</code>-equivalent bookings count (issuedBy + issued_at or returned_at + receivedBy — verified transactions only). <strong>Fix — merge logic in <code>_wrBuildInnerHTML()</code>:</strong> after resolving the manager's existing shiftLogs, auto-generated entries are merged in, skipping any category already covered by a manual log entry (no double-counting). This means Equipment Issuing hours appear automatically even with zero manual entries; a manager who manually logged Equipment Issuing keeps their manual version and the auto-entry is silently skipped. <strong>Fix — empty-state message:</strong> removed the "Manager must submit activities via the Report screen first" instruction (which was encouraging manual logging of analytically tracked activities). Replaced with a neutral message explaining what populates automatically and what is manual-only. <strong>Effect:</strong> A manager who issued 3 items and received 2 items on a given day now automatically shows (3×10 + 2×5) = 40 min = 0.67 h in their work report for that day, contributing to Utilization % and Efficiency score, without any manual action required. <strong>Manual-only activities unchanged:</strong> Radio JSJC Broadcast, Production, Post Production, Class Work, Others/Admin still depend on manual reporting via the Report screen. <strong>Untouched:</strong> booking workflow, issue/return/approval pipeline, <code>recordActivity()</code>/<code>submitLog()</code>, database schema, all other analytics, <code>autofillEquipmentCounts()</code>, efficiency/SLA scoring formulas — only the work report rendering layer is extended.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b91c1c;"><div style="font-size:10px;font-weight:800;color:#b91c1c;margin-bottom:3px;">v80.30P &middot; 🔓 Kit Number Unlocked in Equipment Edit — Was Still a Frozen Suffix</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Gap found:</strong> v80.30L/N made Brand &amp; Model and Category editable, but the rest of the stored name (everything after the " – ") was still shown as a read-only "Kit identifier… (unchanged)" line via a hidden <code>_kitSuffix</code> field — so a mis-entered Kit Number (e.g. wanting "Kit 1" instead of "EX 15LP Earphones – Earphones 1") could not be fixed at all, and the Edit modal still didn't fully mirror Add Equipment's own field set. <strong>Fix — <code>pcOpenEditRecord()</code>:</strong> that read-only line is replaced with a real editable text input, <code>data-pc-field="_kitNumber"</code>, using the identical placeholder text and position as Add Equipment's own Kit Number field in <code>admEqKitBlockHTML()</code>. The Edit modal's field set (Brand &amp; Model, Category, Kit Number, Location/Facility, Status, Kit Contents, Manager Note) is now field-for-field identical to Add Equipment. <strong>Fix — <code>pcSubmitEditRecord()</code>:</strong> rebuilds <code>name</code> from <code>_baseName + " – " + _kitNumber</code> (or just <code>_baseName</code> if blank) — the exact same rule <code>admAddEquipment()</code> uses — and also sets <code>proposed.kitNumber</code> so the local record carries the field explicitly rather than only encoding it inside the composite <code>name</code> string. <strong>Fix — <code>patchSupaEquipmentName()</code>:</strong> now accepts an optional third <code>newKitNumber</code> argument and, when given, PATCHes Supabase's <code>kit_number</code> column (the same confirmed-live column <code>admAddEquipment()</code> already writes on insert) in the same request as the name PATCH, so an edited Kit Number survives reload and cross-device refetch exactly like a Brand &amp; Model edit already did. <strong>Grouping:</strong> unaffected by this change — still keyed on Brand &amp; Model + Category per v80.30O, so editing Kit Number alone (leaving Brand &amp; Model/Category untouched) correctly keeps the item in the same group, only its kit-level label changes. <strong>Untouched:</strong> Add Equipment, delete flows, Manager pending-change/approval path, database schema, Systems/Studios edit forms.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #059669;"><div style="font-size:10px;font-weight:800;color:#059669;margin-bottom:3px;">v80.30O &middot; 🗂️ Grouping Now Derived from Brand &amp; Model + Category (Not Name Alone)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Gap found:</strong> v80.30L/N made Category editable in the rich Equipment Edit modal and reconstructed <code>name</code> from the new Brand &amp; Model on save, but <code>admEquipmentListHTML()</code>'s grouping key was still <code>pcBaseName(e.name)</code> alone — Category changes made without also renaming Brand &amp; Model wouldn't move the item to a new group card, and a group's displayed icon (<code>items[0].itemCategory</code>) could end up mismatched if same-named items ever carried different categories. <strong>Fix:</strong> the group key is now <code>baseName + Category</code> combined (Category shown separately in each kit's sub-line, so the group title still just shows Brand &amp; Model). Editing either field in the Edit modal and saving now moves the record into the correct existing group or spins up a new one automatically on the next render — no manual regrouping, confirming the example in the request (Sony Alpha A7 IV / Camera Kit leaves the Headphones group and joins/creates the Camera Kit group for that name). <strong>Also:</strong> each group's DOM id now derives from the combined key instead of baseName alone, avoiding an id collision in the rare case of two categories sharing a Brand &amp; Model string. <strong>Untouched:</strong> the Edit modal fields/layout itself (already correct per v80.30L/N), <code>pcSubmitEditRecord()</code>'s name reconstruction and Supabase PATCH, Add Equipment, delete flows, database schema.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.30N &middot; 🎨 Edit Modal Layout — Matches Add Equipment Form Design</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Reported:</strong> Edit modal fields were loosely stacked with individual label divs and inconsistent wrappers — did not match the Add Equipment form design. <strong>Fix (display-only, no logic change):</strong> restructured <code>pcOpenEditRecord()</code>'s equipment HTML to mirror the Add Equipment UI layout exactly: (1) Brand &amp; Model input and Category dropdown appear at the top, matching the <code>adm-add-panel</code> header — no more blue wrapper box around just Brand &amp; Model. (2) Facility, Status, Kit Contents, and Manager Note are now wrapped inside the same <code>adm-kit-block</code> bordered card (1px solid #e8d5c4, border-radius 10px, 9px padding) used in Add Equipment — giving the edit form the same visual weight as the entry form. (3) Kit identifier line (the read-only suffix) moved inside the kit block with a dashed bottom border, matching where Kit # sits in the Add Equipment block. The icon-auto hint line is preserved. <strong>No change to</strong> field collection, name reconstruction, Supabase PATCH, Manager pending-change path, Systems/Studios branch, or any other logic.</div></div>
@@ -5716,6 +5720,9 @@ window._onPickerChange = function(containerId, isoVal) {
       var iso = isoVal.slice(0, 10);
       fetchBookingWeather(iso);
     }
+  }
+  if (containerId === 'report-picker-date') {
+    if (typeof renderAnalyticsActivityCards === 'function') renderAnalyticsActivityCards();
   }
 };
 
@@ -9358,11 +9365,13 @@ function workReportSaveToday(){
     var dateStr = getISTDateString();
     var snapshot = { workLogs:S.workLogs, shiftLogs:S.shiftLogs, pendingActivities:S.pendingActivities, savedAt:new Date().toISOString() };
     localStorage.setItem(workReportStorageKey(mgr,dateStr), JSON.stringify(snapshot));
-    // Maintain a lightweight archive index for week/month/semester rollups
+    // v80.30Q-B: archive stores the EFFECTIVE merged set (manual + auto-analytics)
+    // so Week/Month/Semester rollups reflect verified operational activity too.
     var archive = JSON.parse(localStorage.getItem(workReportArchiveKey())||'[]');
-    var totalHrs = S.workLogs.reduce(function(a,l){return a+l.hrs;},0);
+    var effLogs = _wrGetEffectiveWorkLogs(mgr, dateStr);
+    var totalHrs = effLogs.reduce(function(a,l){return a+l.hrs;},0);
     var idx = archive.findIndex(function(a){ return a.manager===mgr && a.date===dateStr; });
-    var entry = { manager:mgr, date:dateStr, totalHrs:totalHrs, workLogs:S.workLogs };
+    var entry = { manager:mgr, date:dateStr, totalHrs:totalHrs, workLogs:effLogs };
     if(idx>-1) archive[idx]=entry; else archive.push(entry);
     localStorage.setItem(workReportArchiveKey(), JSON.stringify(archive.slice(-400)));
   } catch(e){ console.warn('workReportSaveToday error:', e.message); }
@@ -9392,6 +9401,17 @@ function workReportLoadForToday(){
   } catch(e){
     S.workLogs = []; S.shiftLogs = []; S.pendingActivities = [];
   }
+  // v80.30Q-B: auto-save immediately so the archive for this date includes
+  // any analytics-derived entries even before the manager submits anything.
+  // Use setTimeout so S.bookings has time to finish loading first.
+  if(typeof renderAnalyticsActivityCards==='function') renderAnalyticsActivityCards();
+  setTimeout(function(){
+    if(typeof workReportSaveToday==='function') workReportSaveToday();
+    // v80.31Q: re-render once S.bookings has had time to finish loading, so
+    // the read-only Equipment/Studio/Edit Suite cards reflect real data on
+    // first open rather than the pre-fetch empty state.
+    if(typeof renderAnalyticsActivityCards==='function') renderAnalyticsActivityCards();
+  }, 1200);
 }
 window.workReportLoadForToday = workReportLoadForToday;
 
@@ -9414,11 +9434,13 @@ window.adminResetWorkReportData = adminResetWorkReportData;
 
 function renderPie(){
   const ctx=document.getElementById('pieChart');if(!ctx)return;
-  const total=S.workLogs.reduce((a,l)=>a+l.hrs,0);
+  // v80.30Q-B: use effective merged logs (manual + auto-analytics) for Day view
+  const effLogs=_wrGetEffectiveWorkLogs();
+  const total=effLogs.reduce((a,l)=>a+l.hrs,0);
   const free=Math.max(0,SHIFT_TARGET_HRS-total);
-  const labels=[...S.workLogs.map(l=>l.label),'Free / Break'];
-  const data=[...S.workLogs.map(l=>l.hrs),free];
-  const colors=[...S.workLogs.map(l=>l.col),'#e5e7eb'];
+  const labels=[...effLogs.map(l=>l.label),'Free / Break'];
+  const data=[...effLogs.map(l=>l.hrs),free];
+  const colors=[...effLogs.map(l=>l.col),'#e5e7eb'];
   if(pieChartInst)pieChartInst.destroy();
   pieChartInst=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{cutout:'60%',plugins:{legend:{display:false}},animation:{duration:0}}});
   document.getElementById('pie-legend').innerHTML=labels.map((l,i)=>`<div style="display:flex;align-items:center;gap:6px;font-size:11px;"><span style="width:10px;height:10px;border-radius:3px;background:${colors[i]};flex-shrink:0;display:inline-block;"></span><span style="color:#374151;">${l}</span><span style="margin-left:auto;font-weight:700;color:#1f2937;font-family:monospace;">${data[i].toFixed(1)} Hrs</span></div>`).join('');
@@ -9426,17 +9448,19 @@ function renderPie(){
   if(freeEl) freeEl.textContent=free.toFixed(1)+' Hrs';
 }
 function renderWeekMetrics(){
-  const total=S.workLogs.reduce((a,l)=>a+l.hrs,0);
-  const totI=S.workLogs.reduce((a,l)=>a+l.issued,0);
-  const totR=S.workLogs.reduce((a,l)=>a+l.received,0);
+  // v80.30Q-B: use effective merged logs (manual + auto-analytics) for Day view
+  const effLogs=_wrGetEffectiveWorkLogs();
+  const total=effLogs.reduce((a,l)=>a+l.hrs,0);
+  const totI=effLogs.reduce((a,l)=>a+l.issued,0);
+  const totR=effLogs.reduce((a,l)=>a+l.received,0);
   document.getElementById('total-hrs').textContent=total.toFixed(1)+' Hrs';
   document.getElementById('total-issued-disp').textContent=totI;
   document.getElementById('total-ret-disp').textContent=totR;
   const pend=Math.max(0,totI-totR);
   document.getElementById('pend-eq').textContent=pend;
   document.getElementById('pend-strip').style.display=pend>0?'flex':'none';
-  document.getElementById('week-metrics').innerHTML = S.workLogs.length
-    ? S.workLogs.map(l=>`<div class="mbar"><div class="mbar-hd"><span class="mbar-lbl">${l.label}</span><span class="mbar-val">${l.hrs.toFixed(1)} Hrs</span></div>${l.act==='equipment'?`<div class="mbar-sub">Issued: ${l.issued} · Collected: ${l.received}</div>`:(l.note?`<div class="mbar-sub" style="color:#374151;font-style:italic;">📝 ${l.note}</div>`:'<div class="mbar-sub">—</div>')}<div class="mbar-track"><div class="mbar-fill" style="width:${total>0?Math.round(l.hrs/total*100):0}%;background:${l.col};"></div></div></div>`).join('')
+  document.getElementById('week-metrics').innerHTML = effLogs.length
+    ? effLogs.map(l=>`<div class="mbar"><div class="mbar-hd"><span class="mbar-lbl">${l.label}</span><span class="mbar-val">${l.hrs.toFixed(1)} Hrs</span></div>${l.act==='equipment'?`<div class="mbar-sub">Issued: ${l.issued} · Collected: ${l.received}</div>`:(l.note?`<div class="mbar-sub" style="color:#374151;font-style:italic;">📝 ${l.note}</div>`:'<div class="mbar-sub">—</div>')}<div class="mbar-track"><div class="mbar-fill" style="width:${total>0?Math.round(l.hrs/total*100):0}%;background:${l.col};"></div></div></div>`).join('')
     : '<div class="empty-st" style="padding:14px;"><div class="ei" style="font-size:22px;">📊</div><p style="font-size:11px;">No activity recorded for this period yet</p></div>';
   renderPie();
   workReportSaveToday();
@@ -9450,7 +9474,9 @@ function updateAppBarShiftProgress(){
   const txt  = document.getElementById('appbar-shift-text');
   const bar  = document.getElementById('appbar-shift-bar');
   if(!wrap||!txt||!bar) return;
-  const totalHrs = S.workLogs.reduce((a,l)=>a+l.hrs,0);
+  // v80.30Q-B: use effective merged logs so app-bar reflects auto-populated hours too
+  const effLogs=_wrGetEffectiveWorkLogs();
+  const totalHrs = effLogs.reduce((a,l)=>a+l.hrs,0);
   const totalMin = Math.round(totalHrs*60);
   const h = Math.floor(totalMin/60), m = totalMin%60;
   const loggedStr = h+(m? ' hrs '+m+' mins' : ' hrs');
@@ -9551,88 +9577,38 @@ window.updateLoggedAsManagerLabel = updateLoggedAsManagerLabel;
 // off-app, or needs to correct a count, isn't locked out of adjusting it —
 // this replaces re-typing from memory with a verified starting point, not
 // a forced value.
-function autofillEquipmentCounts(){
-  var dateVal = document.getElementById('report-date') ? document.getElementById('report-date').value : '';
-  if(!dateVal) return;
-  var mgr = currentManagerName();
-  var issuedCount = 0, returnedCount = 0;
-  (S.bookings||[]).forEach(function(b){
-    var issuedTs = b.issuedAt || b.issued_at || null;
-    var returnedTs = b.returnedAt || b.returned_at || null;
-    if(b.issuedBy === mgr && issuedTs && String(issuedTs).slice(0,10) === dateVal) issuedCount++;
-    if(b.receivedBy === mgr && returnedTs && String(returnedTs).slice(0,10) === dateVal) returnedCount++;
-  });
-  var issuedEl = document.getElementById('eq-issued'), returnedEl = document.getElementById('eq-returned');
-  if(issuedEl) issuedEl.value = issuedCount;
-  if(returnedEl) returnedEl.value = returnedCount;
-  updateEquipmentFixedPreview();
-  var hint = document.getElementById('eq-autofill-hint');
-  if(hint) hint.textContent = (issuedCount || returnedCount)
-    ? '✓ Auto-filled: ' + issuedCount + ' item(s) issued, ' + returnedCount + ' item(s) received by Manager on ' + dateVal + ' — adjust if needed.'
-    : 'No Equipment Issue/Return activity found for you on ' + dateVal + ' yet — enter manually if this session isn\'t reflected here.';
-}
-window.autofillEquipmentCounts = autofillEquipmentCounts;
-
-// ── Activity Type change: toggle Equipment Issuing's fixed-time block vs normal manual-time block ──
+// ── Activity Type change ──
+// v80.31Q: Equipment Issuing and Studio/Edit Suite Support Management were
+// removed from #act-select entirely (see Item 5 — read-only analytics cards
+// replace them). All remaining options (Radio, Production, Post, Class Work,
+// Others/Admin) are plain manual-duration entries — no fixed-time branch,
+// no conditional note-mandatory logic needed any more.
 function onActivityTypeChange(){
-  const actEl=document.getElementById('act-select');
-  const isEquip = actEl && actEl.value==='equipment';
-  var eqBlock = document.getElementById('equipment-fixed-block');
-  var fromFieldWrap = document.getElementById('from-time-field-wrap');
-  var tillFieldWrap = document.getElementById('till-time-field-wrap');
-  if(eqBlock) eqBlock.style.display = isEquip ? '' : 'none';
-  if(fromFieldWrap){ fromFieldWrap.style.opacity = isEquip ? '.4' : '1'; fromFieldWrap.style.pointerEvents = isEquip ? 'none' : ''; }
-  if(tillFieldWrap){ tillFieldWrap.style.opacity = isEquip ? '.4' : '1'; tillFieldWrap.style.pointerEvents = isEquip ? 'none' : ''; }
-  // Note is mandatory for all activities EXCEPT Equipment Issuing
-  var noteStar = document.getElementById('note-mandatory-star');
-  var noteEl = document.getElementById('task-desc');
-  if(noteStar) { noteStar.textContent = isEquip ? '(optional)' : '*mandatory'; noteStar.style.color = isEquip ? '#9ca3af' : '#dc2626'; noteStar.style.fontWeight = isEquip ? '500' : '700'; noteStar.style.fontSize = isEquip ? '9px' : ''; }
-  if(noteEl) noteEl.placeholder = isEquip ? 'Optional notes for this equipment session…' : 'Describe activities, incidents, or notes from this shift…';
-  if(isEquip){ autofillEquipmentCounts(); } // v80.34: pulls real counts in the moment this block becomes visible
+  // Intentionally minimal — kept as a hook point in case a future manual
+  // category needs per-type UI behavior. No equipment/mgmt branching remains.
 }
 window.onActivityTypeChange = onActivityTypeChange;
 
-// ── Fixed-time calculation preview for Equipment Issuing: 15 min/issue + 10 min/return ──
-function updateEquipmentFixedPreview(){
-  const issued = parseInt(document.getElementById('eq-issued').value)||0;
-  const received = parseInt(document.getElementById('eq-returned').value)||0;
-  const totalMin = (issued*EQUIP_ISSUE_MIN_PER_PC) + (received*EQUIP_RETURN_MIN_PER_PC);
-  const h = Math.floor(totalMin/60), m = totalMin%60;
-  var preview = document.getElementById('equipment-fixed-preview');
-  if(preview) preview.textContent = h+' hrs '+m+' mins';
-}
-window.updateEquipmentFixedPreview = updateEquipmentFixedPreview;
-
-// ── Record Activity: gross, instant, day-to-day entry — no note required ──
+// ── Record Activity: gross, instant, day-to-day entry ──
 // Shows immediately in Recent Shift Logs but is NOT yet rolled into the
 // pie chart / Activity Distribution until "Submit Work Log" finalizes it.
+// v80.31Q: Equipment Issuing / Studio-Edit Suite fixed-time branch removed —
+// this function now only ever produces manual From/Till duration entries
+// for Radio, Production, Post Production, Class Work, and Others/Admin.
 function recordActivity(){
   const dateVal=document.getElementById('report-date').value; // "YYYY-MM-DD"
   if(!dateVal){toast('⚠️ Set the Shift Date on the scroll picker');return;}
   const actEl=document.getElementById('act-select');const act=actEl.value;
   const label=actEl.options[actEl.selectedIndex].text.replace(/^\S+\s/,'');
-  const isEquip = act==='equipment';
 
-  let from, till, hrs, issued, received;
-  if(isEquip){
-    // No manual time entry — fixed 15 min/issue + 10 min/return
-    issued=parseInt(document.getElementById('eq-issued').value)||0;
-    received=parseInt(document.getElementById('eq-returned').value)||0;
-    if(issued===0 && received===0){toast('⚠️ Enter at least one issued or returned item');return;}
-    const totalMin=(issued*EQUIP_ISSUE_MIN_PER_PC)+(received*EQUIP_RETURN_MIN_PER_PC);
-    hrs=parseFloat((totalMin/60).toFixed(2));
-    from=''; till='';
-  } else {
-    const fromVal=document.getElementById('from-time').value; // "HH:MM"
-    const tillVal=document.getElementById('till-time').value;
-    if(!fromVal||!tillVal){toast('⚠️ Set both From and Till on the scroll picker');return;}
-    const[fh,fm]=fromVal.split(':').map(Number);const[th,tm]=tillVal.split(':').map(Number);
-    hrs=parseFloat(((th*60+tm-fh*60-fm)/60).toFixed(2));
-    if(hrs<=0){toast('⚠️ Till must be after From');return;}
-    from=fromVal; till=tillVal;
-    // Equipment issued/returned only applies under "Equipment Issuing"
-    issued=0; received=0;
-  }
+  let from, till, hrs, issued=0, received=0;
+  const fromVal=document.getElementById('from-time').value; // "HH:MM"
+  const tillVal=document.getElementById('till-time').value;
+  if(!fromVal||!tillVal){toast('⚠️ Set both From and Till on the scroll picker');return;}
+  const[fh,fm]=fromVal.split(':').map(Number);const[th,tm]=tillVal.split(':').map(Number);
+  hrs=parseFloat(((th*60+tm-fh*60-fm)/60).toFixed(2));
+  if(hrs<=0){toast('⚠️ Till must be after From');return;}
+  from=fromVal; till=tillVal;
 
   S.pendingActivities.push({
     id:Date.now(), date:dateVal, from:from, till:till, act:act, label:label,
@@ -9649,8 +9625,6 @@ function recordActivity(){
   renderShiftLogs();
   workReportSaveToday();
   toast('➕ Activity recorded — '+hrs.toFixed(2)+' hrs ('+label+')');
-  document.getElementById('eq-issued').value='0';document.getElementById('eq-returned').value='0';
-  if(isEquip) updateEquipmentFixedPreview();
   // Reset only the From/Till time scroll pickers back to "now" — keep the Shift Date as-is
   if(typeof window.createDrumPicker==='function'){
     window.createDrumPicker('report-picker-from','from-time',null,'time');
@@ -9681,8 +9655,11 @@ function submitLog(){
   // captured note (or this box as a fallback for whichever activity was
   // most recently recorded) instead of one shared value that only ever
   // reflected the last thing typed.
-  const missingNote = S.pendingActivities.some(function(p){ return p.act!=='equipment' && !(p.note || desc); });
-  if(missingNote){toast('⚠️ Note is mandatory for every non-equipment activity before submitting');return;}
+  // v80.31Q: the equipment exclusion is removed — Equipment Issuing no
+  // longer has a manual-entry path, so every item in S.pendingActivities
+  // is one of the five remaining manual categories and always needs a note.
+  const missingNote = S.pendingActivities.some(function(p){ return !(p.note || desc); });
+  if(missingNote){toast('⚠️ Note is mandatory for every activity before submitting');return;}
   const actColors={radio:'#7b1a1a',production:'#2563eb',post:'#7c3aed',classwork:'#16a34a',equipment:'#0ea5e9',mgmt:'#0d9488',others:'#ea580c'};
   let totalHrs=0;
   const mgr = currentManagerName();
@@ -9719,6 +9696,7 @@ function setPeriod(p,el){
   if(rangeRow) rangeRow.style.display = (p==='sem' && window.currentRole==='Admin') ? 'flex' : 'none';
   renderActivityDistributionForPeriod(p);
   updatePeriodRangeLabel(p);
+  if(typeof renderAnalyticsActivityCards==='function') renderAnalyticsActivityCards();
 }
 window.setPeriod = setPeriod;
 
@@ -9902,6 +9880,91 @@ function anWasReturned(b){
   return s==='returned';
 }
 window.anWasApproved=anWasApproved; window.anWasIssued=anWasIssued; window.anWasReturned=anWasReturned;
+
+// ── v80.32Q: Operational Manager Attribution — Permanent Fix ──
+// Root cause confirmed: anWasIssued()/anWasReturned() (above) count a booking
+// as issued/returned from status/timestamp ALONE — they never required
+// issuedBy/receivedBy to be populated. Work Report's _wrCategoryAggregate()
+// (see below) previously required an EXACT issuedBy/receivedBy match, with no
+// fallback — so any booking where that field was blank (a known, documented
+// gap: v80.49 "receivedBy hardcoded '' in dbRows mapper", v80.4 "issuedBy
+// blank when currentUser was empty at markReceived() time") counted in
+// Analytics but credited nobody's Work Report. This resolver is the fix:
+// it tries every real operational-ownership field already written to a
+// booking, in order of reliability, before giving up — reusing the exact
+// same "reject known-bad placeholder" logic already proven in _pipeActor()
+// inside pipelineRecordHTML(), factored out here so Work Report can use it
+// too (not just the Process Timeline display).
+function _rejectBadActor(v){
+  if(v==null) return false;
+  var s = String(v).trim();
+  if(!s) return false;
+  var low = s.toLowerCase();
+  return low!=='manager' && low!=='manager manager' && low!=='undefined' && low!=='null';
+}
+// stage: 'issued' or 'returned'. Returns a real actor name, or null if truly
+// nothing usable exists anywhere on the booking (→ Unassigned Operational Activity).
+function resolveOperationalManager(b, stage){
+  if(!b) return null;
+  var candidates = (stage==='returned')
+    ? [b.receivedBy, b.kitReadyBy, b.kitPrepBy, b.approved_by, b.issuedBy]
+    : [b.issuedBy, b.kitPrepBy, b.kitReadyBy, b.approved_by, b.receivedBy];
+  for (var i=0;i<candidates.length;i++){ if(_rejectBadActor(candidates[i])) return String(candidates[i]).trim(); }
+  return null;
+}
+window.resolveOperationalManager = resolveOperationalManager;
+
+// True only when a booking has issue/return evidence (anWasIssued/anWasReturned)
+// but resolveOperationalManager() found NO usable actor on either side — this
+// is the "Unassigned Operational Activity" bucket: real activity that must
+// never silently vanish from reporting just because attribution is missing.
+function isUnassignedOperationalActivity(b){
+  if(!b) return false;
+  var touchedIssue = anWasIssued(b) && !resolveOperationalManager(b,'issued');
+  var touchedReturn = anWasReturned(b) && !resolveOperationalManager(b,'returned');
+  return touchedIssue || touchedReturn;
+}
+window.isUnassignedOperationalActivity = isUnassignedOperationalActivity;
+
+// ── Diagnostic: exact before/after attribution counts, as requested ──
+// Prints the SELECT-style breakdown across the live S.bookings — issuedBy/
+// receivedBy raw values (before) vs. resolveOperationalManager() outcome
+// (after) — plus which real manager names each count resolves to.
+function debugAttributionAudit(){
+  var issued = (S.bookings||[]).filter(anWasIssued);
+  var returned = (S.bookings||[]).filter(anWasReturned);
+  function blank(v){ return !v || String(v).trim()===''; }
+  function isAdmin(v){ return String(v||'').trim().toLowerCase()==='admin'; }
+
+  var issuedBlank = issued.filter(function(b){ return blank(b.issuedBy); }).length;
+  var returnedBlank = returned.filter(function(b){ return blank(b.receivedBy); }).length;
+  var issuedAdmin = issued.filter(function(b){ return isAdmin(b.issuedBy); }).length;
+  var returnedAdmin = returned.filter(function(b){ return isAdmin(b.receivedBy); }).length;
+  var mgrNames = (adminData.managers||[]).map(function(m){ return m.name; });
+  var issuedRealMgr = issued.filter(function(b){ return mgrNames.indexOf(b.issuedBy)>-1; }).length;
+  var returnedRealMgr = returned.filter(function(b){ return mgrNames.indexOf(b.receivedBy)>-1; }).length;
+
+  var issuedUnassignedBefore = issued.filter(function(b){ return blank(b.issuedBy); }).length;
+  var issuedUnassignedAfter = issued.filter(function(b){ return !resolveOperationalManager(b,'issued'); }).length;
+  var returnedUnassignedBefore = returned.filter(function(b){ return blank(b.receivedBy); }).length;
+  var returnedUnassignedAfter = returned.filter(function(b){ return !resolveOperationalManager(b,'returned'); }).length;
+
+  console.log('%c── Attribution Audit ──','font-weight:bold;color:#7c3aed;');
+  console.log('Issued records:', issued.length, '| Returned records:', returned.length);
+  console.log('1. Blank issuedBy:', issuedBlank, '  2. Blank receivedBy:', returnedBlank);
+  console.log('3. issuedBy=Admin:', issuedAdmin, '  4. receivedBy=Admin:', returnedAdmin);
+  console.log('5. issuedBy matches a real manager name:', issuedRealMgr, '/ receivedBy matches a real manager name:', returnedRealMgr);
+  console.log('%cBEFORE this fix — issued unassigned:','color:#dc2626;', issuedUnassignedBefore, '| returned unassigned:', returnedUnassignedBefore);
+  console.log('%cAFTER this fix (kitPrepBy/kitReadyBy/approved_by fallback) — issued unassigned:','color:#16a34a;', issuedUnassignedAfter, '| returned unassigned:', returnedUnassignedAfter);
+  console.table(issued.map(function(b){
+    return { student:b.student, cat:b.cat, issuedBy:b.issuedBy||'(blank)', receivedBy:b.receivedBy||'(blank)',
+             resolvedIssuedActor: resolveOperationalManager(b,'issued')||'⚠️ UNASSIGNED',
+             resolvedReturnActor: anWasReturned(b) ? (resolveOperationalManager(b,'returned')||'⚠️ UNASSIGNED') : '—' };
+  }));
+  return { issuedBlank, returnedBlank, issuedAdmin, returnedAdmin, issuedRealMgr, returnedRealMgr,
+           issuedUnassignedBefore, issuedUnassignedAfter, returnedUnassignedBefore, returnedUnassignedAfter };
+}
+window.debugAttributionAudit = debugAttributionAudit;
 
 // v80.29 PATCH 2: resolve a booking's true facility key from the equipment/
 // editing/studio record its resource_name actually belongs to, instead of
@@ -10778,6 +10841,7 @@ function an2ApplyFilters(){
 
   // v80.55 PHASE 3: Studio & Editing Support Hours — same filtered set.
   an2SupportHoursHTML(filtered);
+  an2UnassignedActivityHTML(filtered);
 
   // Record list
   // Keep existing status-filter active
@@ -10921,6 +10985,31 @@ function an2SupportHoursHTML(records){
     + '<div class="an2-ins-card"><div class="an2-ins-lbl">Editing Support Time</div><div class="an2-ins-val">'+an2FmtSupportTime(editing.totalMin)+'</div></div>';
 }
 window.an2SupportHoursHTML = an2SupportHoursHTML;
+
+// v80.32Q: renders the Unassigned Operational Activity panel — real issued/
+// returned bookings where resolveOperationalManager() found no usable actor
+// on either the issue or return side. Never excludes them from the "records"
+// count Analytics already showed; this is purely an additional visibility
+// layer for follow-up/data-cleanup.
+function an2UnassignedActivityHTML(records){
+  var panel = document.getElementById('an2-unassigned-panel');
+  var list  = document.getElementById('an2-unassigned-list');
+  if(!panel || !list) return;
+  var rows = (records||[]).filter(function(b){ return isUnassignedOperationalActivity(b); });
+  if(!rows.length){ panel.style.display='none'; list.innerHTML=''; return; }
+  panel.style.display='';
+  list.innerHTML = rows.map(function(b){
+    var missing = [];
+    if(anWasIssued(b) && !resolveOperationalManager(b,'issued')) missing.push('Issued');
+    if(anWasReturned(b) && !resolveOperationalManager(b,'returned')) missing.push('Returned');
+    return '<div class="an2-ins-card" style="text-align:left;">'
+         + '<div class="an2-ins-lbl">'+esc(b.resource_name||b.cat||'Item')+'</div>'
+         + '<div style="font-size:10.5px;color:#78350f;">'+missing.join(' &amp; ')+' — no manager on record</div>'
+         + '<div style="font-size:9.5px;color:#a16207;">'+esc(b.student||'')+' · '+esc(b.cat||'')+'</div>'
+         + '</div>';
+  }).join('');
+}
+window.an2UnassignedActivityHTML = an2UnassignedActivityHTML;
 
 // an2ManagerFeedbackHTML removed v80.59 — panel removed from Analytics to reclaim screen space.
 
@@ -15210,11 +15299,318 @@ window.generateManagerWorkReportPdf = generateManagerWorkReportPdf;
 
 function _wrEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// v80.30Q: Auto-generate synthetic work-log entries from booking analytics for
+// Equipment, Studio, and Edit Suite activity on a given manager + date.
+// These entries contribute hours/utilization/efficiency to the work report
+// WITHOUT requiring the manager to manually submit an Equipment Issuing or
+// Studio/Edit Suite Support Management log entry.
+//
+// Rules (per spec §5):
+//   Equipment Issue:  10 min/item issued
+//   Equipment Return:  5 min/item returned
+//   Studio Support:   10 min/session (issued Studio bookings)
+//   Edit Suite Support: 10 min/session (issued Editing Systems bookings)
+//
+// Only bookings where anWasIssued(b) is true count (verified transactions).
+// The synthetic entries are clearly labelled so they never duplicate a manual entry.
+// If the manager has already submitted a manual Equipment Issuing or Studio/Edit
+// Suite Support Management log for that day, the manual one takes precedence and
+// the auto-entry for that category is skipped (no double-counting).
+function _wrAutoLogsFromBookings(mgrName, dateStr){
+  var results = [];
+  if(!S || !S.bookings || !S.bookings.length) return results;
+  if(!mgrName || !dateStr) return results;
+
+  // Helper: extract IST date string from any ISO timestamp
+  function _tsDate(ts){
+    if(!ts) return null;
+    try { return new Date(ts).toLocaleDateString('en-CA', {timeZone:'Asia/Kolkata'}); } // 'YYYY-MM-DD'
+    catch(e){ return null; }
+  }
+
+  // Collect bookings where this manager issued/received on this date
+  var eqIssued = 0, eqReturned = 0;
+  var studioSessions = 0, editSessions = 0;
+
+  (S.bookings || []).forEach(function(b){
+    var cat = (b.cat || '').toLowerCase();
+    var isEquipment = cat === 'equipment';
+    var isStudio    = cat === 'studio booking';
+    var isEditing   = cat === 'editing systems';
+
+    // Check issuing — issuedBy name match AND issued_at date match
+    var issuedDate = _tsDate(b.issuedAt || b.issued_at);
+    var issuedByMe = (b.issuedBy || '').toLowerCase() === mgrName.toLowerCase();
+    if(issuedDate === dateStr && issuedByMe){
+      if(isEquipment) eqIssued++;
+      if(isStudio)    studioSessions++;
+      if(isEditing)   editSessions++;
+    }
+
+    // Check return receipt — receivedBy name match AND returnedAt date match
+    var returnedDate = _tsDate(b.returnedAt || b.returned_at);
+    var receivedByMe = (b.receivedBy || '').toLowerCase() === mgrName.toLowerCase();
+    if(returnedDate === dateStr && receivedByMe && isEquipment){
+      eqReturned++;
+    }
+  });
+
+  // Equipment auto-log: (10 min × issued) + (5 min × returned) → hours
+  if(eqIssued > 0 || eqReturned > 0){
+    var eqHrs = (eqIssued * 10 + eqReturned * 5) / 60;
+    results.push({
+      act: 'equipment',
+      label: '📦 Equipment Issuing (Auto)',
+      hrs: eqHrs,
+      issued: eqIssued,
+      received: eqReturned,
+      note: 'Auto-populated from analytics: ' + eqIssued + ' item(s) issued (10 min each), ' + eqReturned + ' item(s) returned by student (5 min each).',
+      reportingTo: '',
+      from: '—', till: '—',
+      col: '#0284c7',
+      _isAuto: true
+    });
+  }
+
+  // Studio Support auto-log: 10 min × sessions
+  if(studioSessions > 0){
+    var stuHrs = (studioSessions * 10) / 60;
+    results.push({
+      act: 'mgmt',
+      label: '🎙️ Studio Support Management (Auto)',
+      hrs: stuHrs,
+      issued: 0, received: 0,
+      note: 'Auto-populated from analytics: ' + studioSessions + ' studio session(s) opened and supported (10 min each).',
+      reportingTo: '',
+      from: '—', till: '—',
+      col: '#0d9488',
+      _isAuto: true
+    });
+  }
+
+  // Edit Suite Support auto-log: 10 min × sessions
+  if(editSessions > 0){
+    var edHrs = (editSessions * 10) / 60;
+    results.push({
+      act: 'mgmt',
+      label: '🖥️ Edit Suite Support Management (Auto)',
+      hrs: edHrs,
+      issued: 0, received: 0,
+      note: 'Auto-populated from analytics: ' + editSessions + ' edit suite session(s) opened and supported (10 min each).',
+      reportingTo: '',
+      from: '—', till: '—',
+      col: '#7c3aed',
+      _isAuto: true
+    });
+  }
+
+  return results;
+}
+window._wrAutoLogsFromBookings = _wrAutoLogsFromBookings;
+
+// ── v80.31Q: Analytics-only Activity Cards (Equipment / Studio / Edit Suite) ──
+// Item 5 requirement: managers can never manually create Equipment Issuing or
+// Studio/Edit Suite Support Management work-report entries any more — the
+// dropdown options and their manual-entry blocks were removed at the source
+// (see #act-select and recordActivity() above). These three categories are
+// now presented exclusively as read-only cards driven by S.bookings, reusing
+// the same evidence fields _wrAutoLogsFromBookings() already trusts
+// (issuedBy/issued_at, receivedBy/returned_at) plus the existing
+// an2EfficiencyInsightHTML()/an2StudentFeedbackInsightHTML() timestamp/rating
+// logic, aggregated instead of per-booking. No new data is stored or written;
+// this is a presentation-layer aggregate over data the app already tracks.
+
+// Resolves the same day/week/month/(admin)semester date-range boundaries
+// already used by renderActivityDistributionForPeriod(), so the cards always
+// agree with whatever period chip is currently selected.
+function _wrResolvePeriodRange(period){
+  var today = getISTNow();
+  var fromDate, toDate;
+  if(period==='week'){
+    fromDate = new Date(today); fromDate.setDate(today.getDate()-6);
+    toDate = today;
+  } else if(period==='month'){
+    fromDate = new Date(today); fromDate.setDate(today.getDate()-29);
+    toDate = today;
+  } else if(period==='sem' && window.currentRole==='Admin' && window._workReportAdminRange){
+    fromDate = new Date(window._workReportAdminRange.from);
+    toDate = new Date(window._workReportAdminRange.to);
+  } else {
+    // 'day' (default) — the single selected Shift Date
+    var dv = document.getElementById('report-date') ? document.getElementById('report-date').value : '';
+    var d = dv ? new Date(dv+'T00:00:00') : today;
+    fromDate = d; toDate = d;
+  }
+  return { fromStr: getISTDateString(fromDate), toStr: getISTDateString(toDate) };
+}
+
+// Aggregates one category (Equipment / Studio Booking / Editing Systems) for
+// the current manager across a date range. Only counts verified transactions
+// (real issued/returned evidence on the booking) — never a manual guess.
+function _wrCategoryAggregate(mgrName, catLabel, fromStr, toStr){
+  function _tsDate(ts){
+    if(!ts) return null;
+    try { return new Date(ts).toLocaleDateString('en-CA', {timeZone:'Asia/Kolkata'}); }
+    catch(e){ return null; }
+  }
+  var isEquipment = catLabel === 'Equipment';
+  var issuedCount = 0, returnedCount = 0, sessionCount = 0;
+  var effSumSec = 0, effN = 0;
+  var ratingSum = 0, ratingN = 0;
+  (S.bookings || []).forEach(function(b){
+    var cat = (b.cat || '');
+    if(cat !== catLabel) return;
+    var issuedDate = _tsDate(b.issuedAt || b.issued_at);
+    var returnedDate = _tsDate(b.returnedAt || b.returned_at);
+    // v80.32Q FIX: was a strict issuedBy/receivedBy-only equality check — any
+    // booking with a blank issuedBy/receivedBy counted in Analytics
+    // (anWasIssued/anWasReturned don't require the field) but credited no
+    // one here. Now falls back across kitPrepBy/kitReadyBy/approved_by via
+    // resolveOperationalManager(), same reliability order already proven in
+    // pipelineRecordHTML()'s _pipeActor(). A booking only fails attribution
+    // now if NONE of those fields has a usable name anywhere on it.
+    var issuedActor = anWasIssued(b) ? resolveOperationalManager(b,'issued') : null;
+    var returnedActor = anWasReturned(b) ? resolveOperationalManager(b,'returned') : null;
+    var issuedByMe = issuedActor && issuedActor.toLowerCase() === (mgrName||'').toLowerCase();
+    var receivedByMe = returnedActor && returnedActor.toLowerCase() === (mgrName||'').toLowerCase();
+    var issuedInRange = issuedDate && issuedDate>=fromStr && issuedDate<=toStr && issuedByMe;
+    var returnedInRange = returnedDate && returnedDate>=fromStr && returnedDate<=toStr && receivedByMe;
+    if(isEquipment){
+      if(issuedInRange) issuedCount++;
+      if(returnedInRange) returnedCount++;
+    } else {
+      // Studio / Edit Suite: one "session" per booking this manager opened
+      if(issuedInRange) sessionCount++;
+    }
+    if(!issuedInRange && !returnedInRange) return; // this booking isn't attributable to this manager in range
+    // Efficiency: prep-start → issue gap, same sanity gate as an2EfficiencyInsightHTML (0–4 hrs)
+    var prepStart = b.kitPreparationStartedAt || b.manager_approved_at || b.managerApprovedAt || null;
+    var issuedTs  = b.issuedAt || b.issued_at || null;
+    if(prepStart && issuedTs){
+      var diffMs = new Date(issuedTs) - new Date(prepStart);
+      if(diffMs > 0 && diffMs <= 3600000*4){ effSumSec += Math.round(diffMs/1000); effN++; }
+    }
+    // Student feedback: average of b.managerRating where present
+    var r = parseInt(b.managerRating, 10);
+    if(r>=1 && r<=5){ ratingSum += r; ratingN++; }
+  });
+  var hours = isEquipment
+    ? (issuedCount*10 + returnedCount*5)/60
+    : (sessionCount*10)/60;
+  var hasData = isEquipment ? (issuedCount>0 || returnedCount>0) : (sessionCount>0);
+  var effText = '—';
+  if(effN>0){
+    var avgSec = Math.round(effSumSec/effN);
+    var m = Math.floor(avgSec/60), s = avgSec%60;
+    effText = (m>0 ? (m+'m '+s+'s') : (s+'s')) + ' avg';
+  }
+  var fbText = '—';
+  if(ratingN>0){
+    var avgR = (ratingSum/ratingN);
+    fbText = avgR.toFixed(1) + ' / 5 (' + ratingN + ' rating' + (ratingN!==1?'s':'') + ')';
+  }
+  return {
+    hasData: hasData, issuedCount: issuedCount, returnedCount: returnedCount,
+    sessionCount: sessionCount, hours: hours, effText: effText, fbText: fbText
+  };
+}
+
+// Renders the three read-only analytics cards into #analytics-activity-cards.
+// Auto-refreshes with the selected period/date — never requires or accepts
+// manual entry. Empty states are neutral: no "enter manually", no "submit a
+// report", no "record activity", no mandatory-notes language.
+function renderAnalyticsActivityCards(){
+  var host = document.getElementById('analytics-activity-cards');
+  if(!host) return;
+  var mgr = currentManagerName();
+  var period = window._workReportPeriod || 'day';
+  var range = _wrResolvePeriodRange(period);
+
+  function cardHTML(title, icon, agg, metricRows, emptyMsg){
+    if(!agg.hasData){
+      return '<div class="card" style="padding:12px 13px;">'
+        + '<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.7px;">'+icon+' '+title+'</div>'
+        + '<div style="font-size:11.5px;color:#9ca3af;">'+emptyMsg+'</div>'
+        + '</div>';
+    }
+    return '<div class="card" style="padding:12px 13px;">'
+      + '<div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.7px;">'+icon+' '+title+'</div>'
+      + metricRows.map(function(r){
+          return '<div style="display:flex;justify-content:space-between;font-size:12px;color:#374151;padding:3px 0;">'
+               + '<span>'+r[0]+'</span><strong style="color:#111827;">'+r[1]+'</strong></div>';
+        }).join('')
+      + '</div>';
+  }
+
+  var eq = _wrCategoryAggregate(mgr, 'Equipment', range.fromStr, range.toStr);
+  var stu = _wrCategoryAggregate(mgr, 'Studio Booking', range.fromStr, range.toStr);
+  var ed = _wrCategoryAggregate(mgr, 'Editing Systems', range.fromStr, range.toStr);
+
+  var html = '';
+  html += cardHTML('Equipment Activity', '📦', eq, [
+    ['Equipment Issued', eq.issuedCount],
+    ['Equipment Returned', eq.returnedCount],
+    ['Hours Contributed', eq.hours.toFixed(2)+' hrs'],
+    ['Efficiency', eq.effText],
+    ['Student Feedback', eq.fbText]
+  ], 'No equipment activity recorded for the selected period.');
+
+  html += cardHTML('Studio Support Activity', '🎙️', stu, [
+    ['Sessions Supported', stu.sessionCount],
+    ['Hours Contributed', stu.hours.toFixed(2)+' hrs'],
+    ['Efficiency', stu.effText],
+    ['Student Feedback', stu.fbText]
+  ], 'No studio support activity recorded for the selected period.');
+
+  html += cardHTML('Edit Suite Support Activity', '🖥️', ed, [
+    ['Sessions Supported', ed.sessionCount],
+    ['Hours Contributed', ed.hours.toFixed(2)+' hrs'],
+    ['Efficiency', ed.effText],
+    ['Student Feedback', ed.fbText]
+  ], 'No edit suite support activity recorded for the selected period.');
+
+  host.innerHTML = html;
+}
+window.renderAnalyticsActivityCards = renderAnalyticsActivityCards;
+
+// v80.30Q-B: Returns the EFFECTIVE combined work-log set for a given manager
+// and date — manual S.workLogs merged with auto-generated analytics entries.
+// This is the single source of truth used by EVERY display function:
+//   renderPie(), renderWeekMetrics(), updateAppBarShiftProgress(),
+//   workReportSaveToday(), and the _wrBuildInnerHTML() print/preview path.
+//
+// Merge rule: if a manual entry already covers a category (act key), the
+// manual entry wins and the auto-entry for that category is skipped, so
+// there is never any double-counting. For 'mgmt' (Studio/Edit) the label
+// prefix is used to discriminate Studio vs Edit Suite independently.
+function _wrGetEffectiveWorkLogs(mgrName, dateStr){
+  var manual = S.workLogs || [];
+  var autoEntries = _wrAutoLogsFromBookings(mgrName || currentManagerName(), dateStr || getISTDateString());
+  var toAdd = [];
+  autoEntries.forEach(function(al){
+    if(al.act !== 'mgmt'){
+      var covered = manual.some(function(l){ return l.act === al.act; });
+      if(covered) return;
+    } else {
+      var isStudio = al.label.indexOf('Studio') > -1;
+      var alreadyCovered = manual.some(function(l){
+        if(l.act !== 'mgmt') return false;
+        return isStudio ? (l.label||'').indexOf('Studio') > -1
+                        : (l.label||'').indexOf('Edit')   > -1;
+      });
+      if(alreadyCovered) return;
+    }
+    toAdd.push(al);
+  });
+  return manual.concat(toAdd);
+}
+window._wrGetEffectiveWorkLogs = _wrGetEffectiveWorkLogs;
+
 function _wrBuildRows(logs, totalHrs){
   var AC={radio:'#7b1a1a',production:'#1d4ed8',post:'#7c3aed',classwork:'#15803d',equipment:'#0284c7',mgmt:'#0d9488',others:'#ea580c'};
   var AB={radio:'#fff1f2',production:'#eff6ff',post:'#f5f3ff',classwork:'#f0fdf4',equipment:'#e0f2fe',mgmt:'#f0fdfa',others:'#fff7ed'};
   if(!logs||!logs.length){
-    return '<tr><td colspan="5" style="padding:20px 14px;text-align:center;color:#94a3b8;font-size:11.5px;font-style:italic;background:#f8fafc;">No work log entries found for this date.<br><span style=\'font-size:11px;\'>Manager must submit activities via the Report screen first.</span></td></tr>';
+    return '<tr><td colspan="5" style="padding:20px 14px;text-align:center;color:#94a3b8;font-size:11.5px;font-style:italic;background:#f8fafc;">No activity recorded for this date.<br><span style=\'font-size:11px;\'>Equipment, Studio, and Edit Suite activity is auto-populated from analytics when present. Radio JSJC, Production, Post Production, Class Work and Admin entries may be added via the Report screen.</span></td></tr>';
   }
   var runTot = logs.reduce(function(a,l){return a+(l.hrs||0);},0)||1;
   var rows='';
@@ -15252,13 +15648,30 @@ function _wrBuildRows(logs, totalHrs){
 // "All Managers" group reports both flow through the same _wrBuildInnerHTML
 // return value, so one insertion point covers both cases). ──
 function _wrDisclaimerHTML(){
-  return '<div style="border:1.3px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-top:16px;">'
-    +'<div style="font-size:8px;font-weight:800;color:#334155;line-height:1.55;">'
-    +'DISCLAIMER: Utilization % reflects logged work hours plus equipment throughput effort (10 min/issue, 5 min/return) against the shift target, based on actual data entered. '
-    +'It is an indicative operational metric, not a full performance measure — quality, initiative, coordination and other contextual work are not fully captured. '
-    +'Working-day counts are drawn from actual logged dates (predominantly Mon\u2013Fri, with occasional Sat/Sun entries where recorded). '
-    +'Final evaluation should include managerial review.'
-    +'</div></div>';
+  var s8  = 'font-size:8px;font-weight:800;color:#334155;line-height:1.6;';
+  var s8n = 'font-size:8px;font-weight:400;color:#475569;line-height:1.6;';
+  var lbl = 'font-size:7.5px;font-weight:800;color:#1e3a5f;letter-spacing:.4px;text-transform:uppercase;margin-top:7px;margin-bottom:1px;display:block;';
+  return '<div style="border:1.3px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:16px;">'
+    +'<div style="'+s8+'margin-bottom:6px;">SERVICE PERFORMANCE &amp; UTILIZATION DISCLAIMER</div>'
+    +'<div style="'+s8n+'margin-bottom:5px;">This work report combines manually logged activities and verified operational analytics to evaluate manager performance.</div>'
+    +'<span style="'+lbl+'">Equipment Management Metrics</span>'
+    +'<div style="'+s8n+'">Derived from actual equipment issue and return transactions, transaction timestamps, equipment quantities, preparation durations and verified student interactions.</div>'
+    +'<span style="'+lbl+'">Studio Management Metrics</span>'
+    +'<div style="'+s8n+'">Derived from actual studio support activities, student service records, studio readiness timestamps and verified support sessions.</div>'
+    +'<span style="'+lbl+'">Edit Suite Management Metrics</span>'
+    +'<div style="'+s8n+'">Derived from actual edit suite support activities, workstation readiness timestamps, student interactions and verified service records.</div>'
+    +'<span style="'+lbl+'">Response Time KPI</span>'
+    +'<div style="'+s8n+'">Calculated from the elapsed time between student arrival/check-in and manager service initiation.</div>'
+    +'<span style="'+lbl+'">Fulfilment KPI</span>'
+    +'<div style="'+s8n+'">Calculated from the elapsed time between service initiation and successful handover/readiness completion.</div>'
+    +'<span style="'+lbl+'">Student Satisfaction KPI</span>'
+    +'<div style="'+s8n+'">Calculated from verified student ratings and recorded feedback.</div>'
+    +'<span style="'+lbl+'">Productivity KPI</span>'
+    +'<div style="'+s8n+'">Calculated using verified equipment transactions, studio support sessions and edit suite support sessions completed during the reporting period.</div>'
+    +'<div style="'+s8n+'margin-top:7px;border-top:1px solid #e2e8f0;padding-top:6px;">Utilization % reflects productive hours contributed through both manual work logs and verified analytics-driven operational activities relative to the assigned shift target. '
+    +'Efficiency scores are generated automatically using response time performance, fulfilment efficiency, productivity and student satisfaction indicators. '
+    +'All equipment, studio and edit suite performance metrics are sourced from recorded operational data and timestamps rather than self-reported entries wherever available.</div>'
+    +'</div>';
 }
 
 function _wrBuildInnerHTML(dateStr, managerFilter){
@@ -15279,6 +15692,25 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
     var key='tou_workreport_'+m.name.replace(/[^a-zA-Z0-9]/g,'_')+'_'+dateStr;
     var snap=null; try{snap=JSON.parse(localStorage.getItem(key)||'null');}catch(e){}
     var logs=(snap&&snap.shiftLogs)||((m.name===currentManagerName()&&!managerFilter)?S.shiftLogs:[]);
+
+    // v80.30Q: Merge auto-generated entries from booking analytics.
+    // Only inject an auto-entry for a category if the manager has no manual
+    // entry of that same category already logged for this day (no double-counting).
+    var manualActs = {};
+    logs.forEach(function(l){ manualActs[l.act] = true; });
+    var autoLogs = _wrAutoLogsFromBookings(m.name, dateStr);
+    autoLogs.forEach(function(al){
+      // Skip if manager already manually submitted this activity type
+      if(manualActs[al.act] && al.act !== 'mgmt') return; // equipment: skip if manual exists
+      // For 'mgmt' (studio/edit suite), check label prefix to avoid duplicating same category
+      if(al.act === 'mgmt'){
+        var alreadyHasSameLabel = logs.some(function(l){ return l.act==='mgmt' && l.label && al.label && l.label.indexOf('Studio')>-1 && al.label.indexOf('Studio')>-1; })
+                                || logs.some(function(l){ return l.act==='mgmt' && l.label && al.label && l.label.indexOf('Edit')>-1 && al.label.indexOf('Edit')>-1; });
+        if(alreadyHasSameLabel) return;
+      }
+      logs = logs.concat([al]);
+    });
+
     var hrs=logs.reduce(function(a,l){return a+(l.hrs||0);},0);
     grandTotal+=hrs;
     return {m:m, logs:logs, hrs:hrs};
