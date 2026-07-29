@@ -1306,15 +1306,21 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
 #wr-print-area { display:none; }
 @media print {
   @page { margin:10mm 8mm; size:A4 portrait; }
+  /* Reset html/body so overflow:hidden doesn't clip print content */
+  html, body {
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    display:block !important;
+    background:#fff !important;
+  }
   body * { visibility:hidden !important; }
   #wr-print-area, #wr-print-area * { visibility:visible !important; }
   #wr-print-area {
     display:block !important;
-    position:absolute !important;
-    top:0 !important; left:0 !important;
+    position:static !important;
     width:100% !important;
     background:#fff !important;
-    z-index:99999 !important;
     overflow:visible !important;
     padding:0 !important;
     margin:0 !important;
@@ -1328,13 +1334,13 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
     margin-bottom:10px !important;
   }
   .wr-mgr-block {
-    page-break-inside:avoid !important;
-    break-inside:avoid !important;
     margin-bottom:10px !important;
     border:1px solid #cbd5e1 !important;
     border-radius:8px !important;
     padding:12px !important;
     box-shadow:none !important;
+    page-break-before:auto !important;
+    break-before:auto !important;
   }
   .wr-mgr-block tr {
     page-break-inside:avoid !important;
@@ -2321,7 +2327,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       <hr class="dv"/>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:800;color:#111827;">Recent Shift Logs</div>
-        <button onclick="openWorkReportPrint(null, (window.currentRole==='Studio Manager'?window.currentUser:'__all__'))" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:10px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;">🖨️ Print / PDF</button>
+        <button onclick="openWorkReportPrint(null, (window.currentRole==='Studio Manager'?window.currentUser:'__all__'))" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:10px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;">🖨️ Print Work Report</button>
       </div>
       <div id="shift-logs-list"></div>
       <hr class="dv"/>
@@ -2346,9 +2352,12 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <!-- Analytics content (Professor / Studio Manager / Admin only) -->
         <div id="analytics-content">
 
-          <div class="an2-head an2-noprint">
-            <div class="an2-title">Analytics &amp; Live Usage (with Date)</div>
-            <div class="an2-date-live" id="an2-date-live">Showing records for <strong id="an2-date-live-txt">—</strong></div>
+          <div class="an2-head an2-noprint" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="an2-title">Analytics &amp; Live Usage (with Date)</div>
+              <div class="an2-date-live" id="an2-date-live">Showing records for <strong id="an2-date-live-txt">—</strong></div>
+            </div>
+            <button class="an2-noprint" onclick="printAnalyticsReport()" style="background:linear-gradient(135deg,#B89B72,#8a6d4a);color:#fff;border:none;border-radius:10px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;flex-shrink:0;box-shadow:0 3px 10px rgba(184,155,114,.35);">🖨️ Print</button>
           </div>
 
           <!-- ── Smart Filters v49.8 ── -->
@@ -2611,19 +2620,19 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             </div>
           </div>
 
-          <div class="an2-actions an2-noprint">
-            <button class="an2-print-btn" onclick="printAnalyticsReport()">🖨️ Print / Save as PDF</button>
-          </div>
-          <div class="an2-foot-note an2-noprint">Multi-page output is automatic — the browser's print dialog paginates long records.<br/>Choose "Save as PDF" as the destination/printer to export a file.</div>
-
         </div>
       </div>
     </div>
 
     <!-- ═══ ASSET USAGE REPORT (new tab) ═══ -->
     <div class="screen" id="screen-assetreport">
-      <div style="font-size:14px;font-weight:800;color:#111827;margin-bottom:4px;letter-spacing:-.3px;">Asset Usage Ledger</div>
-      <div style="font-size:10.5px;color:#9ca3af;margin-bottom:12px;">Select one or more assets and a date range to view combined usage hours &amp; bookings</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#111827;letter-spacing:-.3px;">Asset Usage Ledger</div>
+          <div style="font-size:10.5px;color:#9ca3af;margin-bottom:12px;">Select one or more assets and a date range to view combined usage hours &amp; bookings</div>
+        </div>
+        <button class="alg-noprint" id="alg-print-btn" style="display:none;background:linear-gradient(135deg,#1f2937,#374151);color:#fff;border:none;border-radius:10px;padding:7px 13px;font-size:11px;font-weight:700;cursor:pointer;align-items:center;gap:5px;font-family:inherit;flex-shrink:0;box-shadow:0 3px 10px rgba(31,41,55,.25);" onclick="printLedgerReport()">🖨️ Print</button>
+      </div>
 
       <!-- Category filter -->
       <div class="asset-cat-row alg-noprint">
@@ -2675,7 +2684,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         <!-- Printable report (chart + cards) -->
         <div class="alg-print-area" id="asset-report-results"></div>
 
-        <button class="alg-print-btn alg-noprint" id="alg-print-btn" style="display:none;" onclick="printLedgerReport()">🖨️ Print Report</button>
       </div>
     </div>
 
@@ -3031,7 +3039,10 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
         </div>
 
         <!-- ── SECTION DIVIDER ── -->
-        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.30Q</div>
+        <div style="font-size:9px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e8d5c4;">&#9670; Version Journal &middot; v1 &rarr; v80.32T</div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.32T &middot; Analytics Filter Composition Fix &middot; Section Filter Fix &middot; Manager Filter Fix &middot; Prefix Self-Heal &middot; Summary Count Consistency</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause of STU-BK-JUL26-0002 appearing under Equipment filter — PROVEN:</strong> SQL verification confirmed <code>resource_category = 'Studio Booking'</code> in Supabase — database was correct. The bug is in <code>an2FilterRecords()</code> (status tile handler). At line 10461 (old): <code>var all = window._an2AllRecords</code> — this function read the full unfiltered date-scoped set directly, completely ignoring <code>window._an2Filters</code> (the smart-chip state). When a status tile (Issued / Returned / etc.) was clicked while Equipment was selected, the status filter ran against ALL records for the date, discarding the category chip. The record list was then re-rendered from this unfiltered status result, making studio and system bookings visible inside an Equipment-only view. Fixed: <code>an2FilterRecords()</code> now builds a chip-filtered base first (applying all 9 smart-chip predicates from <code>_an2Filters</code>) and then applies the status predicate on top. The two filter layers now compose correctly. <strong>Summary count / record list mismatch — FIXED:</strong> <code>renderAnalyticsByDate()</code> previously calculated Bookings / Approved / Issued / Returned / Pending counts from raw <code>records</code> (all bookings for the date) before <code>an2ApplyFilters()</code> ran. This meant the count strip above and the record list below used different datasets whenever any chip filter was active. Removed the pre-filter count block entirely — <code>an2ApplyFilters()</code> is now the sole source of truth for all counts AND the record list, guaranteeing they always match. <strong>Pending status tile composition — FIXED:</strong> the <code>pending</code> case was missing from the status-reapplication block inside <code>an2ApplyFilters()</code> (lines 10855–10863 old). Clicking Pending while a chip filter was active fell through to show all chip-filtered records regardless of status. All 5 status cases now handled. <strong>Section A/B filter — FIXED:</strong> <code>b.section</code> was read by <code>an2ApplyFilters()</code> at line 10788 but was never mapped in the <code>dbRows</code> mapper — always <code>undefined</code> on every fetch. The Section chip silently returned 0 results for every query. Fixed by adding <code>section</code> to the mapper using the same <code>findStudentByEmail</code> / <code>findStudentByName</code> resolution pattern already used for <code>b.prog</code>. <strong>Manager filter receivedBy — FIXED:</strong> Manager filter predicate previously checked <code>b.issuedBy</code> and <code>b.receivedBy</code>. <code>b.receivedBy</code> is hardcoded <code>''</code> in <code>dbRows</code> (received_by is not a Supabase schema column — filled only from session-local <code>_localExtras</code>). On any device other than the one that clicked Receive, manager-receive attribution was invisible to the filter. Fixed by extending the predicate to also check <code>b.kitPrepBy</code> and <code>b.kitReadyBy</code>, which ARE mapped from <code>kit_prep_by</code> / <code>kit_ready_by</code> schema columns. <strong>Booking code prefix self-heal — ADDED:</strong> a guard pass runs immediately after <code>dbRows</code> is built (before <code>S.bookings</code> is assigned). It corrects any <code>b.cat</code> that disagrees with the <code>booking_code</code> prefix (<code>STU-</code> → <code>'Studio Booking'</code>, <code>SYS-</code> → <code>'Editing Systems'</code>, <code>EQ-</code> → <code>'Equipment'</code>). This self-heals any data integrity issues in <code>resource_category</code> client-side without requiring a DB migration, and makes the STU/SYS/EQ prefix a hard guarantee rather than a display artefact.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.32S &middot; &#128424;&#65039; Analytics Print Gap Fix &middot; Print Buttons Moved to Header &middot; Unified Labels</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Analytics print 54-page gap:</strong> root cause was page-break-inside:avoid on .an2-record. Removed. <strong>Print button — Analytics:</strong> large bottom CTA removed; compact &#128424;&#65039; Print button now in top-right of .an2-head row, immediately visible, same handler. <strong>Print button — Ledger:</strong> large bottom button removed; compact &#128424;&#65039; Print now in top-right of Ledger header, retains id=alg-print-btn and display:none so all JS show/hide calls unchanged. <strong>Unified labels:</strong> all print buttons follow &#128424;&#65039; Print [Name] pattern.</div></div>
+              <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #0e7490;"><div style="font-size:10px;font-weight:800;color:#0e7490;margin-bottom:3px;">v80.32R &middot; 🖨️ Report Audit — Print Fixes, Date Clarity, Transparent Efficiency Score, DRI Print Layout, Ranking Honesty</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Issue 1 — Manager Work Report print page-break:</strong> root cause was <code>position:absolute</code> on <code>#wr-print-area</code> inside <code>@media print</code>. An absolutely-positioned element is taken out of normal flow, so the browser lays out the rest of the page first, then positions the print area on top — creating a full-page blank gap before the actual content starts. Fixed by switching to <code>position:static</code> (normal document flow). Also added <code>html,body{height:auto;overflow:visible}</code> inside the print media query to prevent the screen's <code>height:100dvh;overflow:hidden</code> from clipping print pagination. Removed <code>page-break-inside:avoid</code> from the block-level <code>.wr-mgr-block</code> — this was forcing the entire (often tall) manager section to jump to a fresh page rather than splitting naturally at table rows. Row-level avoid is kept. <strong>Issue 2 — DRI print collapses to narrow column:</strong> root cause was the <code>printSingleDRICard()</code> popup CSS defining only a bare <code>.scard</code> wrapper with no grid, flex, or component-level rules — so <code>display:grid</code> on <code>.sc-tiles</code>, <code>.sc-kpis</code>, <code>.sc-rep-grid</code> and <code>display:flex</code> on every row/badge/timeline element all fell back to <code>display:block</code>, stacking everything into a single narrow column. Fixed by injecting the full set of <code>.sc-*</code> CSS (grid, flex, colors, badges, timeline, stars) into the popup stylesheet, plus <code>-webkit-print-color-adjust:exact;print-color-adjust:exact</code> on every colored element to prevent Chrome stripping backgrounds. <strong>Issue 3 — Report date confusion:</strong> the hero card showed "Generated:" inline with the work date, making it easy to misread as the report's own date. Added a clear "WORK DATE" label above the date, and demoted the generated timestamp to a lighter secondary line. The work date (the dateStr parameter) and the generation timestamp (getISTNow()) were always kept separately in code — the fix is purely presentational clarity. <strong>Issue 4 — Efficiency Score logic:</strong> replaced the opaque <code>pct*0.65 + throughputScore*0.35</code> formula with a transparent five-component weighted score (40% Utilization, 20% Reporting Completion, 15% Equipment Management, 15% Student Support Activity, 10% Compliance). Score is hidden entirely (null) when no activity data exists — never fabricated. Added a per-manager breakdown panel showing each component's exact contribution. <strong>Issue 5 — How Scores Work disclaimer:</strong> added a "HOW SCORES WORK" block above the existing service disclaimer explaining both the utilization formula and the efficiency weighted model in plain language. <strong>Issue 6 — Performance Rankings misleading:</strong> renamed "🥇 #1 Top Performer" badge (which appeared even at 29% utilization) to "Highest Activity This Period" to accurately describe what ranking measures. Added utilization status label to each leaderboard row so admins see Underutilized/Optimal/etc. alongside the medal. Added tooltip on every row: "Ranking compares activity within the selected date range. Status reflects actual utilization performance." Added explanatory footnote below the leaderboard strip.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #b45309;"><div style="font-size:10px;font-weight:800;color:#b45309;margin-bottom:3px;">v80.32Q &middot; 🔗 Operational Manager Attribution — Permanent Fix + Unassigned Operational Activity Visibility</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Root cause confirmed:</strong> <code>anWasIssued()</code>/<code>anWasReturned()</code> count a booking as issued/returned from <code>status</code>/timestamps alone — never required <code>issuedBy</code>/<code>receivedBy</code> to be populated (a known, separately-documented gap: v80.49 "receivedBy hardcoded '' in dbRows mapper", v80.4 "issuedBy blank when currentUser was empty at markReceived() time"). Meanwhile <code>_wrCategoryAggregate()</code> (Work Report cards) required an exact <code>issuedBy</code>/<code>receivedBy</code> match with zero fallback — so any booking with a blank field counted in Analytics but credited nobody's Work Report. Same object (<code>S.bookings</code>), same source — this was an attribution gap, not a data-source or table mismatch. <strong>Fix — new <code>resolveOperationalManager(b, stage)</code></strong> (factored out of the exact fallback/placeholder-rejection logic already proven in <code>pipelineRecordHTML()</code>'s <code>_pipeActor()</code>): tries <code>issuedBy</code>/<code>receivedBy</code> first, then falls back across <code>kitPrepBy</code>, <code>kitReadyBy</code>, and <code>approved_by</code> — real operational-ownership fields already written to every booking — before giving up. <code>_wrCategoryAggregate()</code> now uses this resolver instead of a strict equality check, so a manager who ran kit prep or approved the booking gets credited even when <code>issuedBy</code>/<code>receivedBy</code> itself is blank. <strong>New <code>isUnassignedOperationalActivity(b)</code></strong> flags a booking only when NO field anywhere resolves to a usable name — these are never silently dropped: new Analytics panel "⚠️ Unassigned Operational Activity" (<code>an2UnassignedActivityHTML()</code>, wired into the same <code>an2ApplyFilters()</code> pass as Support Hours) lists them by item/student/category for manual follow-up. <strong>New <code>debugAttributionAudit()</code></strong> (console-only, run manually) prints the exact SELECT-style breakdown requested — blank <code>issuedBy</code>/<code>receivedBy</code> counts, <code>issuedBy</code>/<code>receivedBy</code>='Admin' counts, real-manager-name matches, and before/after unassigned counts per this fix, plus a full <code>console.table</code> of every issued booking's raw fields vs. resolved actor. <strong>Untouched:</strong> <code>anWasApproved()/anWasIssued()/anWasReturned()</code> themselves, Analytics' own count math, database schema, booking/approval/issue/return workflow, Process Timeline display logic.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #7c3aed;"><div style="font-size:10px;font-weight:800;color:#7c3aed;margin-bottom:3px;">v80.31Q &middot; 🚫 Equipment Issuing / Studio-Edit Suite Support — Manual Entry Removed at Source, Read-Only Analytics Cards Added</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Investigation (separate from this fix):</strong> confirmed the new-account 0.0 hrs / 0% Utilization report was correct behaviour, not a bug — <code>_wrAutoLogsFromBookings()</code> correctly returns nothing when <code>S.bookings</code> is genuinely empty (a brand-new account with zero Supabase rows; production runs with <code>JSJC_DEMO_MODE=false</code>, so no seed fallback masks this). <strong>This pass:</strong> per explicit instruction, Equipment Issuing and Studio/Edit Suite Support Management were removed from <code>#act-select</code> entirely — not hidden — so managers can never manually log either category again. Removed: the two dropdown <code>&lt;option&gt;</code>s, the <code>#equipment-fixed-block</code> markup (Equipment Issued/Returned inputs, autofill hint, Calculated Time preview), the <code>isEquip</code> branch in <code>onActivityTypeChange()</code> and <code>recordActivity()</code>, the now-uncallable <code>autofillEquipmentCounts()</code>, and the dead <code>act!=='equipment'</code> exclusion in <code>submitLog()</code>'s mandatory-note check. The dropdown now lists only Radio JSJC Broadcast, Production, Post Production, Class Work, and Others/Admin — all still plain manual Task Description/Reporting To/Record Activity entries, untouched. <strong>Replacement:</strong> new <code>#analytics-activity-cards</code> container renders three read-only cards — Equipment Activity, Studio Support Activity, Edit Suite Support Activity — via new <code>renderAnalyticsActivityCards()</code>/<code>_wrCategoryAggregate()</code>/<code>_wrResolvePeriodRange()</code>. Each aggregates <code>S.bookings</code> for the current manager over the selected Day/Week/Month/(Admin)Semester period using the same verified-transaction evidence <code>_wrAutoLogsFromBookings()</code> already trusts (issuedBy+issued_at, receivedBy+returned_at) and the same efficiency/rating sanity-gates as <code>an2EfficiencyInsightHTML()</code>/<code>an2StudentFeedbackInsightHTML()</code>, aggregated instead of per-booking. Cards auto-refresh on period-chip change (<code>setPeriod()</code>), Shift Date change (<code>_onPickerChange</code>), and initial Report-screen load (<code>workReportLoadForToday()</code>). Empty state per category is the exact neutral copy specified — no "enter manually," no "submit a report," no "record activity," no mandatory-notes language. <strong>Underlying auto-population math unchanged:</strong> <code>_wrAutoLogsFromBookings()</code> itself, its 10-min-issue/5-min-return/10-min-session constants, and its merge into <code>S.workLogs</code> for the pie chart/Total Logged Hours are untouched — this pass only removed the manual-entry UI/validation surface and added the new read-only cards alongside it. <strong>Future requirement satisfied:</strong> when real Supabase booking data exists for a manager, the cards populate automatically from it; with none, they show the specified empty-state text; there is no code path left by which a manager can manually create an Equipment Issuing or Studio/Edit Suite Support Management entry.</div></div>
               <div style="background:#fdf4ef;border-radius:9px;padding:10px 11px;border-left:3px solid #15803d;"><div style="font-size:10px;font-weight:800;color:#15803d;margin-bottom:3px;">v80.30Q &middot; 📊 Work Report Auto-Population — Full Dashboard Coverage (Activity Distribution, Pie Chart, App-Bar, All Period Views)</div><div style="font-size:10.5px;color:#5a3a28;line-height:1.65;"><strong>Problem:</strong> The Manager Work Report showed 0.00 hrs / 0% Utilization / D 0/100 Efficiency for every manager even when real equipment issuing, studio, and edit suite operational activity had been verified by the platform. The report only ever read manually submitted <code>shiftLogs</code> from localStorage — if a manager hadn't manually clicked "Record Activity → Submit Work Log" for Equipment Issuing or Studio/Edit Suite Support Management that day, the report was blank regardless of what was actually in the bookings database. <strong>Root cause:</strong> <code>_wrBuildInnerHTML()</code>'s per-manager loop only sourced data from <code>snap.shiftLogs</code> / <code>S.shiftLogs</code>. No path existed to auto-populate hours from <code>S.bookings</code> analytics. <strong>Fix — new <code>_wrAutoLogsFromBookings(mgrName, dateStr)</code>:</strong> scans <code>S.bookings</code> for all bookings where the manager is recorded as <code>issuedBy</code>/<code>receivedBy</code> on the given IST date. Derives synthetic log entries per the spec §5 time allocation standards: Equipment Issue = 10 min/item, Equipment Return = 5 min/item, Studio Support = 10 min/session (cat = "Studio Booking"), Edit Suite Support = 10 min/session (cat = "Editing Systems"). Only <code>anWasIssued()</code>-equivalent bookings count (issuedBy + issued_at or returned_at + receivedBy — verified transactions only). <strong>Fix — merge logic in <code>_wrBuildInnerHTML()</code>:</strong> after resolving the manager's existing shiftLogs, auto-generated entries are merged in, skipping any category already covered by a manual log entry (no double-counting). This means Equipment Issuing hours appear automatically even with zero manual entries; a manager who manually logged Equipment Issuing keeps their manual version and the auto-entry is silently skipped. <strong>Fix — empty-state message:</strong> removed the "Manager must submit activities via the Report screen first" instruction (which was encouraging manual logging of analytically tracked activities). Replaced with a neutral message explaining what populates automatically and what is manual-only. <strong>Effect:</strong> A manager who issued 3 items and received 2 items on a given day now automatically shows (3×10 + 2×5) = 40 min = 0.67 h in their work report for that day, contributing to Utilization % and Efficiency score, without any manual action required. <strong>Manual-only activities unchanged:</strong> Radio JSJC Broadcast, Production, Post Production, Class Work, Others/Admin still depend on manual reporting via the Report screen. <strong>Untouched:</strong> booking workflow, issue/return/approval pipeline, <code>recordActivity()</code>/<code>submitLog()</code>, database schema, all other analytics, <code>autofillEquipmentCounts()</code>, efficiency/SLA scoring formulas — only the work report rendering layer is extended.</div></div>
@@ -10145,33 +10156,6 @@ function renderAnalyticsByDate(dateStr){
   if(typeof an2RenderProfFilterChips === 'function') an2RenderProfFilterChips();
   if(typeof an2RenderMgrFilterChips === 'function') an2RenderMgrFilterChips();
 
-  // Summary strip counts (v49.9 — 5 cards)
-  var total    = records.length;
-  var approved = records.filter(function(b){ return anWasApproved(b); }).length;
-  var issued   = records.filter(function(b){ return anWasIssued(b); }).length;
-  var returned = records.filter(function(b){ return anWasReturned(b); }).length;
-  // v49.10.1: Pending = unprocessed bookings + issued-but-not-returned (awaiting return)
-  var pending  = records.filter(function(b){
-    if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
-    var s = (b.status||'pending').toLowerCase();
-    // v80.48: Pending Return means genuinely issued-and-not-yet-returned ONLY —
-    // a booking still awaiting Professor/Manager approval (status==='pending')
-    // is not "pending a RETURN", it hasn't been issued yet. Dropping that
-    // branch is what the original spec asked for.
-    return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
-  }).length;
-  var setTxt=function(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; };
-  setTxt('an2-sum-total',    total);
-  setTxt('an2-sum-approved', approved);
-  setTxt('an2-sum-issued',   issued);
-  setTxt('an2-sum-returned', returned);
-  setTxt('an2-sum-pending',  pending);
-  setTxt('an2-doc-sum-total',    total);
-  setTxt('an2-doc-sum-approved', approved);
-  setTxt('an2-doc-sum-issued',   issued);
-  setTxt('an2-doc-sum-returned', returned);
-  setTxt('an2-doc-sum-pending',  pending);
-
   // Reset active card state
   document.querySelectorAll('.an2-sumcard').forEach(function(c){ c.classList.remove('active'); });
   var allCard = document.querySelector('.an2-sumcard[data-filter="all"]');
@@ -10179,7 +10163,12 @@ function renderAnalyticsByDate(dateStr){
   var resetBtn = document.getElementById('an2-reset-btn');
   if(resetBtn) resetBtn.classList.remove('visible');
 
-  // v49.8: route through smart filter engine so all 4 filters apply
+  // v80.32T FIX: summary strip counts previously ran on raw `records` (all bookings
+  // for the date, ignoring any active chip filters) before an2ApplyFilters() was
+  // called. This meant the count strip and the record list used different datasets
+  // whenever any smart-chip filter was active. Now removed — an2ApplyFilters() is
+  // the sole source of truth for all counts AND the record list, guaranteeing they
+  // always agree.
   if(typeof an2ApplyFilters === 'function') an2ApplyFilters();
   else an2RenderRecordList(records);
 }
@@ -10448,39 +10437,58 @@ function an2RenderRecordList(records){
 function an2FilterRecords(filter, cardEl){
   if(!window._an2AllRecords) return;
 
-  var all = window._an2AllRecords;
-  var filtered;
+  // v80.32T FIX: Status tile was reading _an2AllRecords directly, completely
+  // bypassing all smart-chip filters (_an2Filters). Selecting Equipment + tapping
+  // Issued showed ALL issued bookings regardless of category — the chip filter
+  // was silently discarded. Root cause confirmed at line 10461 (old): var all =
+  // window._an2AllRecords. Fix: apply chip-filter predicate first to get the
+  // chip-constrained base, then apply the status predicate on top of that.
+  var chipBase = (function(){
+    var base = window._an2AllRecords;
+    var f = window._an2Filters;
+    if(!f) return base;
+    return base.filter(function(b){
+      if(f.res !== 'all' && (b.cat||'') !== f.res) return false;
+      if(f.purpose !== 'all' && (b.strat||'') !== f.purpose) return false;
+      if(f.prog !== 'all'){
+        var bp = (b.prog||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+        if(f.prog === 'JSJC'){
+          if(!['JMS','FNM','CCPA'].some(function(p){ return bp.includes(p); })) return false;
+        } else {
+          var fp = f.prog.toUpperCase().replace(/[^A-Z0-9]/g,'');
+          if(!bp.includes(fp)) return false;
+        }
+      }
+      if(f.fac !== 'all' && (b.fac||'t1') !== f.fac) return false;
+      if(f.section !== 'all' && (b.section||'').toUpperCase() !== f.section.toUpperCase()) return false;
+      if(f.year !== 'all' && String(b.batch||'') !== String(f.year)) return false;
+      if(f.asgnTag !== 'all' && (b.asgnName||'') !== f.asgnTag) return false;
+      if(f.prof !== 'all' && (b.prof||'') !== f.prof) return false;
+      if(f.mgr !== 'all' && (b.issuedBy||'') !== f.mgr && (b.kitPrepBy||'') !== f.mgr && (b.kitReadyBy||'') !== f.mgr) return false;
+      return true;
+    });
+  })();
 
+  var filtered;
   switch(filter){
     case 'approved':
-      filtered = all.filter(function(b){ return anWasApproved(b); });
+      filtered = chipBase.filter(function(b){ return anWasApproved(b); });
       break;
     case 'issued':
-      // V73.1 FIX: was `!!b.issuedBy`, which relies on a field that's often only
-      // populated on the device that performed the action — the tile above it
-      // counts by status, so a booking could show in the "Issued" total but
-      // vanish when the tile was tapped. Now matches the same status check.
-      filtered = all.filter(function(b){ return anWasIssued(b); });
+      filtered = chipBase.filter(function(b){ return anWasIssued(b); });
       break;
     case 'returned':
-      // V73.1 FIX: was `!!b.receivedBy`, which is NEVER populated from the DB
-      // (received_by isn't a schema column — see fetchAndRenderBookings mapper,
-      // "filled from _localExtras") so on any device other than the one that
-      // clicked Receive, this always evaluated to false — 0 results — even
-      // though the Returned tile count (status-based) correctly showed 1+.
-      filtered = all.filter(function(b){ return anWasReturned(b); });
+      filtered = chipBase.filter(function(b){ return anWasReturned(b); });
       break;
     case 'pending':
-      // v49.10.1: Pending = unprocessed bookings + issued-but-not-returned (awaiting return)
-      filtered = all.filter(function(b){
-        if(anWasReturned(b)) return false; // v80.29: return evidence excludes Pending Return
+      filtered = chipBase.filter(function(b){
+        if(anWasReturned(b)) return false;
         var s = (b.status||'pending').toLowerCase();
-        // v80.48: Pending Return = genuinely issued-and-not-yet-returned ONLY.
         return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
       });
       break;
     default:
-      filtered = all;
+      filtered = chipBase;
   }
 
   window._an2ActiveFilter = filter;
@@ -10785,8 +10793,8 @@ function an2ApplyFilters(){
     if(f.asgnTag !== 'all' && (b.asgnName||'') !== f.asgnTag) return false;
     // Professor (approving professor)
     if(f.prof !== 'all' && (b.prof||'') !== f.prof) return false;
-    // Manager (issued or received the kit)
-    if(f.mgr !== 'all' && (b.issuedBy||'') !== f.mgr && (b.receivedBy||'') !== f.mgr) return false;
+    // Manager (issued, kit-prepped, or kit-readied — receivedBy is always '' after refetch; see dbRows line 17776)
+    if(f.mgr !== 'all' && (b.issuedBy||'') !== f.mgr && (b.kitPrepBy||'') !== f.mgr && (b.kitReadyBy||'') !== f.mgr) return false;
     return true;
   });
 
@@ -10843,8 +10851,10 @@ function an2ApplyFilters(){
   an2SupportHoursHTML(filtered);
   an2UnassignedActivityHTML(filtered);
 
-  // Record list
-  // Keep existing status-filter active
+  // Record list — compose active status tile filter on top of chip-filtered set
+  // v80.32T: all 5 status cases now handled here; previously 'pending' was missing
+  // which meant clicking the Pending tile while a chip filter was active fell
+  // through to show all chip-filtered records regardless of status.
   var activeStatusFilter = window._an2ActiveFilter || 'all';
   var listData = filtered;
   if(activeStatusFilter === 'approved'){
@@ -10853,6 +10863,12 @@ function an2ApplyFilters(){
     listData = filtered.filter(function(b){ return anWasIssued(b); });
   } else if(activeStatusFilter === 'returned'){
     listData = filtered.filter(function(b){ return anWasReturned(b); });
+  } else if(activeStatusFilter === 'pending'){
+    listData = filtered.filter(function(b){
+      if(anWasReturned(b)) return false;
+      var s = (b.status||'pending').toLowerCase();
+      return s === 'issued' || s === 'partially_received' || s === 'partially_returned';
+    });
   }
 
   an2RenderRecordList(listData);
@@ -11502,23 +11518,28 @@ function printAnalyticsReport(){
     .an2-print-summary{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:11px;color:#374151;}
     .an2-print-summary strong{color:#111827;font-size:13px;}
     .an2-noprint{display:none !important;}
-    .an2-record{border:1px solid #e5e7eb;border-radius:10px;padding:13px;margin-bottom:10px;page-break-inside:avoid;}
+    .an2-record{border:1px solid #e5e7eb;border-radius:10px;padding:13px;margin-bottom:10px;overflow:visible;}
     .an2-rec-name{font-size:13px;font-weight:700;color:#111827;}
     .an2-rec-email{font-size:10px;color:#6b7280;margin-top:1px;}
-    .an2-rec-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;margin-left:6px;}
-    .an2-b-pending{background:#fef9c3;color:#854d0e;}
-    .an2-b-approved{background:#dbeafe;color:#1d4ed8;}
-    .an2-b-issued{background:#fde68a;color:#7c4a03;}
-    .an2-b-returned{background:#bbf7d0;color:#15803d;}
-    .an2-b-rejected{background:#fee2e2;color:#991b1b;}
-    .an2-b-cancelled{background:#f3f4f6;color:#6b7280;}
+    .an2-rec-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9.5px;font-weight:700;margin-left:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .an2-b-pending{background:#fef9c3 !important;color:#854d0e !important;}
+    .an2-b-approved{background:#dbeafe !important;color:#1d4ed8 !important;}
+    .an2-b-issued{background:#fde68a !important;color:#7c4a03 !important;}
+    .an2-b-returned{background:#bbf7d0 !important;color:#15803d !important;}
+    .an2-b-rejected{background:#fee2e2 !important;color:#991b1b !important;}
+    .an2-b-cancelled{background:#f3f4f6 !important;color:#6b7280 !important;}
     .an2-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:10px 0 6px;}
     .an2-field{display:flex;flex-direction:column;gap:1px;}
     .an2-field-lbl{font-size:8.5px;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
     .an2-field-val{font-size:11px;color:#374151;font-weight:600;}
     .an2-rec-feedback{background:#f9fafb;border-radius:8px;padding:8px 10px;font-size:10.5px;color:#374151;border-left:3px solid #d1d5db;margin-top:6px;}
     .an2-empty{text-align:center;padding:40px 20px;color:#9ca3af;}
-    @media print{body{padding:0;}@page{margin:14mm;}}
+    @media print{
+      html,body{height:auto !important;overflow:visible !important;}
+      body{padding:0;}
+      @page{margin:14mm;}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    }
   </style>
   </head><body>${content}
   <script>window.onload=function(){window.print();}<\/script>
@@ -12289,10 +12310,74 @@ function printSingleDRICard(sid){
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
     + '<title>DRI Record — JSJC</title>'
     + '<style>'
-    + '*{box-sizing:border-box;}'
-    + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#2E2E2E;padding:20px;}'
-    + '.scard{max-width:480px;margin:0 auto;border:1px solid #E8DED0;border-radius:12px;padding:16px;}'
-    + '@media print{body{padding:0;}@page{margin:12mm;}}'
+    + '*{box-sizing:border-box;margin:0;padding:0;}'
+    + 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:#2E2E2E;padding:20px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.scard{max-width:520px;margin:0 auto;border:1px solid #E8DED0;border-radius:16px;overflow:hidden;background:#FFFFFF;box-shadow:0 2px 10px rgba(46,46,46,.06);}'
+    + '.scard.warn{border-left:4px solid #D38B36;}'
+    + '.scard.flagged{border-left:4px solid #C05A4A;}'
+    + '.sc-profile-hd{padding:14px 14px 10px;display:flex !important;align-items:flex-start;gap:10px;background:#FFFDF7;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#B89B72,#8a6d4a);display:flex !important;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-profile-info{flex:1;min-width:0;}'
+    + '.sc-nm{font-size:13.5px;font-weight:800;color:#2E2E2E;letter-spacing:-.2px;}'
+    + '.sc-id{font-size:10px;color:#6B6256;font-family:monospace;margin-top:1px;}'
+    + '.sc-badges{display:flex !important;gap:4px;flex-wrap:wrap;margin-top:4px;}'
+    + '.sc-badge{padding:2px 7px;border-radius:10px;font-size:8.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-badge-jms{background:#e0e7ff;color:#3730a3;}'
+    + '.sc-badge-fnm{background:#dcfce7;color:#166534;}'
+    + '.sc-badge-ccpa{background:#fef3c7;color:#92400e;}'
+    + '.sc-badge-batch{background:#FFFDF7;color:#6B6256;border:1px solid #E8DED0;}'
+    + '.sc-rep-area{text-align:center;flex-shrink:0;}'
+    + '.sc-rep-score{font-size:18px;font-weight:900;color:#B89B72;line-height:1;}'
+    + '.sc-rep-lbl{font-size:7.5px;color:#6B6256;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:1px;}'
+    + '.sc-tiles{display:grid !important;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 14px 10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-tile{background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:8px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-tile-icon{font-size:14px;margin-bottom:3px;}'
+    + '.sc-tile-val{font-size:13px;font-weight:900;color:#2E2E2E;}'
+    + '.sc-tile-lbl{font-size:7.5px;color:#6B6256;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-top:1px;}'
+    + '.sc-tile-sub{font-size:9px;margin-top:2px;}'
+    + '.sc-tile-sub.good{color:#4F8A5B;}.sc-tile-sub.warn{color:#D38B36;}.sc-tile-sub.bad{color:#C05A4A;}'
+    + '.sc-kpis{display:grid !important;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 14px 10px;}'
+    + '.sc-kpi{background:#FFFDF7;border:1px solid #E8DED0;border-radius:8px;padding:7px 10px;display:flex !important;align-items:center;gap:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-kpi-ico{font-size:14px;flex-shrink:0;}'
+    + '.sc-kpi-body{flex:1;min-width:0;}'
+    + '.sc-kpi-lbl{font-size:8px;font-weight:700;color:#6B6256;letter-spacing:.6px;text-transform:uppercase;}'
+    + '.sc-kpi-val{font-size:12px;font-weight:800;color:#2E2E2E;margin-top:1px;}'
+    + '.sc-prog-wrap{height:4px;background:#E8DED0;border-radius:3px;margin-top:3px;}'
+    + '.sc-prog{height:100%;border-radius:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-rep-panel{padding:10px 14px;border-top:1px solid #E8DED0;}'
+    + '.sc-rep-title{font-size:9px;font-weight:800;color:#6B6256;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px;}'
+    + '.sc-dri-divider{height:1px;background:#E8DED0;margin:8px 0;}'
+    + '.sc-dri-stars-row{display:flex !important;justify-content:space-between;align-items:center;font-size:10.5px;color:#2E2E2E;margin-bottom:5px;}'
+    + '.sc-dri-stars{color:#B89B72;letter-spacing:1px;font-size:11px;}'
+    + '.sc-dri-recent-lbl{font-size:8.5px;font-weight:800;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}'
+    + '.sc-dri-recent-item{font-size:10.5px;color:#2E2E2E;line-height:1.6;}'
+    + '.sc-rep-grid{display:grid !important;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px;}'
+    + '.sc-rep-cell{background:#FFFDF7;border:1px solid #E8DED0;border-radius:8px;padding:7px 4px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-rep-cell-val{font-size:14px;font-weight:900;}'
+    + '.sc-rep-cell-lbl{font-size:7px;font-weight:700;color:#6B6256;letter-spacing:.5px;text-transform:uppercase;margin-top:2px;line-height:1.3;}'
+    + '.sc-impact{background:#FFFDF7;border:1px solid #E8DED0;border-radius:10px;padding:8px 10px;margin-bottom:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-impact-label{font-size:8.5px;font-weight:800;color:#6B6256;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}'
+    + '.sc-impact-txt{font-size:11.5px;font-weight:700;color:#2E2E2E;line-height:1.4;}'
+    + '.sc-timeline{border-top:1px solid #E8DED0;padding:10px 14px 14px;}'
+    + '.sc-timeline-title{font-size:9px;font-weight:800;color:#6B6256;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}'
+    + '.sc-timeline-item{display:flex !important;gap:8px;margin-bottom:8px;}'
+    + '.sc-tl-left{display:flex !important;flex-direction:column;align-items:center;gap:0;}'
+    + '.sc-tl-dot{width:26px;height:26px;border-radius:50%;display:flex !important;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.sc-tl-line{width:1px;flex:1;background:#E8DED0;margin-top:2px;}'
+    + '.sc-tl-body{flex:1;min-width:0;padding-top:2px;}'
+    + '.sc-tl-mgr{font-size:10.5px;font-weight:800;color:#2E2E2E;}'
+    + '.sc-tl-meta{font-size:9px;color:#6B6256;margin-top:1px;}'
+    + '.sc-tl-comment{font-size:10.5px;color:#6B6256;margin-top:3px;line-height:1.5;background:#FFFDF7;border-radius:6px;padding:5px 7px;border-left:2px solid #E8DED0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.flag-pill{display:inline-flex !important;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + '.flag-pill.fp-flagged{background:#fbe9e6;color:#C05A4A;border:1px solid #eecfc9;}'
+    + '.flag-pill.fp-warn{background:#fbf1e3;color:#D38B36;border:1px solid #f0ddb9;}'
+    + '.flag-pill.fp-ok{background:#eaf3ec;color:#4F8A5B;border:1px solid #cfe4d5;}'
+    + '.disc-row{display:flex !important;align-items:flex-start;gap:6px;font-size:11px;}'
+    + '.disc-lbl{color:#6B6256;min-width:70px;flex-shrink:0;}'
+    + '.disc-val{color:#2E2E2E;font-weight:600;flex:1;}'
+    + '.disc-val.disc-warn{color:#D38B36;}.disc-val.disc-bad{color:#C05A4A;font-weight:700;}.disc-val.disc-good{color:#4F8A5B;}'
+    + '.alg-noprint{display:none !important;}'
+    + '@media print{body{padding:0;}@page{margin:12mm;size:A4 portrait;}-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
     + '</style></head><body>' + content.outerHTML
     + '<script>window.onload=function(){window.print();}<\/script>'
     + '</body></html>');
@@ -14216,7 +14301,7 @@ function renderAdminManagers(){
     </div>
     <div style="display:flex;gap:8px;">
       <button onclick="ampGenerate()" style="flex:1;background:linear-gradient(135deg,#7b1a1a,#1e3a5f);color:#fff;border:none;border-radius:10px;padding:9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">🔍 Generate Report</button>
-      <button onclick="ampPrint()" id="amp-print-btn" style="display:none;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:10px;padding:9px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️</button>
+      <button onclick="ampPrint()" id="amp-print-btn" style="display:none;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;border:none;border-radius:10px;padding:9px 13px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">🖨️ Print Manager Report</button>
     </div>
     <div id="amp-output" style="margin-top:12px;"></div>
   </div>
@@ -14231,7 +14316,7 @@ function renderAdminManagers(){
       <option value="__all__">👥 All Managers</option>
       ${adminData.managers.map(function(m){ return '<option value="'+m.name.replace(/"/g,'')+'">'+m.name+'</option>'; }).join('')}
     </select>
-    <button class="adm-save-btn" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);font-size:13px;letter-spacing:.4px;" onclick="openWorkReportPreview()">🖨️ PREVIEW &amp; SAVE AS PDF</button>
+    <button class="adm-save-btn" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);font-size:13px;letter-spacing:.4px;" onclick="openWorkReportPreview()">🖨️ Print Work Report (Preview)</button>
     <div style="font-size:11px;color:#64748b;text-align:center;margin-top:8px;line-height:1.5;">Multi-page output is automatic — the browser's print dialog paginates long records.<br>Choose "Save as PDF" as the destination/printer to export a file.</div>
   </div>
   <div class="adm-add-panel">
@@ -15651,7 +15736,24 @@ function _wrDisclaimerHTML(){
   var s8  = 'font-size:8px;font-weight:800;color:#334155;line-height:1.6;';
   var s8n = 'font-size:8px;font-weight:400;color:#475569;line-height:1.6;';
   var lbl = 'font-size:7.5px;font-weight:800;color:#1e3a5f;letter-spacing:.4px;text-transform:uppercase;margin-top:7px;margin-bottom:1px;display:block;';
-  return '<div style="border:1.3px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:16px;">'
+  // Issue 5: How Scores Work section
+  var howScores = '<div style="border:1.3px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:10px 12px;margin-top:16px;margin-bottom:10px;">'
+    +'<div style="font-size:9px;font-weight:800;color:#1e3a5f;margin-bottom:8px;letter-spacing:.4px;">ℹ️ HOW SCORES WORK</div>'
+    +'<div style="font-size:8px;font-weight:800;color:#1e40af;margin-bottom:2px;">How Utilization is Calculated</div>'
+    +'<div style="font-size:8px;color:#334155;line-height:1.65;margin-bottom:6px;">Utilization measures productive work hours against the assigned shift target of 8.5 hours. Formula: <span style="font-family:monospace;font-weight:700;">Productive Hours ÷ Shift Target × 100</span>. Example: 7.33 h ÷ 8.5 h = 86%.</div>'
+    +'<div style="font-size:8px;font-weight:800;color:#1e40af;margin-bottom:2px;">How Efficiency is Calculated</div>'
+    +'<div style="font-size:8px;color:#334155;line-height:1.65;margin-bottom:4px;">Efficiency is a transparent weighted score combining five measurable components:</div>'
+    +'<div style="font-size:8px;font-family:monospace;color:#334155;line-height:1.8;padding:5px 8px;background:#fff;border-radius:5px;border:1px solid #bfdbfe;">'
+    +'Utilization ........... 40/100<br/>'
+    +'Reporting Completion .. 20/100<br/>'
+    +'Equipment Management .. 15/100<br/>'
+    +'Student Support ....... 15/100<br/>'
+    +'Compliance ............ 10/100'
+    +'</div>'
+    +'<div style="font-size:8px;color:#475569;margin-top:5px;line-height:1.5;">The score breakdown is shown on every report to ensure transparency. If no activity data is available for a component, the Efficiency Score is hidden — not estimated.</div>'
+    +'</div>';
+  return howScores
+    +'<div style="border:1.3px solid #cbd5e1;background:#f8fafc;border-radius:8px;padding:10px 12px;margin-top:0;">'
     +'<div style="'+s8+'margin-bottom:6px;">SERVICE PERFORMANCE &amp; UTILIZATION DISCLAIMER</div>'
     +'<div style="'+s8n+'margin-bottom:5px;">This work report combines manually logged activities and verified operational analytics to evaluate manager performance.</div>'
     +'<span style="'+lbl+'">Equipment Management Metrics</span>'
@@ -15735,8 +15837,9 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
     +'<div style="font-size:20px;font-weight:900;margin-bottom:14px;">Studio Manager Work Report</div>'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;">'
     +'<div>'
+    +'<div style="font-size:10px;opacity:.7;letter-spacing:.5px;font-weight:700;text-transform:uppercase;margin-bottom:3px;">Work Date</div>'
     +'<div style="font-size:13px;font-weight:600;">📅 '+dateLabel+'</div>'
-    +'<div style="font-size:10px;opacity:.65;margin-top:5px;">Generated: '+genLabel+' &nbsp;·&nbsp; Shift target: 8 h 30 min</div>'
+    +'<div style="font-size:10px;opacity:.55;margin-top:6px;">Generated: '+genLabel+' &nbsp;·&nbsp; Shift target: 8 h 30 min</div>'
     +'</div>'
     +'<div style="font-size:12px;font-weight:600;opacity:.9;">👥 '+(mf==='__all__'?'All Managers':_wrEsc(mf))+'</div>'
     +'</div></div>';
@@ -15781,29 +15884,48 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
     var pct=_utilPct(d.hrs);
     var ust=_utilStatus(pct);
     var hrsColor=ust.color;
-    // ── V71.3: Automated Manager Efficiency Rating — mirrors Student Discipline badge pattern ──
-    // Combines shift utilization (logged hrs vs 8h30m target) with equipment turnaround
-    // (issued+returned handled that day) into a single subjective 0–100 score and letter grade.
+    // ── v80.32R: Transparent Efficiency Score — weighted formula, fully explainable ──
+    // Components: 40% Utilization, 20% Reporting Completion, 15% Equipment Management,
+    // 15% Student Support Activity, 10% Compliance/Discipline.
+    // Score is hidden entirely if no component data exists (never fabricate a number).
     var mgrBookings = (d.logs||[]).length ? d.logs : [];
     var eqLog = mgrBookings.filter(function(l){ return l.act==='equipment'; });
     var eqHandled = eqLog.reduce(function(s,l){ return s + (l.issued||0) + (l.received||0); }, 0);
-    var throughputScore = Math.min(100, eqHandled * 8); // 12-13 issue/receive actions ≈ full marks
-    // V73.11: SLA breach penalty — Manager has 15 min (approval→kit ready) and 1 min
-    // (arrival→issue) targets. Each breach attributable to this manager costs 8 points
-    // off the Efficiency score, and is listed by booking number in a note below.
+    var reportingLogs = mgrBookings.filter(function(l){ return l.note && l.note.trim().length>0; });
+    var supportLogs = mgrBookings.filter(function(l){ return l.act==='mgmt'||l.act==='production'||l.act==='post'; });
+    var hasAnyData = (d.hrs > 0 || eqHandled > 0 || mgrBookings.length > 0);
+    // V73.11: SLA breach penalty
     var slaBreachBookings = (S.bookings||[]).filter(function(b){
       var isThisMgr = (b.kitPrepBy===d.m.name || b.kitReadyBy===d.m.name || b.issuedBy===d.m.name);
       return isThisMgr && (b.slaBreachKitPrep || b.slaBreachIssue);
     });
     var slaBreachCount = slaBreachBookings.reduce(function(n,b){ return n + (b.slaBreachKitPrep?1:0) + (b.slaBreachIssue?1:0); }, 0);
     var SLA_PENALTY_PER_BREACH = 8;
-    var effScoreRaw = pct*0.65 + throughputScore*0.35;
-    var effScore = Math.max(0, Math.round(effScoreRaw - slaBreachCount*SLA_PENALTY_PER_BREACH));
-    var effGrade = effScore>=90 ? {g:'A+',c:'#15803d',bg:'#f0fdf4',b:'#86efac'}
+    // Weighted component scores
+    var compUtil     = Math.round(pct * 0.40);           // 40% weight → max 40
+    var compReport   = d.hrs > 0 ? (reportingLogs.length > 0 ? 20 : 10) : 0; // 20% weight → max 20
+    var compEquip    = Math.min(15, Math.round(eqHandled * 1.25));             // 15% weight → max 15
+    var compSupport  = Math.min(15, supportLogs.length * 5);                   // 15% weight → max 15
+    var compComply   = Math.max(0, 10 - slaBreachCount * SLA_PENALTY_PER_BREACH); // 10% weight → max 10
+    var effScore     = hasAnyData ? Math.max(0, compUtil + compReport + compEquip + compSupport + compComply) : null;
+    var effGrade = effScore === null ? null
+                 : effScore>=90 ? {g:'A+',c:'#15803d',bg:'#f0fdf4',b:'#86efac'}
                  : effScore>=75 ? {g:'A', c:'#15803d',bg:'#f0fdf4',b:'#86efac'}
                  : effScore>=60 ? {g:'B', c:'#854d0e',bg:'#fefce8',b:'#fde68a'}
                  : effScore>=40 ? {g:'C', c:'#c2410c',bg:'#fff7ed',b:'#fed7aa'}
                  :                {g:'D', c:'#991b1b',bg:'#fef2f2',b:'#fca5a5'};
+    // Breakdown HTML for transparency (Issue 5)
+    var effBreakdownHTML = effScore !== null ? (
+      '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:10px 12px;margin-top:10px;font-size:10px;font-family:monospace;color:#334155;line-height:1.8;">'
+      +'<div style="font-size:9px;font-weight:800;color:#1e3a5f;margin-bottom:6px;font-family:-apple-system,sans-serif;letter-spacing:.3px;">📊 EFFICIENCY BREAKDOWN</div>'
+      +'<div>Utilization (40%)  ......  '+compUtil+'/40</div>'
+      +'<div>Reporting (20%)   ......  '+compReport+'/20</div>'
+      +'<div>Equipment (15%)  ......  '+compEquip+'/15</div>'
+      +'<div>Support (15%)    ......  '+compSupport+'/15</div>'
+      +'<div>Compliance (10%) ......  '+compComply+'/10</div>'
+      +'<div style="border-top:1px solid #cbd5e1;margin-top:5px;padding-top:5px;font-weight:800;color:#0f172a;">Total ................  '+effScore+'/100</div>'
+      +'</div>'
+    ) : '';
     var slaBreachNoteHTML = slaBreachCount ? (
       '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:9px;padding:9px 11px;margin-bottom:12px;">'
       + '<div style="font-size:10px;font-weight:800;color:#991b1b;margin-bottom:5px;">⚠️ '+slaBreachCount+' SLA Breach'+(slaBreachCount!==1?'es':'')+' this period (&minus;'+(slaBreachCount*SLA_PENALTY_PER_BREACH)+' pts applied)</div>'
@@ -15822,10 +15944,10 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
       +'<div style="font-size:11px;color:#64748b;margin-top:3px;">Studio Manager &nbsp;·&nbsp; Work Report &nbsp;·&nbsp; '+dateLabel+'</div>'
       +'</div>'
       +'<div style="text-align:right;">'
-      +'<div style="display:inline-flex;align-items:center;gap:5px;background:'+effGrade.bg+';border:1px solid '+effGrade.b+';border-radius:20px;padding:3px 10px 3px 8px;margin-bottom:6px;">'
+      +(effGrade ? ('<div style="display:inline-flex;align-items:center;gap:5px;background:'+effGrade.bg+';border:1px solid '+effGrade.b+';border-radius:20px;padding:3px 10px 3px 8px;margin-bottom:6px;">'
       +'<span style="font-size:13px;font-weight:900;color:'+effGrade.c+';">'+effGrade.g+'</span>'
       +'<span style="font-size:9px;font-weight:800;color:'+effGrade.c+';letter-spacing:.3px;">EFFICIENCY &middot; '+effScore+'/100</span>'
-      +'</div><br/>'
+      +'</div><br/>') : '')
       +'<div style="font-size:24px;font-weight:900;font-family:monospace;color:'+hrsColor+';line-height:1;">'+d.hrs.toFixed(2)+' h</div>'
       +'<div style="font-size:10px;color:#94a3b8;margin-top:2px;">of '+SHIFT_TARGET_HRS+'h shift target</div>'
       +'</div></div>'
@@ -15834,9 +15956,10 @@ function _wrBuildInnerHTML(dateStr, managerFilter){
       +'<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+hrsColor+','+ust.border+');border-radius:4px;"></div>'
       +'</div>'
       // Utilization chip row
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
       +'<span style="background:'+ust.bg+';color:'+ust.color+';border:1px solid '+ust.border+';border-radius:20px;padding:3px 10px;font-size:9.5px;font-weight:800;letter-spacing:.3px;">'+pct+'% Utilization — '+ust.label+'</span>'
       +'</div>'
+      + effBreakdownHTML
       + slaBreachNoteHTML
       +'<table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">'
       +'<colgroup><col style="width:13%"/><col style="width:22%"/><col style="width:9%"/><col style="width:7%"/><col style="width:49%"/></colgroup>'
@@ -16195,11 +16318,12 @@ window.admAddManager=admAddManager;window.admDeleteManager=admDeleteManager;
 
   function _ampEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  // ── Rank badge ──
+  // ── Rank badge — v80.32R: renamed to avoid implying high rank = high performance ──
   function _ampRankBadge(rank,total){
-    if(rank===1)   return '<span style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:900;">🥇 #1 Top Performer</span>';
-    if(rank===total) return '<span style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:900;">⚠️ #'+rank+' Needs Attention</span>';
-    return '<span style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:700;">#'+rank+' of '+total+'</span>';
+    var tip = 'title="Ranking compares activity within the selected date range. Status reflects actual utilization performance."';
+    if(rank===1)   return '<span '+tip+' style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:900;cursor:help;">🥇 Highest Activity This Period</span>';
+    if(rank===total) return '<span '+tip+' style="background:#fef2f2;color:#991b1b;border:1px solid #fca5a5;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:900;cursor:help;">⚠️ #'+rank+' Lowest Activity</span>';
+    return '<span '+tip+' style="background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:20px;padding:2px 9px;font-size:9px;font-weight:700;cursor:help;">#'+rank+' of '+total+' by Activity</span>';
   }
 
   // ── Render one manager block ──
@@ -16329,18 +16453,24 @@ window.admAddManager=admAddManager;window.admDeleteManager=admDeleteManager;
       +'<div style="display:flex;flex-direction:column;gap:5px;">';
     ranked.forEach(function(s,i){
       var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
-      lbHtml+='<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.08);border-radius:8px;padding:7px 10px;">'
+      var isTop = i===0;
+      lbHtml+='<div title="Ranking compares activity within the selected date range. Status reflects actual utilization performance." style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.08);border-radius:8px;padding:7px 10px;cursor:help;">'
         +'<div style="display:flex;align-items:center;gap:8px;">'
           +'<span style="font-size:14px;">'+medal+'</span>'
-          +'<span style="font-size:12px;font-weight:700;">'+_ampEsc(s.name)+'</span>'
+          +'<div>'
+            +'<div style="font-size:12px;font-weight:700;">'+_ampEsc(s.name)+'</div>'
+            +(isTop ? '<div style="font-size:8px;opacity:.55;margin-top:1px;">Highest Activity This Period</div>' : '')
+          +'</div>'
         +'</div>'
         +'<div style="text-align:right;">'
-          +'<span style="font-family:monospace;font-size:13px;font-weight:900;color:'+s.tier.color+';">'+s.util+'%</span>'
-          +'<span style="font-size:9px;opacity:.6;margin-left:5px;">'+s.tier.label+'</span>'
+          +'<div style="font-family:monospace;font-size:13px;font-weight:900;color:'+s.tier.color+';">'+s.util+'%</div>'
+          +'<div style="font-size:8.5px;font-weight:700;color:'+s.tier.color+';opacity:.9;">'+s.tier.label+'</div>'
         +'</div>'
       +'</div>';
     });
-    lbHtml+='</div></div>';
+    lbHtml+='</div>'
+      +'<div style="font-size:8px;opacity:.55;margin-top:8px;line-height:1.5;">ℹ️ Ranking reflects relative activity within this date range — not absolute performance. Check the Utilization Status for each manager to assess whether their hours meet the operational target.</div>'
+      +'</div>';
 
     var blocksHtml='';
     summaries.forEach(function(s,idx){
@@ -17622,6 +17752,14 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         // (sent as-is from S.cat on submit — see submitBooking) and is now the single source this
         // reads from, matching the local-insert mapper's own cat alias at ~L16867.
         cat           : b.resource_category || '',
+        // v80.32T SELF-HEAL: booking code prefix is derived from S.cat at creation
+        // time and is stored in booking_code — it is a reliable categorical signal.
+        // If resource_category in Supabase disagrees with the prefix (data integrity
+        // issue from pre-v80.18 patch operations), correct b.cat silently so the
+        // analytics category filter produces the right result without needing a DB
+        // migration. This runs after the DB value is read so it only corrects actual
+        // mismatches; correct rows are unaffected.
+        // NOTE: self-heal is applied below after the full object is built.
         // V68.3 FIX: strat was hardcoded '' even though purpose_type was
         // already being read from the DB into a separate field below — the
         // purpose label (General Practice / Assignment / etc.) never showed
@@ -17632,7 +17770,15 @@ window.fetchAndRenderBookings = async function(unfiltered) {
           if(!stu && typeof window.findStudentByName==='function') stu = window.findStudentByName(b.student_name||b.student_id);
           return stu ? (stu.prog||'') : '';
         })(),
-        batch         : '',
+        // v80.32T FIX: b.section was read by an2ApplyFilters (line 10791) but was
+        // NEVER populated in this mapper — always undefined — so Section A/B filter
+        // silently returned 0 results for every query. Resolved from adminData.students
+        // using the same findStudentByEmail/findStudentByName pattern as b.prog above.
+        section       : (function(){
+          var stu = (typeof window.findStudentByEmail==='function' && b.email) ? window.findStudentByEmail(b.email) : null;
+          if(!stu && typeof window.findStudentByName==='function') stu = window.findStudentByName(b.student_name||b.student_id);
+          return stu ? (stu.section||'') : '';
+        })(),
         studentEmail  : b.email        || '',
         extra         : '',
         profNote      : '',
@@ -17739,6 +17885,18 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         issuingDurationSeconds      : (b.issuing_duration_seconds != null ? b.issuing_duration_seconds : undefined),
         slaBreachIssue              : (b.sla_breach_issue != null ? !!b.sla_breach_issue : undefined)
       };
+    });
+    // v80.32T: booking code prefix self-heal — corrects any b.cat that disagrees
+    // with the booking_code prefix. Prefix is derived from S.cat at submission
+    // and stored in booking_code; it is the ground truth for resource category.
+    // Any mismatch means resource_category in Supabase is wrong for that row.
+    // This guard corrects b.cat client-side silently so the analytics category
+    // filter always produces the right result regardless of DB state.
+    dbRows.forEach(function(r){
+      var code = r.bkNum || r.booking_code || '';
+      if(code.indexOf('STU-') === 0 && r.cat !== 'Studio Booking')  r.cat = 'Studio Booking';
+      else if(code.indexOf('SYS-') === 0 && r.cat !== 'Editing Systems') r.cat = 'Editing Systems';
+      else if(code.indexOf('EQ-')  === 0 && r.cat !== 'Equipment')        r.cat = 'Equipment';
     });
     // v79 FIX (root cause of "9 bookings shown when Supabase is empty"): this
     // used to unconditionally concat ALL seed bookings onto every successful
@@ -21455,7 +21613,7 @@ window.pcOpenHistory = pcOpenHistory;
   <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;">
     <div style="font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:7px;"><span style="width:14px;height:14px;border:2px solid rgba(255,255,255,.5);border-radius:3px;display:inline-block;flex-shrink:0;"></span> Manager Work Report</div>
     <div style="display:flex;gap:8px;">
-      <button onclick="printWorkReport()" style="background:#fff;color:#1e3a5f;border:none;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;">🖨️ Print / PDF</button>
+      <button onclick="printWorkReport()" style="background:#fff;color:#1e3a5f;border:none;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;">🖨️ Print Work Report</button>
       <button onclick="closeWorkReportPrint()" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:800;cursor:pointer;font-family:inherit;">✕ Close</button>
     </div>
   </div>
