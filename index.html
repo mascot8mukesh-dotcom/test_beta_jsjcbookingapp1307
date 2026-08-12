@@ -3106,7 +3106,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
           </div>
 
           <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #93c5fd;border-radius:10px;padding:10px 13px;border-left:3px solid #1d4ed8;">
-            <div style="font-size:10px;font-weight:800;color:#1e40af;margin-bottom:4px;">v87.2 &middot; Login Footer + Firebase Cloud Messaging + FCM Debug Logs &middot; Aug 2026</div>
+            <div style="font-size:10px;font-weight:800;color:#1e40af;margin-bottom:4px;">v87.3 &middot; Login Footer + Firebase Cloud Messaging + FCM Debug Logs &middot; Aug 2026</div>
             <div style="font-size:10.5px;color:#1e3a8a;line-height:1.65;">(1) Login footer: 10th Commencement Year anniversary statement added above attribution in italic semi-bold centred text; copyright symbol removed; attribution reformatted as secondary text. (2) FCM web push: Firebase compat SDKs loaded dynamically (no build step). initFCM() registers firebase-messaging-sw.js service worker, requests Notification permission, obtains FCM token via VAPID key, upserts token to Supabase fcm_tokens table. Foreground handler shows toast + system Notification. saveFCMToken() stores token, user_id, role, name, device UA. Admin-only "Test Push" button added to Admin Control Panel header. fcmInitAfterLogin() wired into all three login success paths with 1.5s delay. Replace FCM_VAPID_KEY constant with real key from Firebase Console &rarr; Project Settings &rarr; Cloud Messaging &rarr; Web Push certificates. Companion files: firebase-messaging-sw.js, fcm_tokens Supabase table, fcm-send Edge Function.</div>
           </div>
 
@@ -16731,6 +16731,7 @@ window.admAddManager=admAddManager;window.admDeleteManager=admDeleteManager;
 // v87 — FIREBASE CLOUD MESSAGING (FCM) WEB PUSH NOTIFICATIONS
 // Project: jsjc-booking-app  |  Sender ID: 92282421131
 // VAPID key: set window.JSJC_VAPID_KEY before this script, or update below.
+console.log('FCM DEBUG BUILD ACTIVE');
 // All FCM logic is non-blocking — if Firebase is unavailable the app continues.
 // ══════════════════════════════════════════════════════════════════════════════
 
