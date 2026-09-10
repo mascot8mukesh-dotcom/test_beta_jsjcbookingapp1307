@@ -86,7 +86,7 @@ Before writing any code in this file, re-read this note once. That's it.
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JSJC Smart Booking App v96.1 v7</title>
+<title>JSJC Smart Booking App v96.1</title>
 <!-- v80.9 ICON PATH FIX
      Root cause of the grey "G" default icon: v80.8 was written assuming an
      icons/ subfolder deployment (icons/favicon.ico etc.), but the repo
@@ -1922,7 +1922,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       <div class="bk-sec">Resource Category</div>
       <div class="cat-row" style="margin-bottom:8px;">
         <div class="cat-tile active" data-cat="Equipment"><div class="cico">📷</div><div class="cnm">Equipment</div><div class="csb">Cameras · Audio</div></div>
-        <div class="cat-tile" data-cat="Editing Systems"><div class="cico">🖥️</div><div class="cnm">Editing Suites</div><div class="csb">Mac · Windows</div></div>
+        <div class="cat-tile" data-cat="Editing Systems"><div class="cico">🖥️</div><div class="cnm">Editing Sys.</div><div class="csb">Mac · Windows</div></div>
         <div class="cat-tile" data-cat="Studio Booking"><div class="cico">🎙️</div><div class="cnm">Studio Book.</div><div class="csb">Rooms</div></div>
       </div>
       <!-- V71.13: Single-category disclaimer — a booking can only draw resources from
@@ -2758,11 +2758,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
                   <div class="an2-empty-txt">Select a working day above<br/>to view its usage records.</div>
                 </div>
               </div>
-              <!-- v96.1 v7: Assignment Track Sheet accordion -->
-              <div id="an2-asgn-track-wrap" style="margin-top:18px;display:none;">
-                <div style="font-size:11px;font-weight:800;color:#7b1a1a;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">&#128202; Assignment Track Sheet</div>
-                <div id="an2-asgn-track-list"></div>
-              </div>
             </div>
           </div>
 
@@ -2783,7 +2778,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       <!-- Category filter -->
       <div class="asset-cat-row alg-noprint">
         <button class="asset-cat-btn active" onclick="setAssetCat('Equipment',this)">📷 Equipment</button>
-        <button class="asset-cat-btn" onclick="setAssetCat('Editing Systems',this)">🖥️ Editing Suites</button>
+        <button class="asset-cat-btn" onclick="setAssetCat('Editing Systems',this)">🖥️ Editing Sys.</button>
         <button class="asset-cat-btn" onclick="setAssetCat('Studio Booking',this)">🎙️ Studios</button>
       </div>
 
@@ -3183,34 +3178,6 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
             <div style="font-size:10.5px;color:#78350f;line-height:1.65;">Analytics and Ledger showed &ldquo;[Return] Condition: clean&rdquo; inside the Student Description section because the legacy dbRows fallback reads b.remarks when b.student_description is NULL — and pre-v86 return workflow wrote condition text into remarks. descriptionBoxesHTML() fully rewritten: (1) <strong>Student Description</strong> always renders as a stamped box (gradient parchment background, STATEMENT watermark top-right, dark-red 4px left border) — shows &ldquo;&mdash; No description provided &mdash;&rdquo; in italic grey when empty; [Return]-prefixed legacy content is detected and routed to the Manager Notes section only, never shown as the student purpose statement. (2) <strong>Professor Comment</strong> always renders (blue 4px border) — shows &ldquo;&mdash; No professor comment &mdash;&rdquo; when empty. (3) <strong>Manager Notes</strong> always renders (amber 4px border) — two lines: Extras issued (pre-issue accessories) and Return condition (post-return); each shows &ldquo;&mdash;&rdquo; when empty so the box is always present and consistent. Role-gating on manager extras removed — all roles now see the same three boxes. Applies identically to Analytics record cards, Ledger cards, and all booking record card views.</div>
           </div>
 
-          <div style="background:linear-gradient(135deg,#001a10,#00341f);border:1.5px solid rgba(16,185,129,.4);border-radius:10px;padding:10px 13px;border-left:3px solid #10b981;">
-            <div style="font-size:10px;font-weight:800;color:#a7f3d0;margin-bottom:4px;">v96.1 v6 &middot; Assignment Hours Fix (USED HRS from actual timestamps) + Editing Suite Aggregation &middot; Sep 2026</div>
-            <div style="font-size:10.5px;color:#d1fae5;line-height:1.65;">
-              <strong>Bug A — Assignment Hours USED = 0 (root cause):</strong> <code>markReceived()</code> computed <code>_usedHrs</code> from a DOM input (<code>used-hrs-{sid}</code>). If Manager didn't manually type hours, <code>rawUsed = NaN</code> → fallback to <code>bookedHrsForCalc</code> (scheduled duration). Critically, <code>_usedHrs</code> was stored only in <code>cacheLocalExtra</code> (localStorage) and was <strong>never written to Supabase</strong>. On any reload, <code>b.used_hours = 0</code> from DB → Board always showed 0. Fix: <code>_usedHrs</code> auto-computed from <code>calculateEquipmentUsageHours(issued_at, returned_at)</code>. Written to Supabase as <code>used_hours</code> + <code>carry_forward_hrs</code> columns in the return PATCH. Board reads <code>b.used_hours || algHoursFromActual(b)</code>. <strong>SQL required: see Section 14.</strong>
-              <br/><strong>Bug B — Editing System ledger shows workstations, not suites:</strong> <code>algItemsForCat('Editing Systems')</code> returned individual names from <code>kitDB</code>. <code>algBuildReport</code> matched on <code>algBaseName(resource)</code> giving one card per workstation. Fix: suite derived from <code>b.location</code> (VCG room field). <code>algEditSuiteName(b)</code> extracts suite name. Both <code>algItemsForCat</code> and <code>algBuildReport</code> overridden to aggregate at suite level. Category label changed from "Editing Sys." to "Editing Suites".
-              <br/><strong>Bug C — Survival of scheduled-time logic:</strong> <code>renderAssignmentHoursBoard()</code> and <code>asgnUpdateCFSummary()</code> both read <code>b.usedHrs</code> directly — which was 0 from Supabase (never written there). Fixed to read <code>b.used_hours || algHoursFromActual(b)</code>.
-              <br/><strong>SQL to run (Section 14):</strong> <code>ALTER TABLE bookings ADD COLUMN IF NOT EXISTS used_hours numeric DEFAULT 0; ALTER TABLE bookings ADD COLUMN IF NOT EXISTS carry_forward_hrs numeric DEFAULT 0;</code>
-              <br/><strong>Affected screens:</strong> Assignment Hours Board (USED HRS, CARRY FWD, BALANCE columns), Asset Usage Ledger (Editing Suites), Manager Work Report, Analytics carry-fwd metric.
-            </div>
-          </div>
-
-          <div style="background:linear-gradient(135deg,#1a0f00,#2d1a00);border:1.5px solid rgba(245,158,11,.4);border-radius:10px;padding:10px 13px;border-left:3px solid #d97706;">
-            <div style="font-size:10px;font-weight:800;color:#fde68a;margin-bottom:4px;">v96.1 &middot; Equipment Ledger &amp; Usage Hours Audit Fix &middot; Sep 2026</div>
-            <div style="font-size:10.5px;color:#fef3c7;line-height:1.65;">
-              <strong>Root Cause (Equipment Ledger — 1770.7h bug):</strong> <code>algGetAllRecords()</code> mapped <code>_algSt = b.start_time</code> and <code>_algEt = b.end_time</code> — the <em>scheduled</em> booking window, not actual manager issue/return timestamps. Every <code>algHours(_algSt, _algEt)</code> call in <code>algBuildReport()</code>, <code>algBuildProgYearBreakdown()</code>, <code>algBuildManagerReport()</code>, and <code>algBuildCategoryBreakdown()</code> used these phantom values. A TASCAM DR05 booked daily for 9h × multiple weeks accumulated 1770.7h even though most bookings had <code>issued_at = NULL</code> and <code>returned_at = NULL</code> in the database. Additionally, <code>algWasActuallyUsed()</code> included <code>status === 'issued'</code> (currently out, never returned), adding the full scheduled window for active checkouts. Multi-equipment bookings accumulated at the booking level, not per-item.
-              <br/><strong>Fix A — <code>calculateEquipmentUsageHours(issuedAt, returnedAt)</code>:</strong> New centralized utility. Returns <code>(returnedAt - issuedAt)</code> in decimal hours. Returns 0 if either timestamp is absent. Exposed on <code>window</code>. All reports must use this as the single source of truth.
-              <br/><strong>Fix B — <code>algGetAllRecords()</code> rewritten:</strong> <code>_algSt</code> now maps to <code>issued_at || issuedAt</code> (actual issue time). <code>_algEt</code> now maps to <code>returned_at || returnedAt</code> (actual return time). Scheduled times moved to <code>_algSchedSt</code> / <code>_algSchedEt</code> for display-only use.
-              <br/><strong>Fix C — <code>algHoursFromActual(b)</code> added:</strong> Thin wrapper calling <code>calculateEquipmentUsageHours(issued_at, returned_at)</code>. Replaces every <code>algHours(b._algSt, b._algEt)</code> call in all four aggregation sites: <code>algBuildReport</code>, <code>algBuildProgYearBreakdown</code>, <code>algBuildManagerReport</code>, <code>algBuildCategoryBreakdown</code>.
-              <br/><strong>Fix D — <code>algWasActuallyUsed()</code> tightened:</strong> <code>status === 'issued'</code> removed from the inclusion list. Currently-out equipment with no <code>returned_at</code> contributes 0h to historical totals. Only completed cycles (<code>returned</code>, <code>partially_received</code>, <code>partially_returned</code>) or bookings with explicit <code>issued_at</code>/<code>issuedBy</code> evidence are counted.
-              <br/><strong>Fix E — Date key corrected:</strong> <code>algBuildReport</code> date range now uses <code>issued_at</code> as primary key (actual handover date). Prevents bookings issued on a different day than scheduled from appearing in wrong date ranges.
-              <br/><strong>Fix F — Ledger card display:</strong> Each card now shows either "⏱ Actual Usage: Xh" (green, for completed cycles) or "🔄 In Progress — not yet returned" (amber, for active checkouts). This makes it immediately visible which bookings contributed hours and which did not.
-              <br/><strong>Affected screens:</strong> Equipment Usage Ledger (Times Used, Total Hours, Students), Program × Year breakdown table, Pie chart, Manager Work Report (Total Hours Out), Category breakdown, Radio JSJC programme hours, FNM student hours. Analytics KPI strip (bookedHrs) unchanged — that tracks scheduled allocation, not actual usage.
-              <br/><strong>Validation queries (run in Supabase):</strong>
-              <code>SELECT COUNT(*) FROM bookings WHERE issued_at IS NOT NULL AND returned_at IS NOT NULL;</code> — should match Times Used in ledger.
-              <code>SELECT SUM(EXTRACT(EPOCH FROM (returned_at - issued_at))/3600) FROM bookings WHERE issued_at IS NOT NULL AND returned_at IS NOT NULL AND resource_name ILIKE '%TASCAM DR 05%';</code> — should match TASCAM total hours.
-            </div>
-          </div>
-
           <div style="background:linear-gradient(135deg,#1a0a2e,#2d1650);border:1.5px solid rgba(167,139,250,.4);border-radius:10px;padding:10px 13px;border-left:3px solid #7c3aed;">
             <div style="font-size:10px;font-weight:800;color:#e9d5ff;margin-bottom:4px;">v96.1 &middot; Production Hardening — EOD Auto-Cancel, Radio Analytics, Equipment Persist, Facility Filter Fix &middot; Aug 2026</div>
             <div style="font-size:10.5px;color:#f3e8ff;line-height:1.65;">
@@ -3522,7 +3489,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
     <!-- ═══ END DATABASE HEALTH CHECK ═══ -->
 
     <!-- ═══ ADMIN ═══ -->
-    <div class="screen" id="screen-admin">
+    <div class="screen" id="screen-admin"><!-- PROD BUILD: Master toggles hidden; resource management (equipment/editing/studios) accessible to Studio Manager -->
       <!-- Admin hero -->
       <div id="admin-header-card" class="card" style="padding:0;overflow:hidden;margin-bottom:12px;border:none;">
         <div class="admin-hero">
@@ -3538,7 +3505,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
       </div>
 
       <!-- V73: Admin Control Panel toggles — V80.19: Admin-only (app-wide settings), hidden for Studio Manager's scoped resource-admin access -->
-      <div id="admin-master-toggles" style="display:flex;gap:8px;margin-bottom:10px;">
+      <div id="admin-master-toggles" style="display:none!important;" style="display:flex;gap:8px;margin-bottom:10px;">
         <div style="flex:1;background:#fff;border:1px solid #e8d5c4;border-radius:12px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div style="min-width:0;">
             <div style="font-size:10.5px;font-weight:800;color:#1f2937;">Weekend Approval Restriction</div>
@@ -3671,7 +3638,7 @@ hr.dv{border:none;border-top:1px solid #e5e7eb;margin:11px 0;}
     <div class="nav-it" data-screen="screen-analytics"><div class="nav-ico">📊</div><div class="nav-lbl">Analytics</div><div class="nav-pip"></div></div>
     <div class="nav-it" data-screen="screen-assetreport"><div class="nav-ico">🔎</div><div class="nav-lbl">Ledger</div><div class="nav-pip"></div></div>
     <div class="nav-it" data-screen="screen-students"><div class="nav-ico">👥</div><div class="nav-lbl">Students</div><div class="nav-pip"></div></div>
-    <div class="nav-it" id="nav-admin" data-screen="screen-admin" style="display:none;"><div class="nav-ico">⚙️</div><div class="nav-lbl">Admin</div><div class="nav-pip"></div></div>
+    <div class="nav-it" id="nav-admin" data-screen="screen-admin" style="display:none;"><!-- shown by applyRoleUI for Studio Manager --><div class="nav-ico">⚙️</div><div class="nav-lbl">Admin</div><div class="nav-pip"></div></div>
     <div class="nav-it" id="nav-birthday" data-screen="screen-birthday" style="display:none;"><div class="nav-ico">🎪</div><div class="nav-lbl">Carnival</div><div class="nav-pip"></div></div>
     <div class="nav-it" id="nav-appinfo" data-screen="screen-appinfo" style="opacity:.75;"><div class="nav-ico">ℹ️</div><div class="nav-lbl">Info</div><div class="nav-pip"></div></div>
     <div class="nav-it" id="nav-dbhealth" data-screen="screen-dbhealth" style="display:none;"><div class="nav-ico">🗄️</div><div class="nav-lbl">DB Health</div><div class="nav-pip"></div></div>
@@ -3710,7 +3677,7 @@ window.JSJC_DEMO_MODE = false;
 // Build B (administrative) sets:          window.JSJC_BUILD = 'admin';
 // Default here is 'production' — Admin login button visibility is controlled
 // by applyBuildConfig() below, called at DOMContentLoaded.
-window.JSJC_BUILD = 'production'; // v87_C PROD build — master-access-section hidden by applyBuildConfig()
+window.JSJC_BUILD = 'admin'; // v95g restored: Admin build — master-access-section shown by applyBuildConfig()
 
 function applyBuildConfig(){
   var build = window.JSJC_BUILD || 'production';
@@ -4281,19 +4248,7 @@ function pipelineRecordHTML(b){
     var receivedVerb = rv.receivedVerb;
     var returnTs = b.returnedAt || b.returned_at || b.partialReceiptAt || null;
     rows.push({icon:'🔁', text:returnedVerb+' <strong>'+esc(b.student||'Student')+jointNames+'</strong>', ts:returnTs});
-    // v97 FIX: _pipeActor with receivedBy must NEVER fall back to issuedBy.
-    // Use a dedicated helper that only accepts verified receiver fields.
-    var _rcvActor = (function(){
-      function ok(v){ if(!v) return false; var s=String(v).trim().toLowerCase(); return s && s!=='manager' && s!=='manager manager' && s!=='undefined' && s!=='null'; }
-      // Only use fields that are confirmed receiver sources — never issuedBy
-      var _rcvSources = [b.receivedBy, b.receivedByRole ? null : null, b.received_by];
-      for(var _ri=0;_ri<_rcvSources.length;_ri++){ if(ok(_rcvSources[_ri])) return _rcvSources[_ri]; }
-      // If no receiver stored: show generic label, never the issuer name
-      return b.returned_at ? 'Studio Manager' : null;
-    })();
-    if(_rcvActor){
-      rows.push({icon:'🏁', text:receivedVerb+' <strong>'+esc(_rcvActor)+'</strong>'+(b.receivedByRole?' ('+esc(b.receivedByRole)+')':''), ts:returnTs});
-    }
+    rows.push({icon:'🏁', text:receivedVerb+' <strong>'+esc(_pipeActor(b.receivedBy))+'</strong>', ts:returnTs});
   }
   // V73.7: closes out the confirmed pipeline storyline — student rating of the
   // Manager's service, with a timestamp, was the one step never represented here
@@ -4334,27 +4289,11 @@ function pipelineRecordHTML(b){
   // Shown wherever pipelineRecordHTML() is used (Student History, Manager,
   // Approve screen, Analytics) since they all share this single function.
   if(b.strat === 'assignment' && b.bookedHrs != null){
-    // v97 FIX 2: derive usedHrs from actual timestamps when not stored
-    // (covers legacy bookings where used_hours was never written to Supabase)
-    var _displayUsed = b.usedHrs;
-    if((_displayUsed == null || _displayUsed === 0) && typeof algHoursFromActual === 'function'){
-      var _au = algHoursFromActual(b);
-      if(_au > 0) _displayUsed = _au;
-    }
-    if(_displayUsed != null && b.allottedHours != null && b.carryForwardHrs == null){
-      b.carryForwardHrs = Math.max(0, parseFloat(b.allottedHours) - parseFloat(_displayUsed));
-    }
-    var hasUsage = (_displayUsed != null && _displayUsed > 0);
+    var hasUsage = (b.usedHrs != null);
     var hasAllot = (b.allottedHours != null);
     var colCount = (hasUsage?3:1) + (hasAllot?1:0);
-    // v87_C: resource-type tag — Req/Used/Carry Fwd must be visible per
-    // resource kind (Equipment, Editing System, or Studio) as requested,
-    // since the same assignment number can span bookings across all three.
-    var _resTag = (b.cat === 'Editing Systems') ? '🖥️ Editing System'
-                : (b.cat === 'Studio Booking' || b.cat === 'Studio') ? '🎬 Studio'
-                : (b.cat === 'Equipment') ? '🎒 Equipment' : '';
     pipelineHTML += '<div class="mgc-timeline-box" style="margin-top:8px;">'
-      + '<div class="mgc-status-lbl" style="margin-bottom:6px;">📚 Assignment Hours'+(b.asgnNum?' — '+esc(b.asgnNum):'')+(b.asgnShift?' · '+esc(b.asgnShift):'')+(_resTag?' · '+_resTag:'')+'</div>'
+      + '<div class="mgc-status-lbl" style="margin-bottom:6px;">📚 Assignment Hours'+(b.asgnNum?' — '+esc(b.asgnNum):'')+(b.asgnShift?' · '+esc(b.asgnShift):'')+'</div>'
       + '<div style="display:grid;grid-template-columns:repeat('+colCount+',1fr);gap:6px;">'
       +   '<div style="text-align:center;background:#f8f9fb;border-radius:8px;padding:6px;">'
       +     '<div style="font-size:14px;font-weight:900;color:#7b1a1a;">'+esc(b.bookedHrs)+'</div>'
@@ -4368,11 +4307,11 @@ function pipelineRecordHTML(b){
       ) : '')
       +   (hasUsage ? (
       '<div style="text-align:center;background:#f8f9fb;border-radius:8px;padding:6px;">'
-      +     '<div style="font-size:14px;font-weight:900;color:#16a34a;">'+esc(typeof _displayUsed!=='undefined'&&_displayUsed!=null?_displayUsed:b.usedHrs)+'</div>'
+      +     '<div style="font-size:14px;font-weight:900;color:#16a34a;">'+esc(b.usedHrs)+'</div>'
       +     '<div style="font-size:8px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">Used Hrs</div>'
       +   '</div>'
       +   '<div style="text-align:center;background:#eef2ff;border-radius:8px;padding:6px;border:1px solid #c7d2fe;">'
-      +     '<div style="font-size:14px;font-weight:900;color:#4338ca;">'+esc(b.carryForwardHrs!=null?b.carryForwardHrs:0)+'</div>'
+      +     '<div style="font-size:14px;font-weight:900;color:#4338ca;">'+esc(b.carryForwardHrs||0)+'</div>'
       +     '<div style="font-size:8px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;">Carried Fwd</div>'
       +   '</div>'
       ) : '')
@@ -4500,7 +4439,7 @@ function canonicalRecordHTML(b, rightBadgeHTML){
   // Purpose
   var purposeLabelsMap = {general:'General Practice',classhour:'Class Hour Practice',assignment:'Assignment',jsjci:'JSJC Initiatives',radio:'Radio JSJC',jsjc:'JSJC Event',jgu:'JGU Event'};
   var purposeText = purposeLabelsMap[b.strat] || (b.strat ? b.strat : (b.purpose_type||''));
-  // v96.1: stamp Radio programme tag next to purpose — "Radio JSJC | #Deep_Dives"
+  // v96.1 FIX: stamp Radio programme tag next to purpose — "Radio JSJC | #Deep_Dives"
   if(b.strat === 'radio' && (b.radioTagName || b.radio_tag_name)){
     var _rtag = (b.radioTagName || b.radio_tag_name || '').replace(/^#/,'');
     if(_rtag) purposeText = 'Radio JSJC | #' + _rtag;
@@ -4756,7 +4695,15 @@ function switchScreen(id){
     }
   }
   // V73: paint Admin Control Panel toggle switches to current saved state
-  if(id==='screen-admin' && typeof renderAdminToggles==='function') renderAdminToggles();
+  if(id==='screen-admin' && typeof renderAdminToggles==='function') renderAdminToggles(); // v96.1 PROD: resource tabs active for Studio Manager
+  // v96.1 PROD: when Studio Manager navigates to screen-admin, auto-select equipment
+  // tab and hide admin-only tabs so they land directly on resource management.
+  if(id==='screen-admin' && window.currentRole === 'Studio Manager'){
+    if(typeof setAdminTab==='function'){
+      var _firstVisibleTab = document.querySelector('.adm-tab:not([style*="display: none"]):not([style*="display:none"])');
+      setAdminTab('equipment', _firstVisibleTab);
+    }
+  }
   // V70.1: Show weekend booking disclaimer only when opening the Booking screen on a Sat/Sun
   if(id==='screen-booking'){
     var wkEl = document.getElementById('weekend-booking-disclaimer');
@@ -4817,9 +4764,10 @@ function applyRoleUI(role){
     if(navManager)   navManager.style.display='';
     if(navReport)    navReport.style.display='';
     if(navAnalytics) navAnalytics.style.display='';
-    // v95g PROD: navAdmin NOT granted to Studio Manager — Admin nav entry point
-    // removed from all production-facing roles. Admin functionality remains intact
-    // and accessible via direct URL / authorized access (Build B / admin build).
+    // v96.1 PROD FIX: navAdmin re-granted to Studio Manager for resource management
+    // (Equipment, Editing Systems, Studios). Master toggles remain hidden via
+    // applyRoleUI admin-master-toggles guard. Only resource tabs are visible.
+    if(navAdmin)     navAdmin.style.display='';
     // navStudents: still REMOVED — Studio Manager must NOT access Student Management
     if(navAppInfo)   navAppInfo.style.display='';
     // v80.36: DB Health removed for Studio Manager — Diagnostics/Test Booking
@@ -5204,8 +5152,8 @@ function doLogin(role, nameFromRecord) {
   }
   else if(role === 'Studio Manager') switchScreen('screen-manager');
   else if(role === 'Admin'){
-    switchScreen('screen-admin');
-    setAdminTab('equipment', document.querySelector('.adm-tab'));
+    // v96.1 PROD: Admin Control Panel removed from production build — Admin uses Manager portal
+    switchScreen('screen-manager');
   }
   else {
     switchScreen('screen-booking');
@@ -5550,42 +5498,6 @@ function bkActualHrs(b){
 }
 window.bkActualHrs = bkActualHrs;
 
-// ══════════════════════════════════════════════════════════════════════════════
-// v96.1 LEDGER USAGE HOURS FIX — calculateEquipmentUsageHours
-// ══════════════════════════════════════════════════════════════════════════════
-// ROOT CAUSE: algGetAllRecords() was mapping _algSt=start_time, _algEt=end_time
-// (scheduled times). Every algHours() call in algBuildReport(), algBuildProgYearBreakdown(),
-// algBuildManagerReport(), and algBuildCategoryBreakdown() used these phantom
-// scheduled values — not actual manager issue/return timestamps. A booking scheduled
-// 9am–6pm that was never issued still contributed 9 hours. Multiple bookings of the
-// same equipment over weeks produced impossible totals (TASCAM DR05: 1770.7h).
-// algWasActuallyUsed() compounded this by including status==='issued' (currently out,
-// no return yet) at full scheduled duration.
-//
-// FIX RULE: usage hours = returned_at − issued_at (decimal hours, 2dp).
-//   • If returned_at is NULL  → 0h added to historical totals (in-progress, not closed)
-//   • If issued_at is NULL    → 0h (no physical issue recorded)
-//   • Multi-equipment bookings: each item uses the same booking's issued_at/returned_at
-//     (the booking level timestamps), preventing double-counting at the booking level.
-//
-// EXAMPLES (verified):
-//   issued_at 10:00, returned_at 13:30 → 3.5h  ✅
-//   issued_at Sep1 18:00, returned_at Sep2 06:00 → 12h  ✅
-//   issued_at set, returned_at NULL → 0h (in-progress)  ✅
-//   no issued_at, no returned_at → 0h (never physically issued)  ✅
-
-function calculateEquipmentUsageHours(issuedAt, returnedAt) {
-  // Both timestamps must be present for a completed issue-return cycle
-  if (!issuedAt || !returnedAt) return 0;
-  var issMs = new Date(issuedAt).getTime();
-  var retMs = new Date(returnedAt).getTime();
-  if (isNaN(issMs) || isNaN(retMs)) return 0;
-  var hrs = (retMs - issMs) / 3600000;
-  return hrs > 0 ? Math.round(hrs * 100) / 100 : 0; // decimal hours, 2dp
-}
-window.calculateEquipmentUsageHours = calculateEquipmentUsageHours;
-// ══════════════════════════════════════════════════════════════════════════════
-
 // ── v96 RULE 7: Centralized Effective-End & Actual-Duration Helpers ────────
 // ROOT CAUSE (Rule 7): Analytics, utilization, overdue, and conflict checks
 // were all using b.end_time directly — ignoring (a) early returns (returned_at
@@ -5834,31 +5746,18 @@ function isSlotOverlapping(slotStartH, slotEndH, bookingStartISO, bookingEndISO,
   if (isNaN(bst)) return false;
   var ref = refDate || S.calDate || new Date();
 
-  // v97 FIX ISSUE 2: Stale PTR auto-release guard.
-  // ROOT CAUSE: A booking left in 'issued' or 'partially_received' status from
-  // years ago (e.g. TASCAM booked 2 years back, never returned) extended its
-  // block to 32 days beyond TODAY on every render — blocking all future dates
-  // permanently. The 32-day rolling block is correct for recent overdue items
-  // but must NOT apply to bookings whose end_time is more than 90 days in the past.
-  //
-  // Rule: if end_time was >90 days ago AND returned_at is null → stale PTR →
-  // treat as non-blocking on the client side. The Manager should still resolve
-  // it properly (mark as returned/cancelled) but students are unblocked immediately.
+  // v91A Items 3 & 6: For issued/partially_received bookings, the resource stays
+  // blocked indefinitely past end_time until Manager marks Received. We achieve
+  // this by extending the effective end to a far-future date when the status is
+  // still active (issued/partially_received) so every slot on every future date
+  // shows as blocked until receipt confirmation sets status → 'returned'.
   var _st = (bookingStatus||'').toLowerCase();
   var _isStillOut = (_st === 'issued' || _st === 'partially_received');
   var bet;
   if(_isStillOut){
-    var _bookingEndMs = bookingEndISO ? new Date(bookingEndISO).getTime() : 0;
-    var _stalePTRCutoff = Date.now() - (90 * 24 * 3600000); // 90 days ago
-    if(_bookingEndMs > 0 && _bookingEndMs < _stalePTRCutoff){
-      // Stale PTR — booking ended >90 days ago and never returned.
-      // Release the client-side block so new bookings can proceed.
-      console.warn('[PTR] Stale PTR detected — booking end was',
-        new Date(_bookingEndMs).toDateString(),
-        '— releasing client-side block. Manager should mark as returned/cancelled.');
-      return false; // non-blocking
-    }
-    // Recent overdue: extend block to 32 days beyond today (standard PTR behaviour)
+    // Extend block to 32 days beyond today — covers any realistic overdue period.
+    // The block is removed the moment status flips to 'returned' in Supabase,
+    // because isBlockingBooking('returned') returns false.
     bet = new Date(Date.now() + 32 * 24 * 3600000);
   } else {
     bet = bookingEndISO ? new Date(bookingEndISO) : null;
@@ -8279,45 +8178,20 @@ function _ptrStat(label,val,color){
 // Tables: notifications, notification_reads
 // ═══════════════════════════════════════════════════════════════════════════
 window.pushSupabaseNotification = async function(recipientRole, recipientEmail, message, type){
-  // v97 FIX: UPSERT with onConflict='booking_id,type' to prevent duplicate rows.
-  // Also adds recipient_name (derived from adminData managers/professors for role)
-  // to fix: null value in column "recipient_name" violates not-null constraint (23502).
-  // Previously this fired a fresh INSERT on every 30s poll — main egress driver.
   try {
-    // Derive recipient_name from role — required by NOT NULL constraint
-    var recipientNames = [];
-    if(recipientRole === 'Studio Manager'){
-      var mgrs = (window.adminData && window.adminData.managers) || [];
-      mgrs.forEach(function(m){ if(m.name) recipientNames.push(m.name); });
-    } else if(recipientRole === 'all'){
-      recipientNames = ['all'];
-    } else {
-      recipientNames = [recipientRole || 'all'];
-    }
-    if(!recipientNames.length){ recipientNames = ['all']; }
-
-    var rows = recipientNames.map(function(rName){
-      return {
-        recipient_name  : rName,
+    await fetch(SUPABASE_URL + '/rest/v1/notifications', {
+      method : 'POST',
+      headers: Object.assign({}, HEADERS, {'Content-Type':'application/json','Prefer':'return=minimal'}),
+      body   : JSON.stringify({
         recipient_role  : recipientRole || 'all',
         recipient_email : recipientEmail || null,
         message         : message,
         type            : type || 'info',
-        booking_id      : null,
         read            : false,
         created_at      : new Date().toISOString()
-      };
+      })
     });
-
-    await fetch(SUPABASE_URL + '/rest/v1/notifications', {
-      method : 'POST',
-      headers: Object.assign({}, HEADERS, {
-        'Content-Type': 'application/json',
-        'Prefer'      : 'resolution=ignore-duplicates,return=minimal'
-      }),
-      body: JSON.stringify(rows)
-    });
-  } catch(e){ console.warn('[v97] pushSupabaseNotification error:', e.message); }
+  } catch(e){ console.warn('[v90.2] pushSupabaseNotification error:', e.message); }
 };
 
 window.fetchUnreadNotifications = async function(){
@@ -8374,11 +8248,10 @@ window._notifPollTimer = null;
 window.startNotificationPoll = function(){
   if(window._notifPollTimer) clearInterval(window._notifPollTimer);
   window.refreshNotificationBadges();
-  // v97 FIX: Reduced from 30s to 120s — 30s was firing 3 Supabase INSERT
-  // requests per cycle per Manager session, a primary egress driver.
   window._notifPollTimer = setInterval(function(){
     window.refreshNotificationBadges();
-  }, 120000);
+    // v90.8: PTR strip removed — no longer called from poll
+  }, 30000);
 };
 
 // v90.3 FIX 1: removed the useless doLogin wrapper that was here.
@@ -10434,83 +10307,6 @@ function getTagAllottedHours(tagId, asgnNum){
 }
 window.getTagAllottedHours = getTagAllottedHours;
 
-// v87_C: same lookup as getTagAllottedHours() but keyed by the assignment
-// NAME/label rather than the tag id — needed at return time (markReceived),
-// where the booking only carries asgnName/assignment_name, never the tag id
-// that only exists in the student's browsing session (window._selectedAsgnTag).
-function getTagAllottedHoursByName(asgnName, asgnNum){
-  if(!asgnName || !asgnNum) return null;
-  var tag = (adminData.assignmentTags||[]).find(function(t){ return t.label === asgnName || t.tag === asgnName; });
-  if(!tag) return null;
-  var numIdx = parseInt(String(asgnNum).replace(/[^0-9]/g,''),10);
-  var match = (tag.numbers||[]).find(function(n){ return (typeof n==='object'?n.num:n) === numIdx; });
-  if(!match) return null;
-  return (typeof match === 'object' && match.allottedHours != null) ? match.allottedHours : null;
-}
-window.getTagAllottedHoursByName = getTagAllottedHoursByName;
-
-// ══════════════════════════════════════════════════════════════════════════════
-// v87_C: ASSIGNMENT HOURS CARRY-FORWARD CHAIN — root-cause fix.
-// ══════════════════════════════════════════════════════════════════════════════
-// Two independent bugs were found:
-//  (1) COLUMN-NAME MISMATCH: the return PATCH (markReceived) wrote the
-//      persisted carry-forward value to bookings.carry_forward_hrs (matches
-//      the actual SQL migration column), but the dbRows fetch mapper read
-//      it back from bookings.carry_forward_hours (a column that was never
-//      created) — so every refetch (any screen reload, any other device,
-//      the Assignment Hours Board itself) saw carryForwardHrs = 0 no matter
-//      what was written. used_hours had no such mismatch and round-tripped
-//      correctly, which is why USED showed real numbers while CARRY FWD
-//      did not persist across sessions.
-//  (2) NO CHAIN INHERITANCE: even once persisted, carry-forward was computed
-//      per-shift as (thisShift'sBookedHrs − thisShift'sUsedHrs) — every shift
-//      measured itself against its OWN requested hours, never against what
-//      was actually left over from the previous shift. Per spec: Shift 1's
-//      base is the tag's admin-set Allotted Hours; every later shift's base
-//      is the PREVIOUS shift's carry-forward, never a reset back to the flat
-//      allotment.
-// Fix (2) lives here: algAssignmentEffectiveAllotted() walks the student's
-// prior bookings under the same assignment number (same pattern the
-// Equipment/Suite ledgers use to group child records under a parent),
-// finds the most recently finalised one, and returns ITS carry-forward as
-// this shift's effective base — falling back to the tag's Allotted Hours
-// only when this is the first booking in the chain.
-// ══════════════════════════════════════════════════════════════════════════════
-function algAssignmentEffectiveAllotted(b){
-  if(!b) return null;
-  var studentKey = b.email || b.studentEmail || b.student_id || b.sid || b.student || '';
-  var asgnNum    = b.asgnNum || b.assignment_number || '';
-  var asgnName   = b.asgnName || b.assignment_name || '';
-  if(!studentKey || !asgnNum) return getTagAllottedHoursByName(asgnName, asgnNum);
-  var src = (typeof S !== 'undefined' && S && S.bookings) ? S.bookings : [];
-  var thisTime = new Date(b.created_at || b.start_time || 0).getTime();
-  var chain = src.filter(function(o){
-    if(String(o.id) === String(b.id)) return false;
-    var oKey  = o.email || o.studentEmail || o.student_id || o.sid || o.student || '';
-    var oAsgn = o.asgnNum || o.assignment_number || '';
-    if(oKey !== studentKey || oAsgn !== asgnNum) return false;
-    var st = (o.status||o.ks||'').toLowerCase();
-    if(st==='cancelled' || st==='rejected') return false;
-    var oTime = new Date(o.returned_at || o.created_at || o.start_time || 0).getTime();
-    return oTime > 0 && oTime < thisTime;
-  }).sort(function(a,c){
-    var aT = new Date(a.returned_at || a.created_at || a.start_time || 0).getTime();
-    var cT = new Date(c.returned_at || c.created_at || c.start_time || 0).getTime();
-    return cT - aT; // most recently finalised first
-  });
-  if(chain.length){
-    var prevB  = chain[0];
-    var prevCF = parseFloat(prevB.carry_forward_hrs != null ? prevB.carry_forward_hrs
-      : (prevB.carryForwardHrs != null ? prevB.carryForwardHrs : NaN));
-    if(!isNaN(prevCF)) return prevCF;
-  }
-  // First booking in this assignment's shift chain — base is the tag's
-  // admin-set Allotted Hours, per spec ("...or allotted hours for the
-  // student's first booking...").
-  return getTagAllottedHoursByName(asgnName, asgnNum);
-}
-window.algAssignmentEffectiveAllotted = algAssignmentEffectiveAllotted;
-
 function asgnUpdateCFSummary(){
   var asgnNum   = (document.getElementById('asgn-num-select')||{}).value || '';
   var shiftNum  = (document.getElementById('asgn-shift-num')||{}).value || '';
@@ -10536,10 +10332,7 @@ function asgnUpdateCFSummary(){
   var totalBooked = 0, totalUsed = 0;
   prev.forEach(function(b){
     totalBooked += parseFloat(b.bookedHrs||b.asgn_hours||0);
-    // v96.1 v6 FIX C: read Supabase used_hours first, then algHoursFromActual
-    var _bUsedC = parseFloat(b.used_hours || b.usedHrs || b.asgn_used_hours || 0);
-    if(_bUsedC === 0 && typeof algHoursFromActual === 'function') _bUsedC = algHoursFromActual(b);
-    totalUsed += _bUsedC;
+    totalUsed   += parseFloat(b.usedHrs||b.asgn_used_hours||0);
   });
   var carryFwd = Math.max(0, totalBooked - totalUsed);
 
@@ -11574,27 +11367,13 @@ async function markReceived(id){
   var _bkForHrs = S.bookings.find(function(x){ return String(x.id)===sid; });
   var _usedHrs = null, _carryFwdHrs = null, _hrsSummaryTxt = '';
   if(_bkForHrs && _bkForHrs.strat === 'assignment'){
-    // v96.1 v6 FIX A: auto-compute usedHrs from actual issued_at → returned_at timestamps.
-    // Do NOT read from DOM input (Manager may not fill it). This guarantees USED HRS
-    // is derived from manager actions, not typed values or scheduled duration.
-    var _issuedAtTs  = _bkForHrs.issued_at  || _bkForHrs.issuedAt  || null;
-    var _returnedAtTs = new Date().toISOString(); // we're in the return handler right now
-    var _actualUsed = (typeof calculateEquipmentUsageHours==='function')
-      ? calculateEquipmentUsageHours(_issuedAtTs, _returnedAtTs)
-      : 0;
-    var bookedHrsForCalc = (typeof bkActualHrs==='function') ? bkActualHrs(_bkForHrs) : (parseFloat(_bkForHrs.bookedHrs) || 0);
-    // Cap at bookedHrs — can't use more than what was allotted for this shift
-    _usedHrs = _actualUsed > 0 ? Math.min(_actualUsed, bookedHrsForCalc) : bookedHrsForCalc;
-    // v87_C FIX: carry-forward base is now the CHAIN-AWARE effective allotment —
-    // the tag's Allotted Hours for this student's first booking under this
-    // assignment number, or the PREVIOUS shift's own carry-forward for every
-    // shift after that (never a reset back to bookedHrsForCalc/allottedHours).
-    var _effectiveBase = (typeof algAssignmentEffectiveAllotted==='function') ? algAssignmentEffectiveAllotted(_bkForHrs) : null;
-    var _cfBase = (_effectiveBase != null && !isNaN(_effectiveBase)) ? parseFloat(_effectiveBase) : bookedHrsForCalc;
-    _carryFwdHrs = Math.max(0, _cfBase - _usedHrs);
+    var usedHrsEl = document.getElementById('used-hrs-'+sid);
+    var rawUsed = usedHrsEl ? parseFloat(usedHrsEl.value) : NaN;
+    var bookedHrsForCalc = (typeof bkActualHrs==='function') ? bkActualHrs(_bkForHrs) : (parseFloat(_bkForHrs.bookedHrs) || 0); // v91: actual duration
+    _usedHrs = isNaN(rawUsed) ? bookedHrsForCalc : Math.max(0, Math.min(rawUsed, bookedHrsForCalc));
+    _carryFwdHrs = Math.max(0, bookedHrsForCalc - _usedHrs);
     cacheLocalExtra(sid, { usedHrs: _usedHrs, carryForwardHrs: _carryFwdHrs });
-    _hrsSummaryTxt = ' · Used ' + _usedHrs.toFixed(2) + ' hrs' + (_carryFwdHrs > 0 ? ', carried forward ' + _carryFwdHrs.toFixed(2) + ' hrs to next shift' : '');
-    console.log('[v96.1 v6 AssignmentHrs] booking', sid, '| issued_at:', _issuedAtTs, '| actual used:', _actualUsed, 'h | capped to:', _usedHrs, 'h | carry fwd:', _carryFwdHrs, 'h');
+    _hrsSummaryTxt = ' · Used ' + _usedHrs + ' hrs' + (_carryFwdHrs > 0 ? ', carried forward ' + _carryFwdHrs + ' hrs to next shift' : '');
   }
   // V55 FIX: removed phantom columns received_by, return_condition, manager_note
   // (not in verified schema). Condition/note stored locally via _localExtras.
@@ -11609,43 +11388,33 @@ async function markReceived(id){
   var _returnId = _bkForReturn && _bkForReturn.returnNum ? _bkForReturn.returnNum : (_catForReturn+'-RT-'+getNextBookingNum(_catForReturn+'_return'));
   cacheLocalExtra(sid, { returnCondition: cond, managerNote: _retNote, receivedBy: window.currentUser||'Manager' });
   console.log('markReceived v60 ✅', sid, cond, 'return_id:', _returnId);
-  // v97 RETURN FIX: capture actual clicker identity BEFORE fetch
-  // window.currentUser = the Studio Manager / Admin who clicked Receive.
-  // Never inferred from issuedBy — these are always different people.
-  var _rcvBy   = (window.currentUser || '').trim() || null;
-  var _rcvRole = (window.currentRole || '').trim() || null;
-  cacheLocalExtra(sid, { receivedBy: _rcvBy, receivedByRole: _rcvRole });
   fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + sid, {
     method : "PATCH",
     headers: HEADERS,
-    body   : JSON.stringify(Object.assign({
-      status           : "returned",
-      returned_at      : new Date().toISOString(),
-      return_id        : _returnId,
-      received_by      : _rcvBy,       // v97: actual clicker stored in DB
-      received_by_role : _rcvRole,     // v97: actual role stored in DB
+    body   : JSON.stringify({
+      status      : "returned",
+      returned_at : new Date().toISOString(),
+      return_id   : _returnId,
+      // v90.9a: received_by removed — column confirmed absent from bookings table.
+      // Work report attribution uses issuedBy as return actor (same manager issues & receives).
       // v86 FIX: return condition MUST NOT overwrite remarks (= student project description).
+      // Writing to return_note column instead. remarks is now read-only after booking creation.
       return_note : (cond ? '[Return] Condition: ' + cond + (_retNote ? ' | ' + _retNote : '') : (_retNote || null))
-    }, _usedHrs != null ? {
-      used_hours       : _usedHrs,
-      carry_forward_hrs: _carryFwdHrs
-    } : {}))
+    })
   }).then(function(res){
     if(!res.ok){
       return res.text().then(function(t){
         // v60: if return_id column rejects (schema mismatch), retry without it
         // rather than silently losing the entire return event.
-        if(t.indexOf('return_id') !== -1 || t.indexOf('used_hours') !== -1 || t.indexOf('carry_forward_hrs') !== -1){
-          var _retryMsg = t.indexOf('return_id') !== -1 ? 'return_id' : 'used_hours/carry_forward_hrs';
-          console.warn('⚠️ '+_retryMsg+' column rejected — retrying without it:', t);
+        if(t.indexOf('return_id') !== -1){
+          console.warn('⚠️ return_id column rejected — retrying without it:', t);
           return fetch(SUPABASE_URL + "/rest/v1/bookings?id=eq." + sid, {
             method : "PATCH",
             headers: HEADERS,
             body   : JSON.stringify({
-              status           : "returned",
-              returned_at      : new Date().toISOString(),
-              received_by      : _rcvBy,
-              received_by_role : _rcvRole,
+              status      : "returned",
+              returned_at : new Date().toISOString(),
+              // v86: retry also uses return_note — never remarsk
               return_note : (cond ? '[Return] Condition: ' + cond + (_retNote ? ' | ' + _retNote : '') + ' | Return No: ' + _returnId : (_retNote || null) + ' | Return No: ' + _returnId)
             })
           });
@@ -11658,8 +11427,7 @@ async function markReceived(id){
       bk.status          = 'returned';
       bk.ks              = 'returned';
       bk.returnedAt      = new Date().toISOString();
-      bk.receivedBy      = _rcvBy   || window.currentUser || 'Manager'; // v97: from actual clicker
-      bk.receivedByRole  = _rcvRole || window.currentRole || '';
+      bk.receivedBy      = window.currentUser || 'Manager';
       bk.returnCondition = cond;
       bk.returnNum       = _returnId;
       bk.return_note     = (cond ? '[Return] Condition: ' + cond + (_retNote ? ' | ' + _retNote : '') : (_retNote || ''));
@@ -14004,104 +13772,10 @@ function an2ApplyFilters(){
   }
 
   an2RenderRecordList(listData);
-  // v96.1 FIX 2: render Radio JSJC per-programme breakdown
+  // v96.1 FIX 2: render Radio JSJC per-programme breakdown whenever radio purpose is active
   an2RenderRadioProgrammeBreakdown(filtered);
-  // v96.1 v7: render Assignment Track Sheet accordion whenever any assignment bookings present
-  if(typeof renderAsgnTrackSheetInAnalytics === 'function') renderAsgnTrackSheetInAnalytics();
 }
 window.an2ApplyFilters = an2ApplyFilters;
-
-// ── v96.1 v7: renderAsgnTrackSheetInAnalytics ─────────────────────────────
-// Assignment Track Sheet for Analytics tab — same data as renderAssignmentHoursBoard
-// but rendered into #an2-asgn-track-list. Student view: only their own records.
-// Manager/Admin view: all students. Collapsed by default, expand on click.
-function renderAsgnTrackSheetInAnalytics(){
-  var wrap = document.getElementById('an2-asgn-track-wrap');
-  var list = document.getElementById('an2-asgn-track-list');
-  if(!wrap || !list) return;
-  function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function fmtDate(ts){
-    if(!ts) return '—';
-    try{ return new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'}); }catch(e){ return ts||'—'; }
-  }
-  var isStudent = (window.currentRole==='Student');
-  var currentName = window.currentUser || window.currentUserName || '';
-  var tags = (adminData.assignmentTags||[]).filter(function(t){ return t.active; });
-  var groups = [];
-  tags.forEach(function(t){
-    (t.numbers||[]).forEach(function(n){
-      var num      = (typeof n==='object') ? n.num : n;
-      var allotted = (typeof n==='object' && n.allottedHours!=null) ? parseFloat(n.allottedHours) : null;
-      var rows = (S.bookings||[]).filter(function(b){
-        if(b.asgnName !== ('#'+t.label)) return false;
-        if(parseInt(String(b.asgnNum||'').replace(/[^0-9]/g,''),10) !== num) return false;
-        if((b.status||'')==='cancelled' || (b.status||'')==='rejected') return false;
-        if(isStudent && (b.student||b.student_name||'') !== currentName) return false;
-        return true;
-      });
-      if(!rows.length) return;
-      groups.push({ tag:t, num:num, allotted:allotted, rows:rows });
-    });
-  });
-  if(!groups.length){ wrap.style.display='none'; return; }
-  wrap.style.display = '';
-  list.innerHTML = groups.map(function(g, gi){
-    var totalReq=0, totalUsed=0, totalCF=0;
-    var bodyHtml = g.rows.map(function(b, ri){
-      var _bUsed = parseFloat(b.used_hours || b.usedHrs || 0);
-      if(_bUsed===0 && typeof algHoursFromActual==='function') _bUsed = algHoursFromActual(b);
-      var _req  = parseFloat(b.bookedHrs || b.booked_hours || 0);
-      var _cf   = (g.allotted!=null) ? Math.max(0,g.allotted-_bUsed) : Math.max(0,_req-_bUsed);
-      // v96.1 v9 FIX 1: auto-derive shift when shift_number is NULL
-      var _shiftN = (typeof calcShiftNum==='function') ? calcShiftNum(b, S.bookings) : parseInt(b.shift_number||b.asgnShift||'',10)||null;
-      var _shift  = _shiftN ? 'Shift '+_shiftN : (b.shift_number||b.asgnShift||'');
-      if(_shift && !isNaN(_shift)) _shift = 'Shift '+_shift;
-      var _dt   = b.issued_at || b.issuedAt || b.start_time || b.created_at || null;
-      totalReq += _req; totalUsed += _bUsed; totalCF += _cf;
-      return '<tr style="'+(ri%2===1?'background:#fafaf8;':'')+'">'
-        +'<td style="padding:5px 8px;font-size:10px;white-space:nowrap;">'+esc(fmtDate(_dt))+'</td>'
-        +(!isStudent?'<td style="padding:5px 8px;font-size:10px;font-weight:600;">'+esc(b.student||b.student_name||'—')+'</td>':'')
-        +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+esc(_shift||'—')+'</td>'
-        +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+(_req>0?_req:'—')+'</td>'
-        +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+(g.allotted!=null?g.allotted:'—')+'</td>'
-        +'<td style="padding:5px 8px;font-size:10px;text-align:center;font-weight:700;color:'+(_bUsed>0?'#15803d':'#9ca3af')+';">'+(_bUsed>0?_bUsed.toFixed(2):'—')+'</td>'
-        +'<td style="padding:5px 8px;font-size:10px;text-align:center;color:#2563eb;">'+(_cf>0?_cf.toFixed(2):'—')+'</td>'
-        +'</tr>';
-    }).join('');
-    var totalsRow = '<tr style="border-top:1.5px solid #e8d5c4;font-weight:800;background:#f9f5f0;">'
-      +'<td style="padding:5px 8px;font-size:10px;" colspan="'+(isStudent?1:2)+'">Total</td>'
-      +'<td style="padding:5px 8px;font-size:10px;text-align:center;">—</td>'
-      +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+totalReq.toFixed(2)+'</td>'
-      +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+(g.allotted!=null?g.allotted:'—')+'</td>'
-      +'<td style="padding:5px 8px;font-size:10px;text-align:center;font-weight:700;color:'+(totalUsed>0?'#15803d':'#9ca3af')+';">'+(totalUsed>0?totalUsed.toFixed(2):'—')+'</td>'
-      +'<td style="padding:5px 8px;font-size:10px;text-align:center;color:#2563eb;">'+(totalCF>0?totalCF.toFixed(2):'—')+'</td>'
-      +'</tr>';
-    var gid = 'an2track-'+gi;
-    return '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;overflow:hidden;">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;background:#fdf8f3;" data-gid="'+gid+'" onclick="_asgnAccordionToggle(this)">'
-      +'<div style="display:flex;align-items:center;gap:8px;"><span class="at2cv" style="font-size:10px;color:#a07060;">▶</span>'
-      +'<span style="display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;background:'+g.tag.color+'22;color:'+g.tag.color+';border:1px solid '+g.tag.color+';">#'+esc(g.tag.label)+' · A'+g.num+'</span></div>'
-      +'<span style="font-size:9.5px;color:#9ca3af;">Allotted: '+(g.allotted!=null?g.allotted+'h':'not set')+' &nbsp;|&nbsp; '+g.rows.length+' booking'+(g.rows.length!==1?'s':'')+'</span>'
-      +'</div>'
-      +'<div id="'+gid+'" style="display:none;overflow-x:auto;padding:0 4px 10px;">'
-      +'<table style="width:100%;border-collapse:collapse;min-width:'+(isStudent?'420':'520')+'px;">'
-      +'<thead><tr style="border-bottom:1.5px solid #e8d5c4;">'
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Date &amp; Time</th>'
-      +(!isStudent?'<th style="padding:5px 8px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Student</th>':'')
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Shift</th>'
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Req Hrs</th>'
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Allotted</th>'
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Used Hrs</th>'
-      +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Carry Fwd</th>'
-      +'</tr></thead>'
-      +'<tbody>'+bodyHtml+'</tbody>'
-      +'<tfoot>'+totalsRow+'</tfoot>'
-      +'</table></div></div>';
-  }).join('');
-}
-window.renderAsgnTrackSheetInAnalytics = renderAsgnTrackSheetInAnalytics;
-// ── END Assignment Track Sheet ─────────────────────────────────────────────
-
 
 // ── v96.1 FIX 2: Radio JSJC Per-Programme Analytics Breakdown ─────────────
 // ROOT CAUSE: radioTagName was saved correctly to bookings but analytics had no
@@ -14123,15 +13797,15 @@ function an2RenderRadioProgrammeBreakdown(allFiltered){
     var tag = (b.radioTagName || b.radio_tag_name || '').replace(/^#/,'').trim() || '(Untagged)';
     if(!progMap[tag]) progMap[tag] = { count:0, hours:0 };
     progMap[tag].count++;
-    var dur = (typeof algHoursForResource==='function') ? algHoursForResource(b) : ((typeof algHoursFromActual==='function') ? algHoursFromActual(b) : (parseFloat(b.bookedHrs)||0)); // v97: resource-aware
+    var dur = (typeof calculateActualDuration==='function') ? calculateActualDuration(b) : (parseFloat(b.bookedHrs)||0);
     progMap[tag].hours += dur;
   });
 
   var tags = Object.keys(progMap).sort(function(a,b){ return progMap[b].count - progMap[a].count; });
   var topTag = tags[0] || '—';
   var totalHrs = radioBookings.reduce(function(s,b){
-    return s + ((typeof algHoursForResource==='function') ? algHoursForResource(b) : algHoursFromActual(b));
-  }, 0); // v97: resource-aware
+    return s + ((typeof calculateActualDuration==='function') ? calculateActualDuration(b) : (parseFloat(b.bookedHrs)||0));
+  }, 0);
 
   var rows = tags.map(function(tag, i){
     var pct = radioBookings.length ? Math.round(progMap[tag].count/radioBookings.length*100) : 0;
@@ -14357,169 +14031,6 @@ function algItemsForCat(cat){
   return out;
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// v96.1 v6: EDITING SUITE AGGREGATION + ASSIGNMENT HOURS FIX
-// ══════════════════════════════════════════════════════════════════════════════
-// BUG A: Assignment Hours USED = 0 even after actual usage.
-//   Root cause: _usedHrs was computed from a DOM input ('used-hrs-{sid}') and
-//   only stored in cacheLocalExtra (localStorage). It was never written to
-//   Supabase. On reload, b.used_hours = 0 → Board always shows 0.
-//   Fix: auto-compute from calculateEquipmentUsageHours(issued_at, returned_at)
-//   at return time. Write used_hours to Supabase in the return PATCH.
-//   Board reads b.used_hours || algHoursFromActual(b).
-//
-// BUG B: Editing System ledger shows individual workstations, not suites.
-//   Root cause: algItemsForCat('Editing Systems') returned individual system
-//   names from kitDB. algBuildReport matched on algBaseName(resource).
-//   Fix: suite name derived from b.location (VCG room field). algItemsForCat
-//   overridden to return unique suite names. algBuildReport aggregates all
-//   workstations in a suite together.
-//
-// BUG C: Scheduled-time survival path.
-//   renderAssignmentHoursBoard() read b.usedHrs directly (0 from Supabase).
-//   asgnUpdateCFSummary() read b.usedHrs || b.asgn_used_hours (both 0).
-//   Both now use algHoursFromActual(b) as authoritative fallback.
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ── Edit Suite names (from VCG location picker) ─────────────────────────────
-var EDIT_SUITE_NAMES = [
-  'T1 Radio Edit','T1 TV Edit','Preview Room 1','Preview Room 2',
-  'T1 F&NM Edit','T1 Smaller Suite Windows'
-];
-
-// v97_B: systems.suite_name parent-child map — mirrors how the Equipment
-// Ledger groups individual equipment rows under a family name, except the
-// parent here (the suite) and the grouping key (suite_name) both live on
-// the `systems` table rather than being derived from a name pattern.
-// Returns { suiteName: [childSystemName, ...] } built fresh from the live
-// systems cache (window.supaEditing) every call — cheap, and always current.
-function algSuiteChildMap(){
-  var map = {};
-  var sysRows = (typeof window.supaEditing !== 'undefined') ? (window.supaEditing || []) : [];
-  sysRows.forEach(function(s){
-    var suite = (s.suite_name || s.edit_suite || '').trim();
-    var childName = (s.name || s.system_name || '').trim();
-    if(!suite || !childName) return;
-    if(!map[suite]) map[suite] = [];
-    if(map[suite].indexOf(childName) === -1) map[suite].push(childName);
-  });
-  return map;
-}
-window.algSuiteChildMap = algSuiteChildMap;
-
-// Reverse lookup: given a child system name (as it appears on a booking's
-// resource/equipList), find which suite it belongs to via systems.suite_name.
-// Case-insensitive, tolerant of the unit-number suffixes booking rows carry
-// (e.g. "Apple Mac Studio M1 Max - 02" must still resolve to its suite).
-function algSuiteForChildSystem(name){
-  if(!name) return '';
-  var n = String(name).trim().toLowerCase();
-  var map = algSuiteChildMap();
-  for(var suite in map){
-    var children = map[suite];
-    for(var i=0;i<children.length;i++){
-      var c = children[i].toLowerCase();
-      if(c === n || n.indexOf(c) !== -1 || c.indexOf(n) !== -1) return suite;
-    }
-  }
-  return '';
-}
-window.algSuiteForChildSystem = algSuiteForChildSystem;
-
-function algEditSuiteName(b){
-  if(!b) return '—';
-  // v97_B: systems.suite_name is now the source of truth. First try to
-  // resolve the suite by matching this booking's resource/equipList against
-  // the live systems table's child-system list (the true parent-child join
-  // requested — same pattern as the Equipment Ledger's asset grouping).
-  var equipNames = (b.equipList && b.equipList.length) ? b.equipList.slice() : [b.resource||''];
-  for(var i=0;i<equipNames.length;i++){
-    var viaSystems = algSuiteForChildSystem(equipNames[i]);
-    if(viaSystems) return viaSystems;
-  }
-  // Fallback chain (unchanged from prior version) for legacy rows that
-  // predate the systems.suite_name column or reference a retired system.
-  var directSuite = b.edit_suite || b.suite_name || '';
-  if(directSuite && directSuite.trim()) return directSuite.trim();
-  if(b.location && EDIT_SUITE_NAMES.indexOf(b.location) !== -1) return b.location;
-  if(b.location){
-    var lc = b.location.toLowerCase();
-    for(var j=0;j<EDIT_SUITE_NAMES.length;j++){
-      if(lc.indexOf(EDIT_SUITE_NAMES[j].toLowerCase()) !== -1) return EDIT_SUITE_NAMES[j];
-    }
-    if(b.location.trim()) return b.location.trim();
-  }
-  var base = (b.resource||'').replace(/\s*(System|Workstation|Station|PC|iMac|Mac|Windows|Mac mini|Mac Studio|MacBook|iMac)\s*\d+\s*$/i,'').trim();
-  base = base.replace(/\s*[-\u2013]\s*\d+\s*$/, '').trim();
-  return base || algBaseName(b.resource||'') || '—';
-}
-window.algEditSuiteName = algEditSuiteName;
-
-// ── Suite-aware algItemsForCat override ─────────────────────────────────────
-var _algItemsForCatOrigV6 = algItemsForCat;
-algItemsForCat = function(cat){
-  if(cat === 'Editing Systems'){
-    // v97: Use systems.suite_name (edit_suite) as source of truth
-    var suites = [];
-    // Source 1: adminData.editing — from Supabase systems rows
-    var editRecs = (typeof adminData !== 'undefined' && adminData && adminData.editing) ? adminData.editing : [];
-    editRecs.forEach(function(e){
-      var s = e.suite_name || e.edit_suite || e.location || '';
-      if(s && suites.indexOf(s)===-1) suites.push(s);
-    });
-    // Source 2: supaEditing cache (window.supaEditing set by fetchSupaEditing)
-    // v97_B: systems.suite_name is the source-of-truth column, checked first.
-    var supaEd = (typeof window.supaEditing !== 'undefined') ? (window.supaEditing || []) : [];
-    supaEd.forEach(function(e){
-      var s = e.suite_name || e.edit_suite || e.location || '';
-      if(s && suites.indexOf(s)===-1) suites.push(s);
-    });
-    // Source 3: S.bookings location field
-    var bks = (typeof S !== 'undefined' && S && S.bookings) ? S.bookings : [];
-    bks.filter(function(b){ return b.cat==='Editing Systems'; }).forEach(function(b){
-      var s = algEditSuiteName(b);
-      if(s && s !== '—' && suites.indexOf(s)===-1) suites.push(s);
-    });
-    // Source 4: EDIT_SUITE_NAMES canonical fallback
-    EDIT_SUITE_NAMES.forEach(function(s){ if(suites.indexOf(s)===-1) suites.push(s); });
-    return suites.filter(Boolean).sort(function(a,b){
-      var ai=EDIT_SUITE_NAMES.indexOf(a), bi=EDIT_SUITE_NAMES.indexOf(b);
-      if(ai!==-1&&bi!==-1) return ai-bi;
-      if(ai!==-1) return -1;
-      if(bi!==-1) return 1;
-      return a.localeCompare(b);
-    });
-  }
-  return _algItemsForCatOrigV6(cat);
-};
-window.algItemsForCat = algItemsForCat;
-
-// ── Suite-aware algBuildReport override ─────────────────────────────────────
-var _algBuildReportOrigV6 = algBuildReport;
-algBuildReport = function(baseNames, from, to, purposeFilter){
-  var names = Array.isArray(baseNames) ? baseNames : [baseNames];
-  var isSuiteQuery = names.some(function(n){ return EDIT_SUITE_NAMES.indexOf(n)!==-1; });
-  if(!isSuiteQuery) return _algBuildReportOrigV6(baseNames, from, to, purposeFilter);
-  var all = algGetAllRecords();
-  var allForSuite = all.filter(function(b){
-    if(b.cat !== 'Editing Systems') return false;
-    if(names.indexOf(algEditSuiteName(b))===-1) return false;
-    if(purposeFilter && (b.strat||'')!==purposeFilter) return false;
-    var dk = algDateOnly(b.issued_at||b.issuedAt||b.start_time||'');
-    return algInRange(dk, from, to);
-  });
-  var matches   = allForSuite.filter(algWasActuallyUsed);
-  var notUsed   = allForSuite.filter(function(b){ return !algWasActuallyUsed(b); });
-  var totalHours= matches.reduce(function(s,b){ return s+algHoursForResource(b); },0); // v97: studio-aware
-  var returnedCount = matches.filter(function(b){ return b.status==='returned'||b.receivedBy; }).length;
-  var students=[];
-  matches.forEach(function(b){ if(b.student&&students.indexOf(b.student)===-1) students.push(b.student); });
-  return {matches:matches,notUsed:notUsed,totalHours:totalHours,returnedCount:returnedCount,students:students};
-};
-window.algBuildReport = algBuildReport;
-// ── END v96.1 v6 suite + assignment helpers ──────────────────────────────────
-
-
 // Real usage hours between two ISO-ish strings ('YYYY-MM-DDTHH:mm').
 // Falls back to 0 if either timestamp is missing/unparseable.
 function algHours(startStr,endStr){
@@ -14547,17 +14058,9 @@ function algInRange(dateStr,from,to){
 function algGetAllRecords(){
   const src = (S && S.bookings) ? S.bookings : []; // v79: analytics no longer falls back to seed data when empty — 0 rows means 0 rows
   return src.map(function(b){
-    // v96.1 FIX: _algSt/_algEt now map to ACTUAL issue/return timestamps,
-    // not scheduled start/end. This is the single source of truth for all
-    // ledger hour calculations. Scheduled times are preserved in _algSched*
-    // for display-only use (booking period column in ledger cards).
-    var issuedAt   = b.issued_at   || b.issuedAt   || null;
-    var returnedAt = b.returned_at || b.returnedAt  || null;
     return Object.assign({}, b, {
-      _algSt:      issuedAt   ? new Date(issuedAt)   : null,  // actual issue time
-      _algEt:      returnedAt ? new Date(returnedAt)  : null,  // actual return time
-      _algSchedSt: b.start_time ? new Date(b.start_time) : null, // scheduled start (display only)
-      _algSchedEt: b.end_time   ? new Date(b.end_time)   : null, // scheduled end (display only)
+      _algSt: b.start_time ? new Date(b.start_time) : null,
+      _algEt: b.end_time ? new Date(b.end_time) : null
     });
   });
 }
@@ -14571,42 +14074,10 @@ function algGetAllRecords(){
 // so a booking whose status PATCH to 'returned' was slow/failed but whose
 // returned_at column was written is not silently excluded from ledger results.
 function algWasActuallyUsed(b){
-  // v97 FIX: Studio and Editing System bookings don't use physical issue/return
-  // timestamps — they use status changes. Include all status evidence.
-  if(b.issued_at || b.issuedAt || b.issuedBy) return true;
-  if(b.returned_at || b.returnedAt || b.returnNum) return true;
+  if(b.issued_at || b.issuedBy) return true;
+  if(b.returned_at || b.returnNum) return true;
   var s = (b.status||'').toLowerCase();
-  return s==='returned'||s==='completed'||s==='partially_received'||s==='partially_returned';
-}
-
-// v97: algHoursForStudio — studios use start_time/end_time as the actual session
-// window (no physical issue/return). Use scheduled times ONLY for studio bookings.
-// Equipment and Editing Systems continue to use issued_at/returned_at exclusively.
-function algHoursForResource(b){
-  var cat = (b.cat || b.resource_category || '').toLowerCase();
-  var isStudio = (cat === 'studio booking' || cat === 'studio');
-  if(isStudio){
-    // Studio: use actual session duration from start/end timestamps
-    var st = b.start_time || b.startTime || null;
-    var et = b.end_time   || b.endTime   || null;
-    if(st && et){
-      var ms = new Date(et).getTime() - new Date(st).getTime();
-      return ms > 0 ? Math.round(ms/36000)/100 : 0;
-    }
-    return 0;
-  }
-  // Equipment / Editing Systems: actual issue/return only
-  return algHoursFromActual(b);
-}
-window.algHoursForResource = algHoursForResource;
-
-// v96.1 FIX: algHoursFromActual — replaces algHours(b._algSt, b._algEt) in all
-// hour aggregation calls. Uses calculateEquipmentUsageHours(issued_at, returned_at).
-// Returns 0 for in-progress (no returned_at), never adds phantom scheduled hours.
-function algHoursFromActual(b){
-  var issuedAt   = b.issued_at   || b.issuedAt   || (b._algSt  ? b._algSt.toISOString()  : null);
-  var returnedAt = b.returned_at || b.returnedAt  || (b._algEt  ? b._algEt.toISOString()  : null);
-  return calculateEquipmentUsageHours(issuedAt, returnedAt);
+  return s==='issued'||s==='returned'||s==='partially_received'||s==='partially_returned';
 }
 
 function algBuildReport(baseNames, from, to, purposeFilter){
@@ -14622,18 +14093,13 @@ function algBuildReport(baseNames, from, to, purposeFilter){
     if(!matchesAsset) return false;
     // v75.1: optional Purpose filter — matches b.strat exactly when set
     if(purposeFilter && (b.strat||'') !== purposeFilter) return false;
-    // v97 FIX: studios use start_time as date key (no issued_at);
-    // equipment uses issued_at first (actual handover date).
-    var _isStudio = (b.cat || b.resource_category || '').toLowerCase().indexOf('studio') !== -1;
-    var dateKey = _isStudio
-      ? algDateOnly(b.start_time || '')
-      : algDateOnly(b.issued_at || b.issuedAt || b.start_time || '');
+    // Use start_time for date range comparison (issued_at as fallback)
+    var dateKey = algDateOnly(b.start_time || b.issued_at || '');
     return algInRange(dateKey, from, to);
   });
   const matches = allForItem.filter(algWasActuallyUsed);
   const notUsed  = allForItem.filter(function(b){ return !algWasActuallyUsed(b); });
-  // v97 FIX: use algHoursForResource — studios use start/end, equipment uses issued/returned
-  const totalHours = matches.reduce(function(sum,b){ return sum + algHoursForResource(b); },0);
+  const totalHours = matches.reduce(function(sum,b){ return sum + algHours(b._algSt,b._algEt); },0);
   const returnedCount = matches.filter(function(b){ return b.status==='returned'||b.receivedBy; }).length;
   const students = [];
   matches.forEach(function(b){ if(b.student && !students.includes(b.student)) students.push(b.student); });
@@ -14649,7 +14115,7 @@ function algBuildCategoryBreakdown(cat, from, to){
     const matches = all.filter(function(b){
       return b.cat===cat && algBaseName(b.resource)===base && algInRange(algDateOnly(b.start_time || ''), from, to) && algWasActuallyUsed(b);
     });
-    const hours = matches.reduce(function(sum,b){ return sum + algHoursForResource(b); },0); // v97 FIX
+    const hours = matches.reduce(function(sum,b){ return sum + algHours(b._algSt,b._algEt); },0);
     return { name:base, hours: Math.round(hours*10)/10, uses: matches.length };
   }).filter(function(row){ return row.uses>0; });
 }
@@ -14671,7 +14137,7 @@ function algBuildProgYearBreakdown(matches){
     const year = (b.batch && String(b.batch).match(/^\d{4}$/)) ? String(b.batch) : '—';
     const key = prog + ' | ' + year;
     if(!map[key]) map[key] = { name: prog + ' · ' + year, prog:prog, year:year, hours:0, uses:0 };
-    map[key].hours += algHoursForResource(b); // v97 FIX: studio-aware hours
+    map[key].hours += algHours(b._algSt, b._algEt);
     map[key].uses  += 1;
   });
   return Object.values(map)
@@ -14853,16 +14319,6 @@ function algLedgerRecordCardHTML(b, i, multi, dimmed){
   var rightBadgeHTML = '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'
     + '<span class="pill ' + pc + '">' + cap(sl) + '</span>'
     + '</div>';
-  // v96.1 FIX: show actual usage hours on each ledger card (issued_at → returned_at)
-  var _actualUse = algHoursForResource(b); // v97: studio-aware
-  var _hasReturn = !!(b.returned_at || b.returnedAt);
-  var _hasIssue  = !!(b.issued_at   || b.issuedAt || b.issuedBy);
-  var _usageTag  = '';
-  if(_hasIssue && _hasReturn){
-    _usageTag = '<div style="display:inline-block;background:#dcfce7;color:#15803d;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800;margin-bottom:6px;">⏱ Actual Usage: '+_actualUse+'h</div>';
-  } else if(_hasIssue && !_hasReturn){
-    _usageTag = '<div style="display:inline-block;background:#fef9c3;color:#92400e;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800;margin-bottom:6px;">🔄 In Progress — not yet returned</div>';
-  }
   var canon    = (typeof canonicalRecordHTML==='function') ? canonicalRecordHTML(b, rightBadgeHTML) : '';
   var pipeline = (typeof pipelineRecordHTML==='function')  ? pipelineRecordHTML(b) : '';
   var assetTag = multi ? '<div style="color:#7b1a1a;font-weight:700;font-size:12px;margin-bottom:8px;">🔧 '+algBaseName(b.resource)+'</div>' : '';
@@ -14875,7 +14331,7 @@ function algLedgerRecordCardHTML(b, i, multi, dimmed){
     b.student, b.student_name, b.sid, b.student_id
   ].filter(Boolean).join(' ').toLowerCase();
   return '<div class="asset-detail-card" data-alg-search="'+searchBits.replace(/"/g,'&quot;')+'"'+(dimmed?' style="opacity:.75;animation-delay:'+(i*.07)+'s;"':' style="animation-delay:'+(i*.07)+'s;"')+'>'
-    + assetTag + _usageTag + canon + pipeline + '</div>';
+    + assetTag + canon + pipeline + '</div>';
 }
 
 // v80.29 PATCH 3: client-side-only search filter for the Asset Usage
@@ -18889,64 +18345,16 @@ window.selectRadioTag = selectRadioTag;
 // V80.23: management display board — Shift/Requested/Allotted/Balance/Used/
 // Carry Forward/Total per booking, grouped by tag+assignment number, so an
 // admin can see at a glance whether any student is running over allotment.
-
-// v96.1 v7 FIX: named toggle function avoids single-quote-in-string JS syntax error
-function _asgnAccordionToggle(el){
-  var gid = el.getAttribute('data-gid');
-  if(!gid) return;
-  var tb = document.getElementById(gid);
-  if(!tb) return;
-  var open = tb.style.display !== 'none';
-  tb.style.display = open ? 'none' : '';
-  var cv = el.querySelector('.acv,.at2cv');
-  if(cv) cv.textContent = open ? '▶' : '▼';
-}
-window._asgnAccordionToggle = _asgnAccordionToggle;
-
-
-// v96.1 v9 FIX 1: Auto-calculate shift number from booking history.
-// shift_number is often NULL in older Supabase records because asgnShift was
-// not mapped in the bookingRow INSERT payload before this fix.
-// calcShiftNum() derives the shift from the chronological position of this
-// booking among all non-cancelled bookings for the same student + assignment tag + number.
-// Returns the numeric shift (1-based) or falls back to the stored shift_number/asgnShift.
-function calcShiftNum(b, allBookings){
-  var stored = parseInt(b.shift_number || b.asgnShift || '', 10);
-  if(stored > 0) return stored; // trust stored value if it exists
-  if(!allBookings || !allBookings.length) return null;
-  var peers = allBookings.filter(function(x){
-    return x.student === b.student
-      && x.asgnName === b.asgnName
-      && String(x.asgnNum) === String(b.asgnNum)
-      && (x.status||'') !== 'cancelled'
-      && (x.status||'') !== 'rejected';
-  }).sort(function(a,z){
-    // Sort by issued_at first (actual handover), then start_time (scheduled), then created_at
-    var da = new Date(a.issued_at||a.issuedAt||a.start_time||a.created_at||0).getTime();
-    var dz = new Date(z.issued_at||z.issuedAt||z.start_time||z.created_at||0).getTime();
-    return da - dz;
-  });
-  var idx = peers.findIndex(function(x){ return String(x.id) === String(b.id); });
-  return idx >= 0 ? (idx + 1) : null;
-}
-window.calcShiftNum = calcShiftNum;
-
 function renderAssignmentHoursBoard(){
-  // v96.1 v7 COMPLETE REWRITE — see changelog for all bugs fixed
   function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function fmtDate(ts){
-    if(!ts) return '—';
-    try{ return new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'}); }catch(e){ return ts||'—'; }
-  }
   var tags = (adminData.assignmentTags||[]).filter(function(t){ return t.active; });
   var groups = [];
   tags.forEach(function(t){
     (t.numbers||[]).forEach(function(n){
-      var num      = (typeof n==='object') ? n.num : n;
-      var allotted = (typeof n==='object' && n.allottedHours!=null) ? parseFloat(n.allottedHours) : null;
+      var num = (typeof n==='object') ? n.num : n;
+      var allotted = (typeof n==='object') ? n.allottedHours : null;
       var rows = (S.bookings||[]).filter(function(b){
-        return b.asgnName === ('#'+t.label)
-          && parseInt(String(b.asgnNum||'').replace(/[^0-9]/g,''),10) === num
+        return b.asgnName === ('#'+t.label) && parseInt(String(b.asgnNum||'').replace(/[^0-9]/g,''),10) === num
           && (b.status||'') !== 'cancelled' && (b.status||'') !== 'rejected';
       });
       if(!rows.length) return;
@@ -18954,86 +18362,57 @@ function renderAssignmentHoursBoard(){
     });
   });
   if(!groups.length) return '';
-  return '<div class="sec-lbl" style="margin-top:16px;">📊 Assignment Hours Board</div>'
-    + groups.map(function(g, gi){
-        var totalReq=0, totalUsed=0, totalCF=0;
-        // v87_C FIX: carry-forward chain. Previously every row's carry-forward
-        // was computed against the flat tag Allotted Hours (g.allotted) —
-        // Shift 2 for a student who'd already used up part of Shift 1's
-        // allotment still got measured against the full original allotment,
-        // silently resetting the balance instead of inheriting it. Fix:
-        // rows are sorted chronologically and a running per-student base is
-        // tracked — Shift 1 uses the tag's Allotted Hours, every later shift
-        // for that same student inherits the PREVIOUS shift's own carry
-        // forward as its ALLOTTED/base for this row's calculation.
-        var _rowsSorted = g.rows.slice().sort(function(a,z){
-          var da = new Date(a.issued_at||a.issuedAt||a.start_time||a.created_at||0).getTime();
-          var dz = new Date(z.issued_at||z.issuedAt||z.start_time||z.created_at||0).getTime();
-          return da - dz;
-        });
-        var _cfByStudent = {};
-        var rowsHtml = _rowsSorted.map(function(b, ri){
-          // FIX: declare _bUsed BEFORE use (was declared after — caused NaN)
-          var _bUsed = parseFloat(b.used_hours || b.usedHrs || 0);
-          if(_bUsed===0 && typeof algHoursFromActual==='function') _bUsed = algHoursFromActual(b);
-          var _req  = parseFloat(b.bookedHrs || b.booked_hours || 0);
-          var _sKey = b.email || b.studentEmail || b.student_id || b.sid || b.student || ('__row'+ri);
-          // Shift 1 (first time this student appears in this group): base =
-          // tag's Allotted Hours. Shift 2+: base = this student's own
-          // previous row's carry-forward — never resets back to g.allotted.
-          var _isFirstForStudent = !_cfByStudent.hasOwnProperty(_sKey);
-          var _base = _isFirstForStudent ? (g.allotted!=null ? g.allotted : _req) : _cfByStudent[_sKey];
-          var _cf   = Math.max(0, _base - _bUsed);
-          _cfByStudent[_sKey] = _cf;
-          // v96.1 v9 FIX 1: use calcShiftNum for auto-derivation when shift_number is NULL
-          var _shiftN = (typeof calcShiftNum==='function') ? calcShiftNum(b, S.bookings) : parseInt(b.shift_number||b.asgnShift||'',10)||null;
-          var _shift  = _shiftN ? 'Shift '+_shiftN : (b.shift_number||b.asgnShift||'');
-          if(_shift && !isNaN(_shift)) _shift = 'Shift '+_shift;
-          var _dt   = b.issued_at || b.issuedAt || b.start_time || b.created_at || null;
-          totalReq += _req; totalUsed += _bUsed; totalCF += _cf;
-          var _over = g.allotted!=null && totalReq>g.allotted;
-          return '<tr style="'+(_over?'background:#fef2f2;':(ri%2===1?'background:#fafaf8;':''))+'">'
-            +'<td style="padding:5px 8px;font-size:10px;white-space:nowrap;">'+esc(fmtDate(_dt))+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;font-weight:600;">'+esc(b.student||b.student_name||'—')+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+esc(_shift||'—')+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+(_req>0?_req:'—')+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;text-align:center;" title="'+(_isFirstForStudent?'Tag Allotted Hours':'Inherited from previous shift\'s carry forward')+'">'+(_base!=null?_base.toFixed(2).replace(/\.00$/,''):'—')+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;text-align:center;font-weight:700;color:'+(_bUsed>0?'#15803d':'#9ca3af')+';">'+(_bUsed>0?_bUsed.toFixed(2):'—')+'</td>'
-            +'<td style="padding:5px 8px;font-size:10px;text-align:center;color:#2563eb;">'+(_cf>0?_cf.toFixed(2):'—')+'</td>'
-            +'</tr>';
-        }).join('');
-        var _totOver = g.allotted!=null && totalReq>g.allotted;
-        var totalsRow = '<tr style="border-top:1.5px solid #e8d5c4;font-weight:800;background:#f9f5f0;">'
-          +'<td style="padding:5px 8px;font-size:10px;" colspan="2">Total</td>'
-          +'<td style="padding:5px 8px;font-size:10px;text-align:center;">—</td>'
-          +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+totalReq.toFixed(2)+'</td>'
-          +'<td style="padding:5px 8px;font-size:10px;text-align:center;">'+(g.allotted!=null?g.allotted:'—')+'</td>'
-          +'<td style="padding:5px 8px;font-size:10px;text-align:center;font-weight:700;color:'+(totalUsed>0?'#15803d':'#9ca3af')+';">'+(totalUsed>0?totalUsed.toFixed(2):'—')+'</td>'
-          +'<td style="padding:5px 8px;font-size:10px;text-align:center;color:#2563eb;">'+(totalCF>0?totalCF.toFixed(2):'—')+'</td>'
-          +'</tr>';
-        var gid = 'asgn-grp-'+gi;
-        return '<div class="adm-item" style="padding:0;margin-bottom:8px;overflow:hidden;">'
-          +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;cursor:pointer;user-select:none;background:#fdf8f3;" data-gid="'+gid+'" onclick="_asgnAccordionToggle(this)">'
-          +'<div style="display:flex;align-items:center;gap:8px;"><span class="acv" style="font-size:10px;color:#a07060;">▶</span>'
-          +'<span style="display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;background:'+g.tag.color+'22;color:'+g.tag.color+';border:1px solid '+g.tag.color+';">#'+esc(g.tag.label)+' · A'+g.num+'</span></div>'
-          +'<span style="font-size:9.5px;color:#9ca3af;">Allotted: '+(g.allotted!=null?g.allotted+'h':'not set')+' &nbsp;|&nbsp; '+g.rows.length+' booking'+(g.rows.length!==1?'s':'')+'</span>'
-          +'</div>'
-          +'<div id="'+gid+'" style="display:none;">'
-          +'<div style="overflow-x:auto;padding:0 4px 10px;">'
-          +'<table style="width:100%;border-collapse:collapse;min-width:520px;">'
-          +'<thead><tr style="border-bottom:1.5px solid #e8d5c4;">'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Date &amp; Time</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Student</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Shift</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Req Hrs</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Allotted</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Used Hrs</th>'
-          +'<th style="padding:5px 8px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Carry Fwd</th>'
-          +'</tr></thead>'
-          +'<tbody>'+rowsHtml+'</tbody>'
-          +'<tfoot>'+totalsRow+'</tfoot>'
-          +'</table></div></div></div>';
-      }).join('');
+  return `
+  <div class="sec-lbl" style="margin-top:16px;">📊 Assignment Hours Board</div>
+  ${groups.map(function(g){
+    var totalReq = 0, totalUsed = 0, totalCF = 0;
+    var rowsHtml = g.rows.map(function(b){
+      totalReq += parseFloat(b.bookedHrs||0);
+      totalUsed += parseFloat(b.usedHrs||0);
+      totalCF = parseFloat(b.carryForwardHrs||0); // most recent carry-forward value, not summed
+      var balance = (g.allotted != null) ? Math.max(0, g.allotted - parseFloat(b.usedHrs||0)) : null;
+      var over = g.allotted != null && totalReq > g.allotted;
+      return '<tr style="'+(over?'background:#fef2f2;':'')+'">'
+        + '<td style="padding:5px 6px;font-size:10px;">'+(esc(b.asgnShift)||'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.bookedHrs!=null?b.bookedHrs:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(g.allotted!=null?g.allotted:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(balance!=null?balance:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.usedHrs!=null?b.usedHrs:'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;">'+(b.carryForwardHrs||'—')+'</td>'
+        + '<td style="padding:5px 6px;font-size:10px;text-align:center;font-weight:700;'+(over?'color:#b91c1c;':'')+'">'+(b.bookedHrs!=null?b.bookedHrs:'—')+(over?' ⚠️':'')+'</td>'
+        + '</tr>';
+    }).join('');
+    return `
+    <div class="adm-item" style="padding:10px 11px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:${g.tag.color}22;color:${g.tag.color};border:1px solid ${g.tag.color};">#${g.tag.label} · A${g.num}</span>
+        <span style="font-size:9.5px;color:#9ca3af;">Allotted: ${g.allotted!=null?g.allotted+'h':'not set'}</span>
+      </div>
+      <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:1.5px solid #e8d5c4;">
+          <th style="padding:5px 6px;font-size:8.5px;text-align:left;color:#a07060;text-transform:uppercase;">Shift</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Req.</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Allotted</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Balance</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Used</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Carry Fwd</th>
+          <th style="padding:5px 6px;font-size:8.5px;text-align:center;color:#a07060;text-transform:uppercase;">Total</th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+        <tfoot><tr style="border-top:1.5px solid #e8d5c4;font-weight:800;">
+          <td style="padding:5px 6px;font-size:10px;">Total</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalReq}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${g.allotted!=null?g.allotted:'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${g.allotted!=null?Math.max(0,g.allotted-totalUsed):'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalUsed}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;">${totalCF||'—'}</td>
+          <td style="padding:5px 6px;font-size:10px;text-align:center;${g.allotted!=null&&totalReq>g.allotted?'color:#b91c1c;':''}">${totalReq}${g.allotted!=null&&totalReq>g.allotted?' ⚠️':''}</td>
+        </tr></tfoot>
+      </table>
+      </div>
+    </div>`;
+  }).join('')}`;
 }
 window.renderAssignmentHoursBoard = renderAssignmentHoursBoard;
 
@@ -19701,7 +19080,7 @@ function buildManagerWorkReport(dateStr, managerName){
     issuedRows.concat(returnedRows).forEach(function(b){
       if(!allIdsSeen[b.id]){ allIdsSeen[b.id]=true; combined.push(b); }
     });
-    var totalHours = combined.reduce(function(sum,b){ return sum + algHoursFromActual(b); },0); // v96.1 FIX
+    var totalHours = combined.reduce(function(sum,b){ return sum + algHours(b._algSt, b._algEt); },0);
     return {
       manager: m.name,
       role: m.role || 'Studio Manager',
@@ -19755,7 +19134,7 @@ function generateManagerWorkReportPdf(){
 
     if(r.bookings.length){
       var tableRows = r.bookings.map(function(b){
-        var hrs = Math.round(algHoursFromActual(b)*10)/10; // v96.1 v6 FIX: actual hrs not scheduled
+        var hrs = Math.round(algHours(b._algSt, b._algEt)*10)/10;
         var action = (b.issuedBy===r.manager && b.receivedBy===r.manager) ? 'Issued & Returned'
                     : (b.issuedBy===r.manager) ? 'Issued'
                     : 'Returned';
@@ -21327,6 +20706,12 @@ async function initFCM() {
     // Register the service worker and wait until it is ACTIVE before calling getToken().
     // getToken() silently returns null when called against an installing/waiting SW —
     // this was the primary cause of "FCM token not saved" in earlier versions.
+    // v96.1 FIX 3 FCM: SW path robustness for PROD deployment.
+    // When opened as a standalone HTML file from browser downloads, location.pathname
+    // resolves to the file path — not a valid web origin — so SW registration fails
+    // silently and getToken() returns null (no token → no push notifications).
+    // Strategy: try the existing registered SW first (covers hosted deployment),
+    // then fall back to root-relative, then try the known Supabase/hosting root.
     const swBase = (function() {
       var p = window.location.pathname;
       var base = p.substring(0, p.lastIndexOf('/') + 1);
@@ -21335,7 +20720,7 @@ async function initFCM() {
     const swURL = swBase + 'firebase-messaging-sw.js';
     console.log('[FCM DEBUG] Registering SW…', swURL, 'scope:', swBase);
 
-    // v96.1: Try existing registration first, then fallback chain
+    // Try existing registration first (fastest — reuses already-active SW)
     var swReg = null;
     try {
       var _existing = await navigator.serviceWorker.getRegistration(swBase);
@@ -21349,12 +20734,14 @@ async function initFCM() {
       swReg = await navigator.serviceWorker.register(swURL, { scope: swBase })
         .catch(async function(err1) {
           console.warn('[FCM DEBUG] SW registration failed at', swURL, ':', err1.message);
+          // Fallback 1: root-relative
           return navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
             .catch(async function(err2) {
               console.warn('[FCM DEBUG] SW root-relative fallback failed:', err2.message);
+              // Fallback 2: same-directory relative (works when served from sub-path)
               return navigator.serviceWorker.register('./firebase-messaging-sw.js')
                 .catch(function(err3) {
-                  console.error('[FCM DEBUG] All SW registration attempts failed.');
+                  console.error('[FCM DEBUG] All SW registration attempts failed. Push unavailable in this deployment context.');
                   return undefined;
                 });
             });
@@ -21452,251 +20839,255 @@ async function initFCM() {
   }
 }
 
-
-// ════════════════════════════════════════════════════════════════════════════
-// v96.1 v9 — PUSH NOTIFICATION COMPLETE FIX
-// ════════════════════════════════════════════════════════════════════════════
+// ── Save FCM token to Supabase fcm_tokens table ────────────────────────────
+// v87.7 FIX: added email column to the INSERT so fcmSendWorkflowPush() can
+// look up tokens by recipient email. Without email stored here, the recipient
+// lookup in fcmSendWorkflowPush always returned 0 rows and no push was sent.
+// Also added role column (was user_role — schema uses 'role').
+// v87.9 FIX: one row per device (token is the device key), identity updated on login.
 //
-// ROOT CAUSES FOUND AND FIXED:
+// Why: an FCM token is tied to the browser/service-worker context, not to a person.
+// When Mukesh (Radio) logs out and Admin logs in on the same device, the service
+// worker is shared and the same token is reused. Inserting a new row on every login
+// violates the existing UNIQUE(token) constraint and produces a 409.
 //
-// FIX 1 — CRITICAL (Finding 1): Token lookup GET request was using the global
-//   HEADERS object which includes Content-Type: application/json and
-//   Prefer: return=representation. Sending Content-Type on a GET request triggers
-//   a CORS preflight OPTIONS. If the OPTIONS preflight fails (browser, proxy,
-//   or Supabase rate limit) the fetch() rejects → tokenRows = [] → "No tokens
-//   found" → push silently skipped. The fix: token lookup now uses a minimal
-//   headers object with ONLY apikey + Authorization. No Content-Type, no Prefer.
+// Correct model:
+//   • UNIQUE constraint on token only (one row per device) — kept as-is in Supabase.
+//   • On each login: PATCH the existing row's user_name + user_role to reflect whoever
+//     is currently logged in. If no row exists yet, INSERT (first login on this device).
+//   • Push delivery: the token routes to whatever device holds it; user_name + user_role
+//     on that row reflects the current session — so targeting "Mukesh (Radio)" finds
+//     whichever device Mukesh (Radio) most recently logged in on.
 //
-// FIX 2 — HIGH (Finding 3): PostgREST or() filter values were double-quoted
-//   but NOT percent-encoded. Browser fetch() usually sends raw double-quotes,
-//   but some proxy layers (Cloudflare, nginx, mobile browsers) re-encode the URL
-//   before it reaches Supabase — turning user_name.eq."Name" into
-//   user_name.eq.%22Name%22 which PostgREST does NOT match. Fix: the entire
-//   or() parameter value is now passed through encodeURIComponent() so the
-//   filter survives any proxy layer intact.
-//
-// FIX 3 — HIGH (Finding 4): saveFCMToken() silently skipped if window.currentUser
-//   was not yet set at the moment initFCM() fired. The 1500ms setTimeout in
-//   fcmInitAfterLogin() is usually enough, but a slow device or concurrent async
-//   initialisation can lose the race. Fix: saveFCMToken() now reads currentUser
-//   at call time AND passes userName explicitly as a parameter, with a retry
-//   guard that re-attempts once after 2000ms if the first attempt skipped.
-//
-// FIX 4 — MEDIUM (Finding 5): Name matching normalised with .trim() on both
-//   the stored user_name and the lookup name. Trailing/leading whitespace in
-//   adminData names after edits caused silent mismatch.
-//
-// FIX 5 — ALL PATHS: Foreground notification confirmed via reg.showNotification()
-//   (correct SW context). Background handled by firebase-messaging-sw.js.
-//   No changes needed to those paths — they are correct.
-//
-// ════════════════════════════════════════════════════════════════════════════
-
-// ── saveFCMToken — hardened version ────────────────────────────────────────
-// Changes from previous version:
-//   • userName/userRole captured at call time (not from closure)
-//   • .trim() on all name comparisons
-//   • Retry once after 2s if currentUser not yet set (race-condition guard)
-//   • Explicit INSERT-or-UPDATE using upsert (resolution=merge-duplicates)
-//     instead of separate PATCH + INSERT (two round-trips → race condition)
+// Notification targeting for role-switched devices:
+//   If Mukesh (Radio) logged in last, the row reads user_name="Mukesh (Radio)",
+//   user_role="Professor". If Admin then logs in, it updates to user_name="Admin",
+//   user_role="Admin". Mukesh (Radio) will not receive pushes on that device until
+//   they log back in. This is correct behaviour — you push to where the person IS.
 async function saveFCMToken(token) {
   try {
-    var userRole = (window.currentRole  || '').trim();
-    var userName = (window.currentUser  || '').trim();
     var userId   = window.currentStudentDbId || (window.S && window.S.dbUserId) || null;
-
-    // Guard: if identity not yet set, retry once after 2 s
+    var userRole = window.currentRole || 'unknown';
+    var userName = window.currentUser  || '';
     if (!userName || !userRole || userRole === 'unknown') {
-      console.warn('[FCM] saveFCMToken: identity not ready — will retry in 2s.',
-        '| currentUser:', window.currentUser, '| currentRole:', window.currentRole);
-      setTimeout(function(){
-        var u2 = (window.currentUser || '').trim();
-        var r2 = (window.currentRole || '').trim();
-        if (u2 && r2 && r2 !== 'unknown') {
-          console.log('[FCM] saveFCMToken RETRY — identity now set:', u2, r2);
-          saveFCMToken(token);
-        } else {
-          console.warn('[FCM] saveFCMToken RETRY FAILED — identity still missing. Token not saved.');
-        }
-      }, 2000);
+      console.warn('[FCM] saveFCMToken: currentUser or currentRole not set — token not saved');
       return;
     }
 
     var payload = {
-      token      : token,
-      user_name  : userName,
-      user_role  : userRole,
-      user_id    : userId,
-      device     : navigator.userAgent.slice(0, 200),
-      updated_at : new Date().toISOString()
+      token:      token,
+      user_name:  userName,
+      user_role:  userRole,
+      user_id:    userId,
+      device:     navigator.userAgent.slice(0, 200),
+      updated_at: new Date().toISOString()
     };
 
-    console.log('[FCM] saveFCMToken | user:', userName, '| role:', userRole, '| token:', token.slice(0,12)+'…');
-
-    // Single UPSERT (POST with resolution=merge-duplicates) — one round-trip,
-    // no PATCH+INSERT race. Requires a UNIQUE constraint on fcm_tokens.token
-    // (confirmed in schema — token is UNIQUE NOT NULL).
-    var upsertRes = await fetch(SUPABASE_URL + '/rest/v1/fcm_tokens', {
-      method : 'POST',
-      headers: Object.assign({}, FCM_GET_HEADERS, {
-        'Content-Type': 'application/json',
-        'Prefer'      : 'resolution=merge-duplicates,return=minimal'
-      }),
-      body: JSON.stringify(payload)
-    });
-
-    if (upsertRes.ok) {
-      console.log('[FCM] Token upserted | user:', userName, '| role:', userRole,
-        '| status:', upsertRes.status);
-    } else {
-      var errText = await upsertRes.text();
-      console.warn('[FCM] Token upsert failed HTTP', upsertRes.status, errText);
-      // Fallback: try PATCH-only (covers case where upsert is rejected by old schema)
-      var patchRes = await fetch(
-        SUPABASE_URL + '/rest/v1/fcm_tokens?token=eq.' + encodeURIComponent(token),
-        {
-          method : 'PATCH',
-          headers: Object.assign({}, FCM_GET_HEADERS, {
-            'Content-Type': 'application/json',
-            'Prefer'      : 'return=minimal'
-          }),
-          body: JSON.stringify({ user_name: userName, user_role: userRole,
-                                 user_id: userId, updated_at: new Date().toISOString() })
-        }
-      );
-      if (patchRes.ok) {
-        console.log('[FCM] Token PATCH fallback succeeded for user:', userName);
-      } else {
-        console.error('[FCM] Token PATCH fallback also failed:', await patchRes.text());
+    // Step 1: try to UPDATE the existing row for this token (covers role-switch case)
+    var patchRes = await fetch(
+      SUPABASE_URL + '/rest/v1/fcm_tokens?token=eq.' + encodeURIComponent(token),
+      {
+        method:  'PATCH',
+        headers: Object.assign({}, HEADERS, { 'Prefer': 'return=minimal' }),
+        body:    JSON.stringify({
+          user_name:  userName,
+          user_role:  userRole,
+          user_id:    userId,
+          updated_at: new Date().toISOString()
+        })
       }
+    );
+
+    // PostgREST PATCH returns 204 whether it matched 0 rows or 1 row.
+    // Check Content-Range or just always attempt INSERT with on-conflict ignore.
+    // Simpler: use POST with resolution=ignore-duplicates as fallback INSERT.
+    if (patchRes.ok) {
+      // PATCH succeeded — now check if it actually matched any row
+      // by attempting an INSERT with conflict ignore (no-op if row exists)
+      var insertRes = await fetch(SUPABASE_URL + '/rest/v1/fcm_tokens', {
+        method:  'POST',
+        headers: Object.assign({}, HEADERS, {
+          'Prefer': 'resolution=ignore-duplicates,return=minimal'
+        }),
+        body: JSON.stringify(payload)
+      });
+      // 201 = inserted (first login on this device), 200 = conflict ignored (row existed, PATCH already updated it)
+      if (insertRes.ok || insertRes.status === 409) {
+        console.log('[FCM] Token saved | name:', userName, '| role:', userRole,
+          '| status:', insertRes.status === 201 ? 'new device' : 'updated existing');
+      } else {
+        console.warn('[FCM] Token insert fallback failed HTTP', insertRes.status, await insertRes.text());
+      }
+    } else {
+      console.warn('[FCM] Token PATCH failed HTTP', patchRes.status, await patchRes.text());
     }
   } catch (e) {
-    console.error('[FCM] saveFCMToken exception:', e && e.message);
+    console.error('[FCM DEBUG 10] saveFCMToken() error:', e);
+    console.warn('[FCM] Token save failed:', e && e.message);
   }
 }
 
-// ── fcmSendWorkflowPush — hardened version ──────────────────────────────────
-// Changes from previous version:
-//   • Token lookup uses FCM_GET_HEADERS (no Content-Type → no CORS preflight)
-//   • or() filter value is encodeURIComponent-encoded (proxy-safe)
-//   • Name comparison uses .trim() on both sides
-//   • Full diagnostic logging preserved
+// ── Send a test push via Supabase Edge Function (Admin only) ────────────────
+async function fcmSendTestNotification() {
+  if (window.currentRole !== 'Admin') { toast('⛔ Admin only'); return; }
+  try {
+    toast('📤 Sending test notification…');
+    const res = await fetch(SUPABASE_URL + '/functions/v1/fcm-send', {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        title:  '🔔 JSJC Test Notification',
+        body:   'Push notifications are working correctly on this device.',
+        tokens: [_fcmToken].filter(Boolean)
+      })
+    });
+    const data = await res.json();
+    toast(res.ok ? '✅ Test notification sent' : '⚠️ Send failed: ' + JSON.stringify(data));
+  } catch (e) {
+    toast('⚠️ ' + (e && e.message));
+  }
+}
+window.fcmSendTestNotification = fcmSendTestNotification;
+
+// v87.8 — FCM workflow notification helper ─────────────────────────────────
+// Identity model: user_name (display name) + user_role — never email.
+// "Mukesh (Radio)" and "Mukesh (Studio Manager)" are separate FCM targets.
+//
+// opts = {
+//   title:           string,
+//   body:            string,
+//   type:            string,            // notification type for bell record
+//   bookingId:       string,            // optional, for bell deep-link
+//   recipientNames:  string[],          // display names — exact match to adminData name
+//   recipientRoles:  string[],          // role strings — all holders of that role
+// }
+//
+// Two things happen for every call (both non-blocking):
+//   1. writeNotification() → persists to Supabase notifications table (bell, cross-device)
+//   2. FCM push → token lookup by user_name+user_role → fcm-send Edge Function
 async function fcmSendWorkflowPush(opts) {
   try {
     var title     = (opts && opts.title)          || '🔔 JSJC Booking Update';
     var body      = (opts && opts.body)           || '';
     var type      = (opts && opts.type)           || 'booking';
     var bookingId = (opts && opts.bookingId)      || null;
-    var names     = ((opts && opts.recipientNames) || []).map(function(n){ return (n||'').trim(); }).filter(Boolean);
-    var roles     = ((opts && opts.recipientRoles) || []).map(function(r){ return (r||'').trim(); }).filter(Boolean);
+    var names     = (opts && opts.recipientNames) || [];
+    var roles     = (opts && opts.recipientRoles) || [];
 
     if (!names.length && !roles.length) return;
 
-    // 1. Bell notification (non-blocking)
+    // ── 1. Persist bell notification to Supabase ──────────────────────────────
     writeNotification({ title: title, message: body, type: type, bookingId: bookingId,
                         recipientNames: names, recipientRoles: roles });
 
-    // 2. FCM push — build or() filter
+    // ── 2. FCM push — token lookup ─────────────────────────────────────────────
+    // v87.11c ROOT CAUSE FIX:
+    // encodeURIComponent() was encoding spaces as %20 inside the PostgREST or()
+    // filter. PostgREST parses the or() content as raw strings — %20 ≠ space —
+    // so "Studio Manager" stored in the DB never matched "Studio%20Manager" in
+    // the query. Zero rows returned → "No tokens found" → push skipped.
+    // Fix: values inside or() must be raw (unencoded). Wrap in double-quotes to
+    // safely handle spaces, dots, and parentheses per PostgREST spec.
     var orParts = [];
     names.forEach(function(n){
-      if (n) orParts.push('user_name.eq.' + n.replace(/,/g, ''));
+      if (n) orParts.push('user_name.eq."' + n.replace(/"/g, '') + '"');
     });
     roles.forEach(function(r){
-      if (r) orParts.push('user_role.eq.' + r.replace(/,/g, ''));
+      if (r) orParts.push('user_role.eq."' + r.replace(/"/g, '') + '"');
     });
     if (!orParts.length) return;
 
-    // FIX 2: encodeURIComponent the entire or() value so proxy layers don't mangle it
-    // PostgREST receives the decoded value and matches correctly.
-    var orValue  = '(' + orParts.join(',') + ')';
-    var tokenUrl = SUPABASE_URL + '/rest/v1/fcm_tokens?select=token,user_name,user_role&limit=200&or=' + encodeURIComponent(orValue);
+    var tokenUrl = SUPABASE_URL + '/rest/v1/fcm_tokens?select=token&limit=100&or=(' + orParts.join(',') + ')';
 
-    console.log('[FCM] Push lookup | names:', JSON.stringify(names),
+    // ── Debug log 1: full query URL and inputs ────────────────────────────────
+    console.log('[FCM DEBUG] Token lookup | names:', JSON.stringify(names),
       '| roles:', JSON.stringify(roles));
-    console.log('[FCM] tokenUrl:', tokenUrl);
+    console.log('[FCM DEBUG] tokenUrl:', tokenUrl);
 
-    // FIX 1: FCM_GET_HEADERS — no Content-Type, no Prefer — avoids CORS preflight on GET
-    var tokenRes = await fetch(tokenUrl, { headers: FCM_GET_HEADERS });
+    var tokenRes = await fetch(tokenUrl, { headers: HEADERS });
 
-    console.log('[FCM] Token lookup status:', tokenRes.status, tokenRes.ok ? 'OK' : 'FAIL');
+    // ── Debug log 2: HTTP status ──────────────────────────────────────────────
+    console.log('[FCM DEBUG] tokenRes.status:', tokenRes.status, tokenRes.ok ? 'OK' : 'FAIL');
 
     if (!tokenRes.ok) {
       var errBody = await tokenRes.text();
-      console.warn('[FCM] Token lookup HTTP error', tokenRes.status, '| body:', errBody);
+      console.warn('[FCM] Token lookup failed HTTP', tokenRes.status, '| body:', errBody);
       return;
     }
 
     var tokenRows = await tokenRes.json();
-    console.log('[FCM] Token rows returned:', JSON.stringify(tokenRows));
 
-    var tokens = (tokenRows || [])
-      .map(function(r){ return r.token; })
-      .filter(Boolean);
-    // Deduplicate
-    tokens = tokens.filter(function(t, i){ return tokens.indexOf(t) === i; });
+    // ── Debug log 3: raw rows returned ───────────────────────────────────────
+    console.log('[FCM DEBUG] tokenRows returned:', JSON.stringify(tokenRows));
 
-    console.log('[FCM] Final tokens:', tokens.length,
-      '| preview:', tokens.map(function(t){ return t.slice(0,8)+'…'; }));
+    var tokens = (tokenRows || []).map(function(r){ return r.token; }).filter(Boolean);
+    tokens = tokens.filter(function(t, i){ return tokens.indexOf(t) === i; }); // dedupe
+
+    // ── Debug log 4: final token array ───────────────────────────────────────
+    console.log('[FCM DEBUG] Final tokens array length:', tokens.length,
+      '| tokens (redacted):', tokens.map(function(t){ return t ? t.slice(0,8)+'…' : 'null'; }));
 
     if (!tokens.length) {
-      console.warn('[FCM] No tokens found — push skipped.',
-        '\n  Names:', JSON.stringify(names),
-        '\n  Roles:', JSON.stringify(roles),
-        '\n  orValue:', orValue,
-        '\n  tokenUrl:', tokenUrl,
-        '\n  Rows returned:', JSON.stringify(tokenRows),
-        '\n  → Check: (a) fcm_tokens has rows for these users',
-        '\n           (b) RLS SELECT policy exists for anon role',
-        '\n           (c) user_name in fcm_tokens matches EXACTLY (case, spaces)',
-        '\n  → Run in Supabase SQL: SELECT * FROM fcm_tokens WHERE user_name IN (' +
-          names.map(function(n){ return "'"+n+"'"; }).join(',') + ');');
+      console.warn('[FCM] No tokens found — push skipped.' +
+        '\n  Names:   ' + JSON.stringify(names) +
+        '\n  Roles:   ' + JSON.stringify(roles) +
+        '\n  orParts: ' + JSON.stringify(orParts) +
+        '\n  URL:     ' + tokenUrl +
+        '\n  Rows:    ' + JSON.stringify(tokenRows) +
+        '\n  → Check: (a) user_name/user_role in fcm_tokens exactly matches the values above' +
+        '\n           (b) RLS policy on fcm_tokens allows SELECT by anon role' +
+        '\n           (c) fcm_tokens table has rows for these users (check Supabase table editor)');
       return;
     }
 
-    console.log('[FCM] Sending push | title:', title, '| tokens:', tokens.length);
+    // ── Debug log 5: push attempt ─────────────────────────────────────────────
+    console.log('[FCM DEBUG] Sending push | title:', title, '| tokens:', tokens.length);
 
     var pushRes = await fetch(SUPABASE_URL + '/functions/v1/fcm-send', {
-      method : 'POST',
-      headers: Object.assign({}, FCM_GET_HEADERS, { 'Content-Type': 'application/json' }),
-      body   : JSON.stringify({ title: title, body: body, tokens: tokens })
+      method:  'POST',
+      headers: Object.assign({}, HEADERS, { 'Content-Type': 'application/json' }),
+      body:    JSON.stringify({ title: title, body: body, tokens: tokens })
     });
 
-    console.log('[FCM] fcm-send status:', pushRes.status);
-
+    // ── Debug log 6: push response ────────────────────────────────────────────
+    console.log('[FCM DEBUG] pushRes.status:', pushRes.status);
     if (pushRes.ok) {
       var pd = await pushRes.json();
-      console.log('[FCM] Push sent | sent:', pd.sent, '| failed:', pd.failed,
-        '| results:', JSON.stringify(pd.results));
-      // Stale token cleanup
+      console.log('[FCM] Push sent — sent:', pd.sent, '| failed:', pd.failed, '| title:', title);
+      if (pd.results) console.log('[FCM DEBUG] Push results:', JSON.stringify(pd.results));
+      // v87.17 FIX 1: automatic stale token cleanup.
+      // Firebase returns error:"UNREGISTERED" for tokens that belong to uninstalled
+      // apps or browsers that have revoked notification permission. Leaving them in
+      // fcm_tokens means every subsequent push wastes a round-trip. Delete them now.
       if (pd.results && Array.isArray(pd.results)) {
-        var stale = pd.results
-          .filter(function(r){ return r && !r.success && r.error && r.error.indexOf('UNREGISTERED') !== -1 && r.token; })
-          .map(function(r){ return r.token; });
-        if (stale.length) {
-          console.log('[FCM] Removing', stale.length, 'stale token(s)…');
-          stale.forEach(function(tok){
-            fetch(SUPABASE_URL + '/rest/v1/fcm_tokens?token=eq.' + encodeURIComponent(tok),
-              { method: 'DELETE', headers: FCM_GET_HEADERS })
-              .then(function(dr){
-                if (dr.ok) console.log('[FCM] Stale token removed:', tok.slice(0,8)+'…');
-                else dr.text().then(function(e){ console.warn('[FCM] Stale delete failed:', e); });
-              }).catch(function(e){ console.warn('[FCM] Stale delete error:', e.message); });
+        var staleTokens = [];
+        pd.results.forEach(function(r){
+          // Edge function returns { token, success, error } per token
+          if (r && !r.success && r.error && r.error.indexOf('UNREGISTERED') !== -1 && r.token) {
+            staleTokens.push(r.token);
+          }
+        });
+        if (staleTokens.length > 0) {
+          console.log('[FCM] Removing', staleTokens.length, 'UNREGISTERED token(s)…');
+          staleTokens.forEach(function(tok) {
+            fetch(SUPABASE_URL + '/rest/v1/fcm_tokens?token=eq.' + encodeURIComponent(tok), {
+              method: 'DELETE', headers: HEADERS
+            }).then(function(dr){
+              if(dr.ok) console.log('[FCM] Stale token deleted:', tok.slice(0,8)+'…');
+              else dr.text().then(function(e){ console.warn('[FCM] Stale token delete failed:', e); });
+            }).catch(function(e){ console.warn('[FCM] Stale token delete error:', e.message); });
           });
         }
       }
     } else {
       var pushErr = await pushRes.text();
-      console.warn('[FCM] fcm-send HTTP error', pushRes.status, '| body:', pushErr);
+      console.warn('[FCM] Push failed HTTP', pushRes.status, '| body:', pushErr);
     }
   } catch(e) {
-    console.warn('[FCM] fcmSendWorkflowPush exception:', e && e.message, e);
+    console.warn('[FCM] fcmSendWorkflowPush error (non-fatal):', e && e.message, e);
   }
 }
 window.fcmSendWorkflowPush = fcmSendWorkflowPush;
-// ════════════════════════════════════════════════════════════════════════════
-// END v96.1 v8 PUSH NOTIFICATION FIX
-// ════════════════════════════════════════════════════════════════════════════
-
 
 // v87.8 — Persistent bell notification writer ──────────────────────────────
 // Writes one row per recipient to Supabase notifications table.
@@ -21769,25 +21160,10 @@ async function writeNotification(opts) {
       };
     });
 
-    // v97 FIX: upsert with resolution=ignore-duplicates (matches unique index
-    // notification_unique_booking_type on (booking_id, type)).
-    // Prevents duplicate notification rows from repeated approval/issue actions.
-    // Guard: ensure every row has recipient_name (NOT NULL constraint).
-    rows = rows.filter(function(r){
-      if(!r.recipient_name || !r.recipient_name.trim()){
-        console.warn('[NOTIF] Skipped row — recipient_name missing:', JSON.stringify(r));
-        return false;
-      }
-      return true;
-    });
-    if(!rows.length){ console.warn('[NOTIF] All rows skipped — no valid recipient_name'); return; }
     await fetch(SUPABASE_URL + '/rest/v1/notifications', {
       method:  'POST',
-      headers: Object.assign({}, HEADERS, {
-        'Content-Type': 'application/json',
-        'Prefer'      : 'resolution=ignore-duplicates,return=minimal'
-      }),
-      body: JSON.stringify(rows)
+      headers: Object.assign({}, HEADERS, { 'Prefer': 'return=minimal' }),
+      body:    JSON.stringify(rows)
     });
     console.log('[NOTIF] Bell rows written:', rows.length, '| type:', type);
   } catch(e) {
@@ -21809,12 +21185,10 @@ async function loadNotificationsFromSupabase() {
     var userName = window.currentUser || '';
     var userRole = window.currentRole || '';
     if (!userName || !userRole) return;
-    // v97: query uses GET-only headers (no Content-Type) to avoid CORS preflight
     var url = SUPABASE_URL + '/rest/v1/notifications'
       + '?recipient_name=eq.' + encodeURIComponent(userName)
-      + '&or=(recipient_role.eq.' + encodeURIComponent(userRole) + ',recipient_role.eq.all)'
-      + '&order=created_at.desc'
-      + '&limit=50';
+      + '&recipient_role=eq.' + encodeURIComponent(userRole)
+      + '&order=created_at.desc&limit=50';
     var res = await fetch(url, { headers: HEADERS });
     if (!res.ok) { console.warn('[NOTIF] Load failed:', res.status); return; }
     var rows = await res.json();
@@ -21883,7 +21257,7 @@ window.fcmInitAfterLogin = fcmInitAfterLogin;
 // END FCM BLOCK
 // ══════════════════════════════════════════════════════════════════════════════
 
-window.JSJC_BUILD = 'production'; // v87_C PROD: admin login/button hidden, stakeholder build
+window.JSJC_BUILD = 'production'; // v96.1 PROD: no admin panel
 const SUPABASE_URL = "https://hvbetluuxgzhtbxahbxa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-9SDd7IcxWMX1FYNyjR6Bg_zjeeCLMI";
 const HEADERS = {
@@ -21891,19 +21265,6 @@ const HEADERS = {
   "Authorization": "Bearer " + SUPABASE_KEY,
   "Content-Type" : "application/json",
   "Prefer"       : "return=representation"
-};
-
-// v96.1 v8 FIX — MOVED HERE: FCM_GET_HEADERS must be declared AFTER const SUPABASE_KEY.
-// Previously declared at line ~21190 inside the FCM block, BEFORE SUPABASE_KEY (line ~21571).
-// const uses Temporal Dead Zone — reading SUPABASE_KEY before its declaration throws:
-//   ReferenceError: Cannot access 'SUPABASE_KEY' before initialization
-// This crashed the entire script at line 21190, making SUPABASE_URL, HEADERS, all Supabase
-// functions, and every push notification function completely unreachable. This was the
-// TRUE primary blocker — all other findings (CORS, URL encoding, retry) were unreachable
-// while this error existed.
-var FCM_GET_HEADERS = {
-  'apikey'       : SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY
 };
 
 // v80.30: identifies THIS deployment to the shared platform_licenses table
@@ -22273,13 +21634,7 @@ window.fetchSupaEditing = async function() {
       // the suite name via rec.location exactly as they expect.
       // Falls back to the legacy .location value (the facility string)
       // for rows that predate the edit_suite column.
-      // v97_B: systems.suite_name is now the source-of-truth column (new
-      // DB column). Prefer it over the legacy edit_suite column, but keep
-      // edit_suite as a fallback for any older rows that predate suite_name.
-      if (s.suite_name) { s.edit_suite = s.suite_name; }
-      else if (s.edit_suite) { s.suite_name = s.edit_suite; }
-      if (s.suite_name) s.location = s.suite_name;
-      else if (s.edit_suite) s.location = s.edit_suite;
+      if (s.edit_suite) s.location = s.edit_suite;
       if (!s.software && s.specifications) s.software = s.specifications;
       if (!s.note && s.manager_note) s.note = s.manager_note;
       // v86.5 FIX BUG 1: os was never mapped from Supabase row onto the record.
@@ -22817,7 +22172,7 @@ async function submitBooking(payload) {
     booking_date         : first.booking_date        || (first.start_time ? first.start_time.split('T')[0] : null),
     assignment_name      : first.assignment_name     || first.asgnName  || null,
     assignment_number    : first.assignment_number   || first.asgnNum   || null,
-    shift_number         : first.shift_number        || first.asgnShift || first.shiftNum || null, // v96.1 v9 FIX 1: asgnShift was missing from this lookup
+    shift_number         : first.shift_number        || first.shiftNum  || null,
     booked_hours         : first.booked_hours        || first.bookedHrs || null,
     // V80.23: allotted-hours flag — surfaced on Professor/Manager dashboards
     // and the booking record so a student requesting more than the tag's
@@ -23116,44 +22471,23 @@ async function safeParseJson(res){
 // so nothing gets silently pulled out from under an active action. Reuses
 // the exact same fetch+render functions every other action already calls,
 // so a refresh cycle looks identical to any other normal data update.
-// v97_B FIX ISSUE 1: Manager Dashboard excluded from live polling entirely.
-// Root cause: this timer forced a full renderManager() re-render on every
-// cycle the Manager screen was open (even after the v97 hash-guard, ANY
-// other manager/student action anywhere in the app changed the hash and
-// triggered a full card-list rebuild under the Manager's eyes) — visible
-// as a jerk/interruption while a manager was mid-review of a booking.
-// Fix: Manager Dashboard no longer participates in this timer AT ALL — no
-// background fetch, no re-render, no hash tracking while screen-manager is
-// active. Managers still see fresh data on every explicit action (approve/
-// issue/return all already call fetchAndRenderBookings()+renderManager()
-// directly) and on next screen entry. Professor-facing (Approve) and
-// resource-availability (Book/calendar) views KEEP live updates — extended
-// to also cover screen-professor so approval queues stay near-real-time,
-// consistent with the calendar's existing behaviour. Timer stays 10s for
-// conflict detection but only triggers a full render on actual data change.
-window._autoRefreshLastHash = '';
 window._autoRefreshTimer = setInterval(function(){
   try{
     var bookScreen = document.getElementById('screen-book');
-    var profScreen = document.getElementById('screen-professor');
+    var mgrScreen  = document.getElementById('screen-manager');
     var onBook = bookScreen && bookScreen.classList.contains('active');
-    var onProf = profScreen && profScreen.classList.contains('active');
-    // Manager Dashboard intentionally excluded — see note above.
-    if(!onBook && !onProf) return;
+    var onMgr  = mgrScreen  && mgrScreen.classList.contains('active');
+    if(!onBook && !onMgr) return; // not on a screen that needs live conflict data
     var activeTag = (document.activeElement && document.activeElement.tagName) || '';
-    if(['INPUT','SELECT','TEXTAREA'].indexOf(activeTag) !== -1) return;
-    if(window._fetchInProgress) return;
+    if(['INPUT','SELECT','TEXTAREA'].indexOf(activeTag) !== -1) return; // user mid-interaction — skip this cycle
+    if(window._fetchInProgress) return; // already refreshing
     window.fetchAndRenderBookings().then(function(){
-      // Only re-render if booking data actually changed (prevents visual jerk)
-      var bks = S && S.bookings ? S.bookings : [];
-      var newHash = String(bks.length) + '|' + (bks[0] && bks[0].created_at || '') + '|' + (bks[bks.length-1] && bks[bks.length-1].id || '');
-      if(newHash === window._autoRefreshLastHash) return; // no change — skip re-render
-      window._autoRefreshLastHash = newHash;
       if(onBook && typeof window.renderCalendar==='function') window.renderCalendar();
-      if(onProf && typeof window.renderApprovals==='function') window.renderApprovals();
-    }).catch(function(e){ console.warn('auto-refresh failed:', e && e.message); });
-    if(onBook && typeof window.fetchCalendarBookings === 'function') window.fetchCalendarBookings();
-  } catch(e){ console.warn('auto-refresh guard error:', e && e.message); }
+      if(onMgr  && typeof window.renderManager==='function')  window.renderManager();
+    }).catch(function(e){ console.warn('⚠️ auto-refresh cycle failed silently:', e && e.message); });
+    // v89 FIX 3: also refresh calendar occupancy on every 10s cycle
+    if(typeof window.fetchCalendarBookings === 'function') window.fetchCalendarBookings();
+  } catch(e){ console.warn('⚠️ auto-refresh guard error:', e && e.message); }
 }, 10000);
 
 // v89 FIX 3 / v89.2 CRIT: fetchCalendarBookings — lightweight slot-occupancy fetch.
@@ -23381,7 +22715,6 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         // (sent as-is from S.cat on submit — see submitBooking) and is now the single source this
         // reads from, matching the local-insert mapper's own cat alias at ~L16867.
         cat           : b.resource_category || '',
-        location      : b.location || '',  // v96.1 v9 FIX 3: location was never mapped from Supabase — algEditSuiteName always fell back to resource name stripping
         // v80.32T SELF-HEAL: booking code prefix is derived from S.cat at creation
         // time and is stored in booking_code — it is a reliable categorical signal.
         // If resource_category in Supabase disagrees with the prefix (data integrity
@@ -23429,11 +22762,8 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         bkNum         : b.booking_code  || '',
         issueNum      : b.issue_number  || '',
         returnNum     : b.return_id     || '',
-        issuedBy      : b.issued_by           || '',
-        // v97 FIX: received_by column restored to schema — now read directly from DB.
-        // Never fall back to issued_by here — issuedBy and receivedBy are different people.
-        receivedBy    : b.received_by          || '',
-        receivedByRole: b.received_by_role     || '',
+        issuedBy      : b.issued_by          || '',
+        receivedBy    : '',  // v90.9a: received_by column absent from schema — attribution via issuedBy fallback in resolveOperationalManager
         joint_students : b.joint_students     || null,
         approved_by    : b.approved_by        || null,
         professor_email: b.professor_email    || '',
@@ -23459,15 +22789,7 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         shift_number   : b.shift_number       || '',
         booked_hours   : b.booked_hours       || 0,
         used_hours     : b.used_hours         || 0,
-        // v87_C ROOT-CAUSE FIX: this line previously read b.carry_forward_hours
-        // (full spelling) but every write path (markReceived's return PATCH,
-        // and the SQL migration that created the column) uses the abbreviated
-        // bookings.carry_forward_hrs. That name mismatch meant this field was
-        // ALWAYS undefined on every fetch, regardless of what was persisted —
-        // the actual root cause of "carry_forward_hours remain 0 after
-        // issue/return processing". Fixed to read the real column, with the
-        // full-spelling name kept only as a legacy fallback.
-        carry_forward_hours: (b.carry_forward_hrs != null ? b.carry_forward_hrs : b.carry_forward_hours) || 0,
+        carry_forward_hours: b.carry_forward_hours || 0,
         batch          : b.batch              || '',
         created_at     : b.created_at         || null,
         email          : b.email              || '',
@@ -23485,9 +22807,7 @@ window.fetchAndRenderBookings = async function(unfiltered) {
         asgnNum         : b.assignment_number || '',
         asgnShift       : b.shift_number      || '',
         usedHrs         : (b.used_hours != null ? b.used_hours : null),
-        // v87_C: same column-name fix mirrored onto the camelCase alias every
-        // card/board renderer actually reads (carryForwardHrs).
-        carryForwardHrs : (b.carry_forward_hrs != null ? b.carry_forward_hrs : b.carry_forward_hours) || 0,
+        carryForwardHrs : b.carry_forward_hours || 0,
         overAllottedHours: !!b.over_allotted_hours,
         allottedHours   : (b.allotted_hours != null ? b.allotted_hours : null),
         // V73 FIX: cancellation/denial timestamp + actor — Process Timeline was
@@ -23634,26 +22954,10 @@ window.fetchAndRenderBookings = async function(unfiltered) {
     })();
     // v90.7: Check for 5PM auto-cancel on every poll cycle
     if(typeof window.check5PMAutoCancel === 'function') window.check5PMAutoCancel();
-    // v96.1 FIX 1: End-of-day Kit Ready auto-cancel (replaces 5PM logic — fires 23:55-23:59 IST)
-    if(typeof window.checkEndOfDayKitReadyAutoCancel === 'function') window.checkEndOfDayKitReadyAutoCancel();
-    // v91A: Check for 11:59 PM pending auto-cancel on every poll cycle
-    if(typeof window.check1159AutoCancel === 'function') window.check1159AutoCancel();
-    // Notify students whose booking just auto-cancelled for no-show — once
-    // only per booking, tracked locally so the 30s poll doesn't resend it.
-    window._noShowNotified = window._noShowNotified || {};
-    // V56: defensive guard
-    (S.bookings||[]).forEach(function(b){
-      if(b.ks === 'autocancelled' && !window._noShowNotified[String(b.id)]){
-        window._noShowNotified[String(b.id)] = true;
-        if(typeof window.sendEmailNotification === 'function' && b.studentEmail){
-          window.sendEmailNotification(
-            b.studentEmail,
-            '⏱️ Booking Auto-Cancelled — No Show: ' + (b.resource||''),
-            'Hi ' + (b.student||'') + ', your booking for ' + (b.resource||'') + ' (' + (b.start_time ? new Date(b.start_time).toLocaleString('en-IN') : '—') + ') was auto-cancelled because the kit wasn\'t collected within 15 minutes of your slot start. If you\'ve now arrived, ask the Studio Manager to revoke this within the next few minutes — after that it will be finalized as cancelled.'
-          );
-        }
-      }
-    });
+    // PROD BUILD: auto-cancel functions completely disabled — no automatic status changes
+    // checkEndOfDayKitReadyAutoCancel and check1159AutoCancel are no-ops in this build.
+    // Bookings remain active until Studio Manager or Admin manually cancels them.
+    // PROD BUILD: no-show auto-notification suppressed — auto-cancel is fully disabled in this build.
     renderApprovals();
     renderManager();
     renderStudentBookings();
@@ -24265,7 +23569,8 @@ window.check5PMAutoCancel = function(){ /* v96.1: disabled — use checkEndOfDay
 
 // v96.1: End-of-day Kit Ready auto-cancel (23:55-23:59 IST).
 window._eodKitReadyCancelFired = window._eodKitReadyCancelFired || {};
-window.checkEndOfDayKitReadyAutoCancel = async function(){
+window.checkEndOfDayKitReadyAutoCancel = function(){ /* PROD BUILD: all auto-cancellation disabled — bookings stay active until manually actioned by Studio Manager */ };
+window._checkEndOfDayKitReadyAutoCancel_DISABLED = async function(){
   var _nowIST  = new Date(Date.now() + 5.5*60*60*1000);
   var _istHour = _nowIST.getUTCHours();
   var _istMin  = _nowIST.getUTCMinutes();
@@ -24311,7 +23616,8 @@ window.checkEndOfDayKitReadyAutoCancel = window.checkEndOfDayKitReadyAutoCancel;
 // at 11:59 PM on its scheduled booking date is auto-cancelled.
 // This does NOT affect approved, issued, returned, or already-cancelled bookings.
 window._1159AutoCancelFired = window._1159AutoCancelFired || {};
-window.check1159AutoCancel = async function(){
+window.check1159AutoCancel = function(){ /* PROD BUILD: pending auto-cancel disabled — bookings remain active until Manager/Admin manually cancels */ };
+window._check1159AutoCancel_DISABLED = async function(){
   var _nowIST = new Date(Date.now() + 5.5*60*60*1000);
   var _istHour = _nowIST.getUTCHours();
   var _istMin  = _nowIST.getUTCMinutes();
@@ -25024,7 +24330,7 @@ function renderStudentBookings() {
     // -- [2b] purpose (V68.3: was captured from the DB but never displayed) --
     var purposeLabelsMap = {general:'General Practice',classhour:'Class Hour Practice',assignment:'Assignment',jsjci:'JSJC Initiatives',radio:'Radio JSJC',jsjc:'JSJC Event',jgu:'JGU Event'};
     var purposeText = purposeLabelsMap[b.strat] || (b.strat ? b.strat : '');
-    // v96.1: stamp Radio programme tag in report — "Radio JSJC | #Deep_Dives"
+    // v96.1 FIX: stamp Radio programme tag — "Radio JSJC | #Deep_Dives"
     if(b.strat === 'radio' && (b.radioTagName || b.radio_tag_name)){
       var _rtagR = (b.radioTagName || b.radio_tag_name || '').replace(/^#/,'');
       if(_rtagR) purposeText = 'Radio JSJC | #' + _rtagR;
@@ -28535,55 +27841,9 @@ window.pcOpenHistory = pcOpenHistory;
 // support (e.g. the file:// fallback case noted at the top of <head>).
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(function(reg) {
-        console.log('[SW] Registered. Scope:', reg.scope);
-
-        // v97 FIX ISSUE 1: Handle new SW waiting to activate.
-        // When a new SW is installed but waiting (old SW still controlling),
-        // we post skipWaiting to the new SW and reload once it takes control.
-        // This ensures new deployments activate on the NEXT page load without
-        // requiring manual hard-refresh.
-        function _onSwUpdateReady(worker) {
-          // Only trigger once per page load
-          if (window._swUpdatePending) return;
-          window._swUpdatePending = true;
-          console.log('[SW] New version available — posting skipWaiting');
-          worker.postMessage({ type: 'SKIP_WAITING' });
-        }
-
-        // Case 1: There is already a waiting SW on this registration
-        if (reg.waiting) {
-          _onSwUpdateReady(reg.waiting);
-        }
-
-        // Case 2: A new SW installs while this page is open
-        reg.addEventListener('updatefound', function() {
-          var newWorker = reg.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', function() {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              _onSwUpdateReady(newWorker);
-            }
-          });
-        });
-
-        // When the new SW takes control, reload the page once to show the new version
-        var _reloadOnControl = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (_reloadOnControl) return;
-          _reloadOnControl = true;
-          console.log('[SW] Controller changed — reloading to activate new version');
-          window.location.reload();
-        });
-
-        // Periodically check for SW updates (every 30 minutes)
-        // More frequent checks waste bandwidth — the browser checks on navigation anyway
-        setInterval(function() { reg.update(); }, 30 * 60 * 1000);
-      })
-      .catch(function(err) {
-        console.warn('[SW] Registration skipped:', err.message);
-      });
+    navigator.serviceWorker.register('service-worker.js').catch(function(err) {
+      console.warn('Service worker registration skipped:', err.message);
+    });
   });
 }
 </script>
